@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"server/internal/api/res"
 	"server/internal/model"
-	"log"
 )
 
 func (h *Handler) HandleGetTables(c *fiber.Ctx) error {
@@ -102,7 +101,6 @@ func (h *Handler) HandleUpdatePositionTable(c *fiber.Ctx) error {
 
 	_, err := h.db.Exec("UPDATE tables SET position_x = ?, position_y = ?, updated_at = NOW() WHERE id = ?", updatedTable.PositionX, updatedTable.PositionY, id)
 	if err != nil {
-		log.Printf("Failed to execute update query: %v", err) // Log the exact error
 		res := res.NewResponse(false, "Failed to update table", nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(res)
 	}
