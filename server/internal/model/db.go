@@ -23,6 +23,8 @@ type Table struct {
 	ID        int       `db:"id" json:"id"`
 	RoomID    int       `db:"room_id" json:"room_id"`
 	IsFree    bool      `db:"is_free" json:"is_free"`
+	PositionX float64       `db:"position_x" json:"position_x"`
+	PositionY float64       `db:"position_y" json:"position_y"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }

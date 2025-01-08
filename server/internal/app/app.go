@@ -77,7 +77,8 @@ func (a *App) setupRoutes() {
 	// Put Methods
 	buildings.Put("/:id", a.handler.HandleUpdateBuilding)
 	rooms.Put("/:id", a.handler.HandleUpdateRoom)
-	tables.Put("/:id", a.handler.HandleUpdateTable)
+	tables.Put("/:id", a.handler.HandleUpdateIsFreeTable)
+	tables.Put("/position/:id", a.handler.HandleUpdatePositionTable)
 	parking_warning.Put("/:license_plate", a.handler.HandleUpdateAmountOfWarnings)
 
 	// Delete Methods

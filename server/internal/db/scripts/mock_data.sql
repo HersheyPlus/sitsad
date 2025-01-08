@@ -15,12 +15,13 @@ INSERT INTO rooms (building_id, name, created_at, updated_at) VALUES
 (3, 'Room 301', NOW(), NOW());
 
 -- Insert mock-up data into tables table
-INSERT INTO tables (room_id, is_free, created_at, updated_at) VALUES
-(1, TRUE, NOW(), NOW()),
-(1, FALSE, NOW(), NOW()),
-(2, TRUE, NOW(), NOW()),
-(3, TRUE, NOW(), NOW()),
-(3, FALSE, NOW(), NOW());
+INSERT INTO tables (room_id, is_free, position_x, position_y, created_at, updated_at) VALUES
+(1, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
+(1, FALSE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
+(2, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
+(3, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
+(3, FALSE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW());
+
 
 -- Insert mock-up data into toilets table
 INSERT INTO toilets (floor, building_id, toilet_number, gender, is_free, created_at, updated_at) VALUES
