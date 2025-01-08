@@ -1,0 +1,8 @@
+USE hackathon2025;
+DROP TABLE IF EXISTS buildings;
+DROP TABLE IF EXISTS parking_warning;
+DROP TABLE IF EXISTS toilets;
+DROP TABLE IF EXISTS tables;
+DROP TABLE IF EXISTS rooms;
+
+DROP DATABASE IF EXISTS hackathon2025;

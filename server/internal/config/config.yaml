@@ -1,0 +1,15 @@
+database:
+  host: localhost
+  port: 3306
+  user: root
+  password: 1234
+  name: hackathon2025
+  sslmode: disable
+  max_connections: 100
+
+server:
+  port: 8080
+  host: localhost
+  timeout: 30s
+  read_timeout: 15s
+  write_timeout: 15s

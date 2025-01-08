@@ -1,0 +1,61 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.bin
+
+# Build directories
+_build/
+build/
+
+# Output of `go build` or `go run`
+*.out
+
+# Vendor directory (if using `go mod vendor`)
+/vendor/
+
+# Dependency directories created by tools like `dep`
+Gopkg.lock
+Gopkg.toml
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.air.toml
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# GoLand
+*.iml
+/out/
+
+# Test binary files
+*.test
+
+# Coverage files
+*.cover
+coverage.out
+
+# Generated files (protobuf, mock, etc.)
+*.pb.go
+*.mock.go
+
+# Go modules
+go.sum
+
+# Cache directories created by `go build` or `go test`
+/*.cache
