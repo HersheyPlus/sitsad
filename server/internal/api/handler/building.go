@@ -1,107 +1,88 @@
 package handler
 
+
 import (
-	"server/internal/api/res"
-	"server/internal/model"
 	"github.com/gofiber/fiber/v2"
+	"server/internal/model"
+	res "server/internal/utils"
+	"gorm.io/gorm"
 )
 
-func (h *Handler) HandleGetBuildings(c *fiber.Ctx) error {
-	buildings := []model.Building{}
-	err := h.db.Select(&buildings, "SELECT * FROM buildings")
-	if err != nil {
-		res := res.NewResponse(false, "Failed to fetch buildings", nil)
-		return c.Status(fiber.StatusInternalServerError).JSON(res)
+func (h *Handler) GetListBuildings(c *fiber.Ctx) error {
+	var buildings []model.Building
+	if err := h.db.Find(&buildings).Error; err != nil {
+		return res.InternalServerError(c, err)
 	}
-	res := res.NewResponse(true, "Buildings fetched successfully", buildings)
-	return c.Status(fiber.StatusOK).JSON(res)
+	return res.GetSuccess(c, "List of buildings", buildings)
 }
 
-func (h *Handler) HandleGetBuildingByID(c *fiber.Ctx) error {
+func (h *Handler) GetBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")
-	building := model.Building{}
-	err := h.db.Get(&building, "SELECT * FROM buildings WHERE id = ?", id)
-
-	if err != nil {
-		res := res.NewResponse(false, "Building not found", nil)
-		return c.Status(fiber.StatusInternalServerError).JSON(res)
+	var building model.Building
+	result := h.db.First(&building, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return res.NotFound(c, "Building", result.Error)
+		}
 	}
-	res := res.NewResponse(true, "Building fetched successfully", building)
-	return c.Status(fiber.StatusOK).JSON(res)
+	return res.GetSuccess(c, "Building found", building)
 }
 
-func (h *Handler) HandleCreateBuilding(c *fiber.Ctx) error {
-    building := &model.Building{}
-    c.Accepts("application/json", "json")
-
-    if err := c.BodyParser(building); err != nil {
-        res := res.NewResponse(false, "Invalid input", nil)
-        return c.Status(fiber.StatusBadRequest).JSON(res)
-    }
-
-    if building.Name == "" {
-        res := res.NewResponse(false, "Building name is required", nil)
-        return c.Status(fiber.StatusBadRequest).JSON(res)
-    }
-
-    building.Name = "Building " + building.Name
-
-    var existingName string
-    query := "SELECT name FROM buildings WHERE name = ?"
-    err := h.db.QueryRow(query, building.Name).Scan(&existingName)
-    if err == nil {
-        res := res.NewResponse(false, "Building already exists", nil)
-        return c.Status(fiber.StatusConflict).JSON(res)
-    }
-
-    insertQuery := "INSERT INTO buildings (name) VALUES (?)"
-    _, err = h.db.Exec(insertQuery, building.Name)
-    if err != nil {
-        res := res.NewResponse(false, "Failed to create building", building)
-        return c.Status(fiber.StatusInternalServerError).JSON(res)
-    }
-
-    res := res.NewResponse(true, "Building created successfully", building)
-    return c.Status(fiber.StatusCreated).JSON(res)
+func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
+	var building model.Building
+	if err := c.BodyParser(&building); err != nil {
+		return res.BadRequest(c, err.Error())
+	}
+	if (building.BuildingName == "") {
+		return res.BadRequest(c, "building_name is required")
+	}
+	if err := h.db.Create(&building).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+	return res.CreatedSuccess(c, building)
 }
 
-func (h *Handler) HandleUpdateBuilding(c *fiber.Ctx) error {
-    id := c.Params("id")
-    updatedBuilding := &model.Building{}
-    c.Accepts("application/json", "json")
-
-    if err := c.BodyParser(updatedBuilding); err != nil {
-        res := res.NewResponse(false, "Invalid input", nil)
-        return c.Status(fiber.StatusBadRequest).JSON(res)
-    }
-
-    query := "SELECT * FROM buildings WHERE name = ? AND id != ?"
-    err := h.db.Get(query, updatedBuilding.Name, id)
-    if err == nil {
-		res := res.NewResponse(false, "Building's name already exists", nil)
-        return c.Status(fiber.StatusInternalServerError).JSON(res)
-    }
-
-    updateQuery := "UPDATE buildings SET name = ?, updated_at = NOW() WHERE id = ?"
-    _, err = h.db.Exec(updateQuery, updatedBuilding.Name, id)
-    if err != nil {
-        res := res.NewResponse(false, "Failed to update building", nil)
-        return c.Status(fiber.StatusInternalServerError).JSON(res)
-    }
-
-    res := res.NewResponse(true, "Building updated successfully", updatedBuilding)
-    return c.Status(fiber.StatusOK).JSON(res)
-}
-
-func (h *Handler) HandleDeleteBuilding(c *fiber.Ctx) error {
+func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := "DELETE FROM buildings WHERE id = ?"
-	_, err := h.db.Exec(query, id)
-	if err != nil {
-		res := res.NewResponse(false, "Failed to delete building", nil)
-		return c.Status(fiber.StatusInternalServerError).JSON(res)
+	var building model.Building
+	result := h.db.First(&building, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return res.NotFound(c, "Building", result.Error)
+		}
+	}
+	if err := c.BodyParser(&building); err != nil {
+		return res.BadRequest(c, err.Error())
 	}
 
-	res := res.NewResponse(true, "Building deleted successfully", nil)
-	return c.Status(fiber.StatusOK).JSON(res)
+	if err := h.db.Save(&building).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+	return res.UpdatedSuccess(c, building)
+}
+
+func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var building model.Building
+	result := h.db.First(&building, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return res.NotFound(c, "Building", result.Error)
+		}
+	}
+	if err := h.db.Delete(&building).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+	return res.DeleteSuccess(c)
+}
+
+func (h *Handler) ExistingBuilding(c *fiber.Ctx, buildingId int) bool {
+	var building model.Building
+	result := h.db.First(&building, buildingId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return false
+		}
+	}
+	return true
 }

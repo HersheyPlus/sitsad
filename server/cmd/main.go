@@ -15,13 +15,21 @@ func main() {
 		log.Fatal("Failed to load configuration: ", err)
 	}
 
-	conn, err := db.NewDatabase(cfg)
+	// Initialize database connection
+	dbConn, err := db.NewDatabase(cfg)
 	if err != nil {
 		log.Fatal("Failed to initialize database: ", err)
 	}
-	defer conn.Close()
 
-	app := app.NewApp(conn.DB, cfg)
+	// Get the underlying sql.DB instance for deferred closing
+	sqlDB, err := dbConn.DB.DB()
+	if err != nil {
+		log.Fatal("Failed to get underlying database connection: ", err)
+	}
+	defer sqlDB.Close()
+
+	// Initialize application with GORM DB instance
+	app := app.NewApp(dbConn.DB, cfg)
 	if err := app.Start(); err != nil {
 		log.Fatal("Failed to start application: ", err)
 	}

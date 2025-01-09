@@ -1,41 +1,35 @@
 USE hackathon2025;
 
--- Insert mock-up data into buildings table
-INSERT INTO buildings (name, created_at, updated_at) VALUES
-('Building A', NOW(), NOW()),
-('Building B', NOW(), NOW()),
-('Building C', NOW(), NOW());
+-- Populate `buildings`
+INSERT INTO buildings (building_name) VALUES
+('Main Building'),
+('Annex Building');
 
--- Insert mock-up data into rooms table
-INSERT INTO rooms (building_id, name, created_at, updated_at) VALUES
-(1, 'Room 101', NOW(), NOW()),
-(1, 'Room 102', NOW(), NOW()),
-(2, 'Room 201', NOW(), NOW()),
-(2, 'Room 202', NOW(), NOW()),
-(3, 'Room 301', NOW(), NOW());
+-- Populate `rooms`
+INSERT INTO rooms (building_id, room_name, description, floor, image_url) VALUES
+(1, 'Conference Room', 'Spacious room for meetings', 1, 'http://example.com/conference_room.jpg'),
+(1, 'Restroom', 'Clean restroom with all facilities', 1, 'http://example.com/restroom.jpg'),
+(2, 'Study Room', 'Quiet space for study', 2, 'http://example.com/study_room.jpg');
 
--- Insert mock-up data into tables table
-INSERT INTO tables (room_id, is_free, position_x, position_y, created_at, updated_at) VALUES
-(1, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
-(1, FALSE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
-(2, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
-(3, TRUE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW()),
-(3, FALSE, ROUND(RAND() * 100, 2), ROUND(RAND() * 100, 2), NOW(), NOW());
+-- Populate `items` with type `table`
+INSERT INTO items (type, building_id, room_id, available, position_x, position_y, width, height, floor, number) VALUES
+('table', 1, 1, true, 10.5, 20.3, 1.5, 1.0, 1, 1),
+('table', 1, 1, true, 11.5, 21.3, 1.5, 1.0, 1, 2),
+('table', 2, 3, true, 15.0, 25.0, 1.5, 1.0, 2, 3);
 
+-- Populate `items` with type `table` and `toilet`
+INSERT INTO items (type, building_id, available, position_x, position_y, width, height, floor, number, gender) VALUES
+('toilet', 1, true, 5.0, 10.0, 2.0, 1.5, 1, 3, 'Male'),
+('toilet', 1, true, 6.0, 11.0, 2.0, 1.5, 1, 4, 'Female'),
+('toilet', 2, true, 12.0, 15.0, 2.0, 1.5, 2, 5, 'Unisex');
 
--- Insert mock-up data into toilets table
-INSERT INTO toilets (floor, building_id, toilet_number, gender, is_free, created_at, updated_at) VALUES
-(1, 1, 1, 'male', TRUE, NOW(), NOW()),
-(1, 1, 2, 'female', TRUE, NOW(), NOW()),
-(2, 2, 1, 'female', FALSE, NOW(), NOW()),
-(2, 2, 2, 'male', TRUE, NOW(), NOW()),
-(3, 3, 1, 'female', TRUE, NOW(), NOW());
+-- Populate `parking_warnings`
+INSERT INTO parking_warnings (license_plate, building_id, amount_of_warnings) VALUES
+('ABC1234', 1, 2),
+('XYZ5678', 2, 1);
 
--- Insert mock-up data into car_parks table
-INSERT INTO parking_warning (license_plate, building_id, amount_of_warnings, created_at, updated_at) VALUES
-('AB123CD', 1, 0, NOW(), NOW()),
-('EF456GH', 2, 1, NOW(), NOW()),
-('IJ789KL', 2, 0, NOW(), NOW()),
-('MN012OP', 3, 2, NOW(), NOW()),
-('QR345ST', 1, 1, NOW(), NOW());
-
+-- Populate `booking_time_periods` (assuming a `tables` table exists)
+INSERT INTO booking_time_periods (item_id, started_booking_time, ended_booking_time) VALUES
+(1, '2025-01-09 10:00:00', '2025-01-09 12:00:00'),
+(2, '2025-01-10 14:00:00', '2025-01-10 16:00:00'),
+(3, '2025-01-11 18:00:00', '2025-01-11 20:00:00');

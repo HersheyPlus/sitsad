@@ -3,26 +3,23 @@ package app
 
 import (
 	"fmt"
+	"server/internal/api/handler"
+	"server/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/jmoiron/sqlx"
-	"server/internal/api/handler"
-	"server/internal/model"
-	"github.com/gofiber/websocket/v2"
-	"server/internal/ws"
+	"gorm.io/gorm"
 )
 
 type App struct {
-	db     *sqlx.DB
-	app    *fiber.App
-	config *model.AppConfig
+	db      *gorm.DB
+	app     *fiber.App
+	config  *model.AppConfig
 	handler *handler.Handler
-	hub     *ws.Hub
 }
 
-func NewApp(db *sqlx.DB, cfg *model.AppConfig) *App {
+func NewApp(db *gorm.DB, cfg *model.AppConfig) *App {
 	app := fiber.New(
 		fiber.Config{
 			ReadTimeout:  cfg.ServerConfig.ReadTimeout,
@@ -38,70 +35,44 @@ func NewApp(db *sqlx.DB, cfg *model.AppConfig) *App {
 	app.Use(logger.New())
 	app.Use(recover.New())
 
-	hub := ws.NewHub()
-	handler := handler.NewHandler(db, hub)
+	handler := handler.NewHandler(db)
 
 	return &App{
 		app:     app,
 		db:      db,
 		config:  cfg,
 		handler: handler,
-		hub:     hub,
 	}
 }
 
 func (a *App) setupRoutes() {
-	api := a.app.Group("/api")
-	buildings := api.Group("/buildings")
-	parking_warning := api.Group("/carparks")
-	rooms := api.Group("/rooms")
-	tables := api.Group("/tables")
-	toilets := api.Group("/toilets")
+	api := a.app.Group("/api")	
 
 	// Buildings Routes
-	buildings.Get("/", a.handler.HandleGetBuildings)
-	buildings.Get("/:id", a.handler.HandleGetBuildingByID)
-	buildings.Post("/", a.handler.HandleCreateBuilding)
-	buildings.Put("/:id", a.handler.HandleUpdateBuilding)
-	buildings.Delete("/:id", a.handler.HandleDeleteBuilding)
+	buildings := api.Group("/buildings")
+	buildings.Get("/", a.handler.GetListBuildings)
+	buildings.Get("/:id", a.handler.GetBuilding)
+	buildings.Post("/", a.handler.CreateBuilding)
+	buildings.Put("/:id", a.handler.UpdateBuilding)
+	buildings.Delete("/:id", a.handler.DeleteBuilding)
 
 	// Rooms Routes
-	rooms.Get("/", a.handler.HandleGetRooms)
-	rooms.Get("/:id", a.handler.HandleGetRoomByID)
-	rooms.Post("/", a.handler.HandleCreateRoom)
-	rooms.Delete("/:id", a.handler.HandleDeleteRoom)
-	rooms.Put("/:id", a.handler.HandleUpdateRoom)
+	rooms := api.Group("/rooms")
+	rooms.Get("/", a.handler.GetListRooms)
+	rooms.Get("/:id", a.handler.GetRoom)
+	rooms.Post("/", a.handler.CreateRoom)
+	rooms.Put("/:id", a.handler.UpdateRoom)
+	rooms.Delete("/:id", a.handler.DeleteRoom)
 
-	// Tables Routes
-	tables.Get("/", a.handler.HandleGetTables)
-	tables.Get("/:id", a.handler.HandleGetTableByID)
-	tables.Post("/", a.handler.HandleCreateTable)
-	tables.Put("/:id", a.handler.HandleUpdateIsFreeTable)
-	tables.Put("/position/:id", a.handler.HandleUpdatePositionTable)
-	tables.Delete("/:id", a.handler.HandleDeleteTable)
-
-	// Toilets Routes
-	a.app.Use("/ws", func(c *fiber.Ctx) error {
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
-		}
-		return fiber.ErrUpgradeRequired
-	})
-	a.app.Get("/ws/toilets", websocket.New(a.handler.HandleToiletWebSocket))
-
-	toilets.Get("/", a.handler.HandleGetToilets)
-	toilets.Get("/:id", a.handler.HandleGetToiletByID)
-	toilets.Post("/", a.handler.HandleCreateToilet)
-	toilets.Delete("/:id", a.handler.HandlerDeleteToilet)
-	toilets.Put("/:id", a.handler.HandlerUpdateIsFreeToilet)
-
-	// Parking Warning Methods
-	parking_warning.Get("/:license_plate", a.handler.HandleGetParkingWarningByLicensePlate)
-	parking_warning.Get("/", a.handler.HandleGetParkingWarningLicensePlates)
-	parking_warning.Post("/", a.handler.HandleCreateParkingWarningLicensePlate)
-	parking_warning.Put("/:license_plate", a.handler.HandleUpdateAmountOfWarnings)
-	parking_warning.Delete("/:license_plate", a.handler.HandleDeleteLicensePlate)
+	// Item Routes
+	items := api.Group("/items")
+	items.Get("/tables", a.handler.GetListTables)
+	items.Get("/toilets", a.handler.GetListToilets)
+	items.Get("/tables/:id", a.handler.GetTable)
+	items.Get("/toilets/:id", a.handler.GetToilet)
+	items.Post("/table", a.handler.CreateTable)
+	items.Post("/toilet", a.handler.CreateToilet)
+	items.Put("/available/:id", a.handler.UpdateItemAvailable)
 }
 
 func (a *App) Start() error {
