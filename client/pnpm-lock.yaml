@@ -32,6 +32,9 @@ dependencies:
   react-icons:
     specifier: ^5.4.0
     version: 5.4.0(react@18.3.1)
+  react-rnd:
+    specifier: ^10.4.14
+    version: 10.4.14(react-dom@18.3.1)(react@18.3.1)
   react-router:
     specifier: ^7.1.1
     version: 7.1.1(react-dom@18.3.1)(react@18.3.1)
@@ -2890,6 +2893,19 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /react-rnd@10.4.14(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-NLGc3IymymumPfHy3DXiHNIMOiTlj6xBNb2boHqrtwCgYDasNarpg8tdUY36JlJbrs0E4BvjYBkfEGqUPBsukg==}
+    peerDependencies:
+      react: '>=16.3.0'
+      react-dom: '>=16.3.0'
+    dependencies:
+      re-resizable: 6.10.3(react-dom@18.3.1)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-draggable: 4.4.6(react-dom@18.3.1)(react@18.3.1)
+      tslib: 2.6.2
+    dev: false
+
   /react-router-dom@7.1.1(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-vSrQHWlJ5DCfyrhgo0k6zViOe9ToK8uT5XGSmnuC2R3/g261IdIMpZVqfjD6vWSXdnf5Czs4VA/V60oVR6/jnA==}
     engines: {node: '>=20.0.0'}
@@ -3195,6 +3211,10 @@ packages:
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
+
+  /tslib@2.6.2:
+    resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
+    dev: false
 
   /turbo-stream@2.4.0:
     resolution: {integrity: sha512-FHncC10WpBd2eOmGwpmQsWLDoK4cqsA/UT/GqNoaKOQnT8uzhtCbg3EoUDMvqpOSAI0S26mr0rkjzbOO6S3v1g==}

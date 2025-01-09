@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'antd';
-import AdminView from '@/components/Pages/Table/AdminView';
+import AdminView from '@/components/Pages/Table/admin/AdminTableLayout';
 import UserView from '@/components/Pages/Table/UserView';
 
 interface Table {
@@ -64,4 +64,3 @@ const TablePage: React.FC = () => {
 };
 
 export default TablePage;
-

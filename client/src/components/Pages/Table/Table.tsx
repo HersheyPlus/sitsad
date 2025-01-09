@@ -2,13 +2,13 @@ import React from 'react';
 
 interface TableProps {
     id: number;
-    isAdmin: boolean;
+    available: boolean;
     width: number;
     height: number;
 }
 
-const Table: React.FC<TableProps> = ({ id, isAdmin, width, height }) => {
-    const bgColor = isAdmin ? 'bg-blue-500' : 'bg-green-500';
+const Table: React.FC<TableProps> = ({ id, available, width, height }) => {
+    const bgColor = available ? 'bg-blue-500' : 'bg-gray-500';
 
     return (
         <div
