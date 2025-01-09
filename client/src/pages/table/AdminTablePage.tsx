@@ -1,13 +1,24 @@
 import React from 'react';
-import TableLayout from '@/components/Pages/Table/TableLayout';
 
-import AdminTableHistory from '@/components/Pages/Table/admin/AdminTableHistory';
+import TableLayout from '@/components/Pages/Table/admin/AdminTableLayout';
+import TableHistory from '@/components/Pages/Table/admin/AdminTableHistory';
+
 import { ITableHistory } from '@/types/table';
 import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/XBreadcrumb';
-import { useParams } from 'react-router-dom';
-import NotFoundPage from '../NotFoundPage';
+
+const breadcrumbItems = [
+    {
+        title: <a href="/">Home</a>,
+    },
+    {
+        title: <a href="/dashboard">Dashboard</a>,
+    },
+    {
+        title: "Table",
+    },
+];
 
 const data: ITableHistory[] = [
     {
@@ -27,30 +38,13 @@ const data: ITableHistory[] = [
 ];
 
 const AdminTablePage: React.FC = () => {
-    const params = useParams();
-
-    const breadcrumbItems = [
-        {
-            title: <a href="/">Home</a>,
-        },
-        {
-            title: <a href="/table">Tables</a>,
-        },
-        {
-            title: params?.slug || "",
-        },
-    ];
-
-    if (!params?.slug) {
-        return <NotFoundPage />
-    }
-
     return (
         <Flex vertical gap={4} className='p-8 bg-gray-100 mi -h-screen'>
             <XBreadcrumb items={breadcrumbItems} />
 
             <TableLayout />
 
+            <TableHistory data={data} />
         </Flex>
     );
 };

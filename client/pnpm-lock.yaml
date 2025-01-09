@@ -14,6 +14,9 @@ dependencies:
   axios:
     specifier: ^1.7.9
     version: 1.7.9
+  dayjs:
+    specifier: ^1.11.13
+    version: 1.11.13
   lucide-react:
     specifier: ^0.469.0
     version: 0.469.0(react@18.3.1)

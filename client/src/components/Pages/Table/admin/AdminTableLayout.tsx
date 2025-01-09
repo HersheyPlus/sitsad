@@ -4,27 +4,23 @@ import Table from '../Table';
 import { Button } from 'antd';
 import { ITable } from '@/types/table';
 
-
-interface IProps {
-    tables: ITable[];
-    updateTablePosition: (id: number, x: number, y: number) => void;
-    updateTableSize: (id: number, width: number, height: number) => void;
-    addTable: () => void;
-}
-
 const GRID_SIZE = 100;
 
-const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: IProps) => {
-    const [grid, setGrid] = useState<ITable[]>(tables);
+const AdminTableLayout = () => {
+    const [tables, setTables] = useState<ITable[]>([
+        { id: 1, x: 0, y: 0, width: 100, height: 100, available: true },
+        { id: 2, x: 200, y: 0, width: 100, height: 100, available: true },
+    ]);
 
-    const snapToGrid = (x: number, y: number) => {
+
+    const doSnapToGrid = (x: number, y: number) => {
         const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
         const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
         return { x: snappedX, y: snappedY };
     };
 
-    const checkOverlap = (id: number, x: number, y: number, width: number, height: number) => {
-        return grid.some((table) => {
+    const doCheckOverlap = (id: number, x: number, y: number, width: number, height: number) => {
+        return tables.some((table) => {
             if (table.id === id) return false; // Don't compare with itself
             return (
                 x < table.x + table.width &&
@@ -36,13 +32,12 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
     };
 
     const doDrag = (id: number, data: { x: number; y: number }) => {
-        const { x: snappedX, y: snappedY } = snapToGrid(data.x, data.y);
+        const { x: snappedX, y: snappedY } = doSnapToGrid(data.x, data.y);
 
         // Check for overlap before allowing the move
-        if (!checkOverlap(id, snappedX, snappedY, grid.find(t => t.id === id)?.width || 100, grid.find(t => t.id === id)?.height || 100)) {
-            updateTablePosition(id, snappedX, snappedY);
-            setGrid((prevGrid) =>
-                prevGrid.map((table) =>
+        if (!doCheckOverlap(id, snappedX, snappedY, tables.find(t => t.id === id)?.width || 100, tables.find(t => t.id === id)?.height || 100)) {
+            setTables((prevTable) =>
+                prevTable.map((table) =>
                     table.id === id ? { ...table, x: snappedX, y: snappedY } : table
                 )
             );
@@ -54,11 +49,10 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
         const snappedHeight = Math.round(height / GRID_SIZE) * GRID_SIZE;
 
         // Check for overlap before allowing the resize
-        const { x, y } = grid.find(t => t.id === id) || { x: 0, y: 0 };
-        if (!checkOverlap(id, x, y, snappedWidth, snappedHeight)) {
-            updateTableSize(id, snappedWidth, snappedHeight);
-            setGrid((prevGrid) =>
-                prevGrid.map((table) =>
+        const { x, y } = tables.find(t => t.id === id) || { x: 0, y: 0 };
+        if (!doCheckOverlap(id, x, y, snappedWidth, snappedHeight)) {
+            setTables((prevTable) =>
+                prevTable.map((table) =>
                     table.id === id ? { ...table, width: snappedWidth, height: snappedHeight } : table
                 )
             );
@@ -69,15 +63,16 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
     const doAddTable = () => {
         const newTable: ITable = {
             id: Date.now(),
+            description: '',
+            available: false,
             x: Math.floor(Math.random() * 5) * GRID_SIZE,
             y: Math.floor(Math.random() * 5) * GRID_SIZE,
-            available: false,
             width: GRID_SIZE,
             height: GRID_SIZE,
         };
 
-        setGrid([...grid, newTable]);
-        addTable();
+        const newId = tables.length + 1;
+        setTables([...tables, { ...newTable, id: newId }]);
     };
 
     return (
@@ -85,11 +80,11 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
             <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize Tables</h2>
             <Button
                 onClick={doAddTable}
-                className="absolute px-4 py-2 font-bold text-white bg-blue-500 rounded top-2 right-2 hover:bg-blue-700 z-[1000]">
+                className="absolute px-8 py-4 font-bold text-white bg-blue-500 top-2 right-2 rounded-md hover:bg-blue-700 z-[1000]">
                 Add Table
             </Button>
             <div className="absolute top-0 left-0 w-full h-full p-2">
-                {grid.map((table) => (
+                {tables.map((table) => (
                     <Rnd
                         key={table.id}
                         position={{ x: table.x, y: table.y }} // Use `position` for Rnd to control the position directly
@@ -111,7 +106,7 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
                             bottomRight: true,
                         }}
                     >
-                        <Table id={table.id} available={false} width={table.width} height={table.height} />
+                        <Table data={table} />
                     </Rnd>
                 ))}
             </div>
@@ -119,4 +114,4 @@ const TableView = ({ tables, updateTablePosition, updateTableSize, addTable }: I
     );
 };
 
-export default TableView;
+export default AdminTableLayout;

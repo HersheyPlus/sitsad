@@ -5,7 +5,7 @@ import Header from "../Shared/Header";
 const { Content, Footer } = Layout;
 
 const MainLayout = () => (
-    <Layout className="min-h-screen bg-white">
+    <Layout className="min-h-screen bg-gray">
         <Header />
         <Content>
             <Outlet />

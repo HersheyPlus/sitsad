@@ -1,21 +1,19 @@
-import React from 'react';
+import { ITable } from '@/types/table';
 
-interface TableProps {
-    id: number;
-    available: boolean;
-    width: number;
-    height: number;
+
+interface IProps {
+    data: ITable
 }
 
-const Table: React.FC<TableProps> = ({ id, available, width, height }) => {
-    const bgColor = available ? 'bg-blue-500' : 'bg-gray-500';
+const Table = ({ data }: IProps) => {
+    const bgColor = data.available ? 'bg-green-500' : 'bg-gray-500';
 
     return (
         <div
             className={`${bgColor} rounded-lg flex items-center justify-center text-white font-bold`}
-            style={{ width: `${width}px`, height: `${height}px` }}
+            style={{ width: `${data.width}px`, height: `${data.height}px` }}
         >
-            Table {id}
+            Table {data.id}
         </div>
     );
 };

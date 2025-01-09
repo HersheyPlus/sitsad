@@ -10,9 +10,12 @@ import NotFoundPage from "@/pages/NotFoundPage";
 
 import MainLayout from "@/components/Layout/MainLayout";
 import AdminLayout from "@/components/Layout/AdminLayout";
-import ProtectedRoute from "@/components/Pages/Auth/ProtectedRoute";
+
+// import ProtectedRoute from "@/components/Pages/Auth/ProtectedRoute";
+
+import TableListPage from "@/pages/table/TableListPage";
+import AdminTablePage from "@/pages/table/AdminTablePage";
 import TablePage from "@/pages/table/TablePage";
-import TableSlugPage from "@/pages/table/TableSlugPage";
 
 
 export const routes = [
@@ -27,8 +30,8 @@ export const routes = [
         path: "/table",
         element: <MainLayout />,
         children: [
-            { path: "", element: <TablePage /> },
-            { path: ":slug", element: <TableSlugPage /> },
+            { path: "", element: <TableListPage /> },
+            { path: ":slug", element: <TablePage /> },
         ]
     },
     {
@@ -38,15 +41,16 @@ export const routes = [
     {
         path: "/dashboard",
         element: (
-            <ProtectedRoute>
-                <AdminLayout />
-            </ProtectedRoute>
+            // <ProtectedRoute>
+            //     <AdminLayout />
+            // </ProtectedRoute>
+            <AdminLayout />
         ),
-        // children: [
-        //     { path: "", element: <DashboardHome /> },
-        //     { path: "settings", element: <DashboardSettings /> },
-        //     { path: "analytics", element: <DashboardAnalytics /> },
-        // ],
+        children: [
+            // { path: "", element: <DashboardHome /> },
+            { path: "table", element: <AdminTablePage /> },
+            // { path: "analytics", element: <DashboardAnalytics /> },
+        ],
     },
     {
         path: "*",

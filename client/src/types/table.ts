@@ -3,6 +3,7 @@ export interface ITable {
     x: number;
     y: number;
     available: boolean;
+    description?: string;
     width: number;
     height: number;
 }
@@ -10,6 +11,7 @@ export interface ITable {
 export interface ITableHistory {
     id: number;
     tableId: number;
-    startDate: string;
-    endDate: string;
+    reservationTime: string;
+    leaveTime: string;
+    phoneNo?: string;
 }
