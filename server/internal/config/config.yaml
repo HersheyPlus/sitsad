@@ -13,3 +13,10 @@ server:
   timeout: 30s
   read_timeout: 15s
   write_timeout: 15s
+
+mqtt:
+  host: 10.4.41.187
+  port: 1883
+  username: test
+  password: 1234
+  client_id: mqttx_0ee90f12

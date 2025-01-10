@@ -8,6 +8,8 @@ BINARY_NAME=server
 DB_USER ?= root
 DB_PASS ?= $(DATABASE_PASSWORD)
 DB_NAME ?= hackathon2025
+DOCKER_COMPOSE ?= docker compose
+MQTT_PATH ?= mqtt_server/mqtt
 
 # Colors for output
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -33,6 +35,18 @@ db-start: ## Start database
 	@echo "${GREEN}Starting database...${RESET}"
 	make db-up
 	make db-mockup
+
+mqtt-up: ## Start MQTT broker docker container
+	@echo "${GREEN}Starting MQTT broker...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) up -d
+
+mqtt-down: ## Stop MQTT broker docker container
+	@echo "${YELLOW}Stopping MQTT broker...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) down
+
+mqtt-logs: ## Show MQTT broker logs
+	@echo "${GREEN}Showing MQTT broker logs...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) logs
 
 ## Development:
 run: ## Run the application

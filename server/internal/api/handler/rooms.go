@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"server/internal/model"
+	"server/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
 )
 
 func (h *Handler) GetListRooms(c *fiber.Ctx) error {
-	var rooms []model.Room
+	var rooms []models.Room
 	if err := h.db.Find(&rooms).Error; err != nil {
 		return res.InternalServerError(c, err)
 	}
@@ -17,7 +17,7 @@ func (h *Handler) GetListRooms(c *fiber.Ctx) error {
 
 func (h *Handler) GetRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var room model.Room
+	var room models.Room
 	result := h.db.First(&room, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -28,7 +28,7 @@ func (h *Handler) GetRoom(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreateRoom(c *fiber.Ctx) error {
-	var room model.Room
+	var room models.Room
 	if err := c.BodyParser(&room); err != nil {
 		return res.BadRequest(c, err.Error())
 	}
@@ -49,7 +49,7 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
 
 func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var room model.Room
+	var room models.Room
 	result := h.db.First(&room, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -68,7 +68,7 @@ func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
 
 func (h *Handler) DeleteRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var room model.Room
+	var room models.Room
 	result := h.db.First(&room, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -82,7 +82,7 @@ func (h *Handler) DeleteRoom(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ExistingRoom(c *fiber.Ctx, roomId uint64) bool {
-	var room model.Room
+	var room models.Room
 	result := h.db.First(&room, roomId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {

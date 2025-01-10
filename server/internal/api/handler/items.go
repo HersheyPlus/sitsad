@@ -1,40 +1,38 @@
 package handler
 
 import (
-	"server/internal/model"
+	"server/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
+	"time"
+	"fmt"
 )
 
 
 func (h *Handler) GetListItems(c *fiber.Ctx) error {
-	var items []model.Item
-	if err := h.db.Find(&items).Error; err != nil {
+	itemType := c.Query("type")
+	var items []models.Item
+	if itemType == "" {
+		if err := h.db.Find(&items).Error; err != nil {
+			return res.InternalServerError(c, err)
+		}
+		return res.GetSuccess(c, "List of items", items)
+	}
+
+    if itemType != "table" && itemType != "toilet" {
+        return res.BadRequest(c, "Invalid item type")
+    }
+	if err := h.db.Where("type = ?", itemType).Find(&items).Error; err != nil {
 		return res.InternalServerError(c, err)
 	}
-	return res.GetSuccess(c, "List of items", items)
+	return res.GetSuccess(c, fmt.Sprintf("List of items (%s)",itemType), items)
 }
 
-func (h *Handler) GetListTables(c *fiber.Ctx) error {
-	var tables []model.Item
-	if err := h.db.Where("type = ?", "table").Find(&tables).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.GetSuccess(c, "List of toilets", tables)
-}
-
-func (h *Handler) GetListToilets(c *fiber.Ctx) error {
-	var toilets []model.Item
-	if err := h.db.Where("type = ?", "toilet").Find(&toilets).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.GetSuccess(c, "List of toilets", toilets)
-}
 
 func (h *Handler) GetTable(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var table model.Item
+	var table models.Item
 	result :=  h.db.Where("type = ?", "table").First(&table, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -45,7 +43,7 @@ func (h *Handler) GetTable(c *fiber.Ctx) error {
 }
 func (h *Handler) GetToilet(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var toilet model.Item
+	var toilet models.Item
 	result :=  h.db.Where("type = ?", "toilet").First(&toilet, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -67,7 +65,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
 	}
 
 
-    table := model.NewTable(
+    table := models.NewTable(
         req.RoomID,
         req.PositionX,
         req.PositionY,
@@ -75,7 +73,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         req.Height,
     )
 
-    if err := h.db.First(&model.Room{}, req.RoomID).Error; err != nil {
+    if err := h.db.First(&models.Room{}, req.RoomID).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
             return res.NotFound(c, "Room", err)
         }
@@ -104,7 +102,7 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
 		return res.BadRequest(c, "building_id, floor, number, gender (female or male), position_x, position_y are required and must be greater than 0")
 	}
 
-	toilet := model.NewToilet(
+	toilet := models.NewToilet(
 		req.BuildingID,
 		req.Floor,
 		req.Number,
@@ -113,7 +111,7 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
 		req.PositionY,
 	)
 
-	if err := h.db.First(&model.Building{}, req.BuildingID).Error; err != nil {
+	if err := h.db.First(&models.Building{}, req.BuildingID).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
             return res.NotFound(c, "Building", err)
         }
@@ -129,34 +127,64 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     }
 
     return res.CreatedSuccess(c, toilet)
-
 }
 
 func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var item model.Item
-	result := h.db.First(&item, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Item", result.Error)
-		}
-	}
-	if item.Available {
-		item.Available = false
-	} else {
-		item.Available = true
-	}
+    id := c.Params("id")
+    
+    var item models.Item
+    result := h.db.First(&item, id)
+    if result.Error != nil {
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Item", result.Error)
+        }
+    }
 
-	if err := h.db.Save(&item).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
+    tx := h.db.Begin()
+    if tx.Error != nil {
+        return res.InternalServerError(c, tx.Error)
+    }
 
-	return res.GetSuccess(c, "Item's availability updated", item)
+    if item.Available {
+        now := time.Now()
+        bookingTimePeriod := &models.BookingTimePeriod{
+            ItemID:           item.ItemID,
+            StartBookingTime: now,
+        }
+
+        if err := tx.Create(bookingTimePeriod).Error; err != nil {
+            tx.Rollback()
+            return res.InternalServerError(c, err)
+        }
+
+        item.Available = false
+    } else {
+        now := time.Now()
+        if err := tx.Model(&models.BookingTimePeriod{}).
+            Where("item_id = ? AND ended_booking_time IS NULL", item.ItemID).
+            Update("ended_booking_time", now).Error; err != nil {
+            tx.Rollback()
+            return res.InternalServerError(c, err)
+        }
+
+        item.Available = true
+    }
+
+    if err := tx.Save(&item).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.GetSuccess(c, "Item's availability updated", item)
 }
 
 func (h *Handler) DeleteItem(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var item model.Item
+	var item models.Item
 	result := h.db.First(&item, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {

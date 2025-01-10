@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
-	"server/internal/model"
+	"server/internal/models"
 	"strings"
 )
 
-func InitializeConfig() (*model.AppConfig, error) {
+func InitializeConfig() (*models.AppConfig, error) {
 
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using system environment variables")
@@ -34,7 +34,7 @@ func InitializeConfig() (*model.AppConfig, error) {
 		}
 	}
 
-	var config model.AppConfig
+	var config models.AppConfig
 	if err := v.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("unable to decode config into struct: %w", err)
 	}
@@ -76,9 +76,15 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.timeout", "30s")
 	v.SetDefault("server.read_timeout", "15s")
 	v.SetDefault("server.write_timeout", "15s")
+
+	v.SetDefault("mqtt.host", "localhost")
+	v.SetDefault("mqtt.port", "1883")
+	v.SetDefault("mqtt.username", "test")
+	v.SetDefault("mqtt.password", "1234")
+	v.SetDefault("mqtt.client_id", "mqttx_0ee90f12")
 }
 
-func validateConfig(config *model.AppConfig) error {
+func validateConfig(config *models.AppConfig) error {
 	if config.DatabaseConfig.Port < 0 || config.DatabaseConfig.Port > 65535 {
 		return fmt.Errorf("invalid database port: %d", config.DatabaseConfig.Port)
 	}

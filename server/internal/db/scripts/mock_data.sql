@@ -19,17 +19,15 @@ INSERT INTO items (type, building_id, room_id, available, position_x, position_y
 
 -- Populate `items` with type `table` and `toilet`
 INSERT INTO items (type, building_id, available, position_x, position_y, width, height, floor, number, gender) VALUES
-('toilet', 1, true, 5.0, 10.0, 2.0, 1.5, 1, 3, 'Male'),
+('toilet', 1, false, 5.0, 10.0, 2.0, 1.5, 1, 3, 'Male'),
 ('toilet', 1, true, 6.0, 11.0, 2.0, 1.5, 1, 4, 'Female'),
-('toilet', 2, true, 12.0, 15.0, 2.0, 1.5, 2, 5, 'Unisex');
+('toilet', 2, false, 12.0, 15.0, 2.0, 1.5, 2, 5, 'Unisex');
 
--- Populate `parking_warnings`
-INSERT INTO parking_warnings (license_plate, building_id, amount_of_warnings) VALUES
-('ABC1234', 1, 2),
-('XYZ5678', 2, 1);
 
 -- Populate `booking_time_periods` (assuming a `tables` table exists)
 INSERT INTO booking_time_periods (item_id, started_booking_time, ended_booking_time) VALUES
 (1, '2025-01-09 10:00:00', '2025-01-09 12:00:00'),
 (2, '2025-01-10 14:00:00', '2025-01-10 16:00:00'),
-(3, '2025-01-11 18:00:00', '2025-01-11 20:00:00');
+(3, '2025-01-11 18:00:00', '2025-01-11 20:00:00'),
+(4, '2025-01-11 18:00:00',NULL),
+(6, '2025-01-11 18:00:00',NULL);

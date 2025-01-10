@@ -3,13 +3,13 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"server/internal/model"
+	"server/internal/models"
 	res "server/internal/utils"
 	"gorm.io/gorm"
 )
 
 func (h *Handler) GetListBuildings(c *fiber.Ctx) error {
-	var buildings []model.Building
+	var buildings []models.Building
 	if err := h.db.Find(&buildings).Error; err != nil {
 		return res.InternalServerError(c, err)
 	}
@@ -18,7 +18,7 @@ func (h *Handler) GetListBuildings(c *fiber.Ctx) error {
 
 func (h *Handler) GetBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var building model.Building
+	var building models.Building
 	result := h.db.First(&building, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -29,7 +29,7 @@ func (h *Handler) GetBuilding(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
-	var building model.Building
+	var building models.Building
 	if err := c.BodyParser(&building); err != nil {
 		return res.BadRequest(c, err.Error())
 	}
@@ -44,7 +44,7 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
 
 func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var building model.Building
+	var building models.Building
 	result := h.db.First(&building, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -63,7 +63,7 @@ func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
 
 func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var building model.Building
+	var building models.Building
 	result := h.db.First(&building, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -77,7 +77,7 @@ func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ExistingBuilding(c *fiber.Ctx, buildingId int) bool {
-	var building model.Building
+	var building models.Building
 	result := h.db.First(&building, buildingId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {

@@ -4,7 +4,7 @@ package app
 import (
 	"fmt"
 	"server/internal/api/handler"
-	"server/internal/model"
+	"server/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -15,11 +15,11 @@ import (
 type App struct {
 	db      *gorm.DB
 	app     *fiber.App
-	config  *model.AppConfig
+	config  *models.AppConfig
 	handler *handler.Handler
 }
 
-func NewApp(db *gorm.DB, cfg *model.AppConfig) *App {
+func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	app := fiber.New(
 		fiber.Config{
 			ReadTimeout:  cfg.ServerConfig.ReadTimeout,
@@ -66,13 +66,19 @@ func (a *App) setupRoutes() {
 
 	// Item Routes
 	items := api.Group("/items")
-	items.Get("/tables", a.handler.GetListTables)
-	items.Get("/toilets", a.handler.GetListToilets)
+	items.Get("/", a.handler.GetListItems)
 	items.Get("/tables/:id", a.handler.GetTable)
 	items.Get("/toilets/:id", a.handler.GetToilet)
 	items.Post("/table", a.handler.CreateTable)
 	items.Post("/toilet", a.handler.CreateToilet)
 	items.Put("/available/:id", a.handler.UpdateItemAvailable)
+
+	// Booking Time Period Routes
+	bookingTimePeriods := api.Group("/booking-time-periods")
+	bookingTimePeriods.Get("/", a.handler.GetListBookingTimePeriods)
+	bookingTimePeriods.Get("/items", a.handler.GetBookingTimePeriodsByItemType)
+
+	
 }
 
 func (a *App) Start() error {

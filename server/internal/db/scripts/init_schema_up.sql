@@ -40,19 +40,12 @@ CREATE TABLE items (
     FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
 
-CREATE TABLE parking_warnings (
-    license_plate VARCHAR(20) PRIMARY KEY,
-    building_id INTEGER NOT NULL,
-    amount_of_warnings INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (building_id) REFERENCES buildings(building_id)
-);
+
 
 CREATE TABLE booking_time_periods (
     booking_time_period_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     item_id INTEGER,
     started_booking_time TIMESTAMP NOT NULL,
-    ended_booking_time TIMESTAMP NOT NULL,
+    ended_booking_time TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
