@@ -76,6 +76,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.timeout", "30s")
 	v.SetDefault("server.read_timeout", "15s")
 	v.SetDefault("server.write_timeout", "15s")
+	v.SetDefault("server.allow_origins", []string{
+        "http://localhost:3000",
+        "http://localhost:5173",
+    })
 
 	v.SetDefault("mqtt.host", "localhost")
 	v.SetDefault("mqtt.port", "1883")

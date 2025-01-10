@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"gorm.io/gorm"
+    "server/internal/ws"
 )
 
 type Handler struct {
 	db  *gorm.DB
+    wsHub *ws.Hub
+
 }
 
 type CreateTableRequest struct {
@@ -25,8 +28,9 @@ type CreateToiletRequest struct {
     PositionY float64 `json:"position_y" validate:"required"`
 }
 
-func NewHandler(db *gorm.DB) *Handler {
+func NewHandler(db *gorm.DB, wsHub *ws.Hub) *Handler {
 	return &Handler{
 		db:  db,
+        wsHub: wsHub,
 	}
 }

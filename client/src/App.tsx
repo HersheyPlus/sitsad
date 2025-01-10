@@ -1,12 +1,11 @@
-
+import ItemStatusDisplay from './ItemStatusDisplay';
 
 function App() {
-
   return (
-    <>
-      <h1 className="text-sm">Hello worl!</h1>
-    </>
-  )
+    <div className="container mx-auto p-4">
+      <ItemStatusDisplay />
+    </div>
+  );
 }
 
-export default App
+export default App;

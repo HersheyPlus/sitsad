@@ -10,6 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/gorm"
+	"server/internal/ws"
+	"github.com/gofiber/websocket/v2"
+	"strings"
 )
 
 type App struct {
@@ -17,6 +20,7 @@ type App struct {
 	app     *fiber.App
 	config  *models.AppConfig
 	handlers *handlers.Handler
+	wsHub   *ws.Hub
 }
 
 func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
@@ -29,24 +33,52 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	)
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
+        AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
+        AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+        AllowHeaders:     "Origin, Content-Type, Accept",
+        ExposeHeaders:    "Content-Length",
+        AllowCredentials: false,
+        MaxAge:          300,
+    }))
+
 	app.Use(logger.New())
 	app.Use(recover.New())
 
-	handlers := handlers.NewHandler(db)
+	wsHub := ws.NewHub()
+	go wsHub.Run()
+	handlers := handlers.NewHandler(db, wsHub)
 
 	return &App{
 		app:     app,
 		db:      db,
 		config:  cfg,
 		handlers: handlers,
+		wsHub:   wsHub,
 	}
 }
 
 func (a *App) setupRoutes() {
 	api := a.app.Group("/api")	
+
+	api.Use("/ws", func(c *fiber.Ctx) error {
+        origin := c.Get("Origin")
+        allowed := false
+        for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
+            if origin == allowedOrigin {
+                allowed = true
+                break
+            }
+        }
+        if !allowed {
+            return fiber.ErrForbidden
+        }
+
+        if websocket.IsWebSocketUpgrade(c) {
+            return c.Next()
+        }
+        return fiber.ErrUpgradeRequired
+    })
+    api.Get("/ws", ws.HandleWebSocket(a.wsHub))
 
 	// Buildings Routes
 	buildings := api.Group("/buildings")

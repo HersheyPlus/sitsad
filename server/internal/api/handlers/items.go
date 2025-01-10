@@ -7,6 +7,7 @@ import (
 	res "server/internal/utils"
 	"time"
 	"fmt"
+    "server/internal/ws"
 )
 
 
@@ -129,6 +130,7 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     return res.CreatedSuccess(c, toilet)
 }
 
+// In handlers/items.go
 func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
     id := c.Params("id")
     
@@ -138,6 +140,7 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
         if result.Error == gorm.ErrRecordNotFound {
             return res.NotFound(c, "Item", result.Error)
         }
+        return res.InternalServerError(c, result.Error)
     }
 
     tx := h.db.Begin()
@@ -145,7 +148,11 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
         return res.InternalServerError(c, tx.Error)
     }
 
-    if item.Available {
+    // Toggle availability
+    newAvailability := !item.Available
+    
+    if !newAvailability {
+        // Item becoming unavailable
         now := time.Now()
         bookingTimePeriod := &models.BookingTimePeriod{
             ItemID:           item.ItemID,
@@ -156,9 +163,8 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
             tx.Rollback()
             return res.InternalServerError(c, err)
         }
-
-        item.Available = false
     } else {
+        // Item becoming available
         now := time.Now()
         if err := tx.Model(&models.BookingTimePeriod{}).
             Where("item_id = ? AND ended_booking_time IS NULL", item.ItemID).
@@ -166,10 +172,10 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
             tx.Rollback()
             return res.InternalServerError(c, err)
         }
-
-        item.Available = true
     }
 
+    // Update item availability
+    item.Available = newAvailability
     if err := tx.Save(&item).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
@@ -178,6 +184,13 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
     if err := tx.Commit().Error; err != nil {
         return res.InternalServerError(c, err)
     }
+
+    // Broadcast update through WebSocket
+    h.wsHub.BroadcastItemUpdate(ws.ItemAvailabilityUpdate{
+        ItemID:    item.ItemID,
+        Available: item.Available,
+        Type:      string(item.Type),
+    })
 
     return res.GetSuccess(c, "Item's availability updated", item)
 }
