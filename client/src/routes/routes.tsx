@@ -15,7 +15,7 @@ import AdminLayout from "@/components/Layout/AdminLayout";
 
 import TableListPage from "@/pages/table/TableListPage";
 import AdminTablePage from "@/pages/table/AdminTablePage";
-import TablePage from "@/pages/table/TablePage";
+import TableSlugPage from "@/pages/table/TableSlugPage";
 
 
 export const routes = [
@@ -31,7 +31,7 @@ export const routes = [
         element: <MainLayout />,
         children: [
             { path: "", element: <TableListPage /> },
-            { path: ":slug", element: <TablePage /> },
+            { path: ":slug", element: <TableSlugPage /> },
         ]
     },
     {

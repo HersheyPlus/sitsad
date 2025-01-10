@@ -8,6 +8,7 @@ const theme = {
         colorLink: "#1E90FF",
         colorLinkHover: "#4682B4",
         borderRadius: 4,
+        fontFamily: "Poppins, sans-serif",
     },
 };
 

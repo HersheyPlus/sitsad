@@ -1,5 +1,5 @@
 
-import { Table, Card } from "antd";
+import { Table, Card, Space } from "antd";
 import { ITableHistory } from "@/types/table";
 import { useState } from "react";
 import type { ColumnsType } from "antd/es/table";
@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from "dayjs";
 
 import isBetween from "dayjs/plugin/isBetween";
 import AdminTableFilter from "./AdminTableFilter";
+import { PhoneOutlined } from "@ant-design/icons";
 
 interface IProps {
     data: ITableHistory[];
@@ -79,10 +80,15 @@ const AdminTableHistory = ({ data }: IProps) => {
                 new Date(a.leaveTime).getTime() - new Date(b.leaveTime).getTime(),
         },
         {
-            title: "Phone Number",
-            dataIndex: "phoneNo",
-            key: "phoneNo",
-            render: (phoneNo: string | undefined) => phoneNo || "N/A",
+            title: 'Phone Number',
+            dataIndex: 'phoneNo',
+            key: 'phoneNo',
+            render: (text: string | undefined) => text ? (
+                <Space>
+                    <PhoneOutlined />
+                    {text}
+                </Space>
+            ) : 'N/A',
         },
     ];
 

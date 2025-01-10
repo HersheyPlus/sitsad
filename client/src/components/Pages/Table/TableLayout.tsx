@@ -5,8 +5,8 @@ import Table from './Table';
 
 const TableLayout = () => {
     const [tables] = useState<ITable[]>([
-        { id: 1, x: 0, y: 0, width: 100, height: 100, available: true },
-        { id: 2, x: 200, y: 0, width: 100, height: 100, available: true },
+        { id: 1, x: 0, y: 0, width: 100, height: 100, available: true, name: 'Table 1' },
+        { id: 2, x: 200, y: 0, width: 100, height: 100, available: true, name: 'Table 2' },
     ]);
 
     return (
