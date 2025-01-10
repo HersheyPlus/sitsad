@@ -12,7 +12,7 @@ interface IProps {
 
 const AdminTableFilter = ({ doChangeQuery, doSearch }: IProps) => {
   return (
-    <XCollapse title="Search for table">
+    <XCollapse title="Search history...">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={6}>

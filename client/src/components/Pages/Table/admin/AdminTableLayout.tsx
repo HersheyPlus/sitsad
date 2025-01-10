@@ -1,17 +1,18 @@
-import { useState } from 'react';
 import { Rnd } from 'react-rnd';
 import Table from '../Table';
 import { Button } from 'antd';
 import { ITable } from '@/types/table';
+import { useState } from 'react';
 
 const GRID_SIZE = 100;
 
-const AdminTableLayout = () => {
-    const [tables, setTables] = useState<ITable[]>([
-        { id: 1, x: 0, y: 0, width: 100, height: 100, available: true },
-        { id: 2, x: 200, y: 0, width: 100, height: 100, available: true },
-    ]);
-
+interface IProps {
+    data: ITable[]
+    doAddTable?: () => void
+    doUpdateTable: React.Dispatch<React.SetStateAction<ITable[]>>
+}
+const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
+    const [tables, setTables] = useState<ITable[]>(data);
 
     const doSnapToGrid = (x: number, y: number) => {
         const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
@@ -41,6 +42,12 @@ const AdminTableLayout = () => {
                     table.id === id ? { ...table, x: snappedX, y: snappedY } : table
                 )
             );
+
+            doUpdateTable((prevTable) =>
+                prevTable.map((table) =>
+                    table.id === id ? { ...table, x: snappedX, y: snappedY } : table
+                )
+            )
         }
     };
 
@@ -56,6 +63,12 @@ const AdminTableLayout = () => {
                     table.id === id ? { ...table, width: snappedWidth, height: snappedHeight } : table
                 )
             );
+
+            doUpdateTable((prevTable) =>
+                prevTable.map((table) =>
+                    table.id === id ? { ...table, width: snappedWidth, height: snappedHeight } : table
+                )
+            )
         }
     };
 
@@ -63,6 +76,7 @@ const AdminTableLayout = () => {
     const doAddTable = () => {
         const newTable: ITable = {
             id: Date.now(),
+            name: 'New Table',
             description: '',
             available: false,
             x: Math.floor(Math.random() * 5) * GRID_SIZE,

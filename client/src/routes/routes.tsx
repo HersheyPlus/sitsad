@@ -16,6 +16,8 @@ import AdminLayout from "@/components/Layout/AdminLayout";
 import TableListPage from "@/pages/table/TableListPage";
 import AdminTablePage from "@/pages/table/AdminTablePage";
 import TableSlugPage from "@/pages/table/TableSlugPage";
+import LocationPage from "@/pages/LocationPage";
+import DashboardPage from "@/pages/DashboardPage";
 
 
 export const routes = [
@@ -47,9 +49,9 @@ export const routes = [
             <AdminLayout />
         ),
         children: [
-            // { path: "", element: <DashboardHome /> },
+            { path: "", element: <DashboardPage /> },
             { path: "table", element: <AdminTablePage /> },
-            // { path: "analytics", element: <DashboardAnalytics /> },
+            { path: "location", element: <LocationPage /> },
         ],
     },
     {

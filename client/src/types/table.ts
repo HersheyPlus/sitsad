@@ -5,11 +5,14 @@ export interface ITable {
     x: number;
     y: number;
     available: boolean;
-    name?: string;
+    name: string;
     description?: string;
     width: number;
     height: number;
     location?: ILocation
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any; // Add this line
 }
 
 export interface ITableHistory {

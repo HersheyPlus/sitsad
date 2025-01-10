@@ -1,12 +1,14 @@
-import React from 'react';
+import { useState } from 'react';
 
 import TableLayout from '@/components/Pages/Table/admin/AdminTableLayout';
 import TableHistory from '@/components/Pages/Table/admin/AdminTableHistory';
+import TableCrud from '@/components/Pages/Table/admin/AdminTableCrud';
 
-import { ITableHistory } from '@/types/table';
+import { ITable, ITableHistory } from '@/types/table';
 import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/XBreadcrumb';
+import { ILocation } from '@/types/location';
 
 const breadcrumbItems = [
     {
@@ -20,7 +22,7 @@ const breadcrumbItems = [
     },
 ];
 
-const data: ITableHistory[] = [
+const history: ITableHistory[] = [
     {
         id: 1,
         tableId: 101,
@@ -37,14 +39,71 @@ const data: ITableHistory[] = [
     },
 ];
 
-const AdminTablePage: React.FC = () => {
+const table: ITable[] = [
+    {
+        id: 101,
+        x: 0,
+        y: 0,
+        available: true,
+        name: "Table 1",
+        width: 100,
+        height: 100,
+    },
+    {
+        id: 102,
+        x: 100,
+        y: 0,
+        available: true,
+        name: "Table 2",
+        width: 100,
+        height: 100,
+    },
+    {
+        id: 103,
+        x: 200,
+        y: 0,
+        available: false,
+        name: "Table 3",
+        width: 100,
+        height: 100,
+    },
+    {
+        id: 104,
+        x: 300,
+        y: 0,
+        available: false,
+        name: "Table 4",
+        width: 100,
+        height: 100,
+    },
+]
+
+const locations: ILocation[] = [
+    {
+        id: "1",
+        title: "Location 1",
+        description: "Location 1 description",
+        image: "/placeholder.svg?height=96&width=96",
+        current: 7,
+        total: 10,
+    }
+]
+
+
+const AdminTablePage = () => {
+    const [tables, setTables] = useState<ITable[]>(table);
+
+    // TODO: fetch data from API
+
     return (
-        <Flex vertical gap={4} className='p-8 bg-gray-100 mi -h-screen'>
+        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
             <XBreadcrumb items={breadcrumbItems} />
 
-            <TableLayout />
+            <TableLayout data={tables} doUpdateTable={setTables} />
 
-            <TableHistory data={data} />
+            <TableCrud data={tables} locations={locations} />
+
+            <TableHistory data={history} />
         </Flex>
     );
 };

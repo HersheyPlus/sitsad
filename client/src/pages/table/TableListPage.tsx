@@ -51,30 +51,19 @@ const breadcrumbItems = [
     }
 ];
 
-interface IQuery {
-    keyword: string;
-}
-
 const TableListPage = () => {
-    const [query, setQuery] = useState<IQuery>({
-        keyword: ''
-    });
+    const [query, setQuery] = useState("")
 
-    const doChangeQuery = (value: string) => {
-        setQuery({
-            keyword: value
-        });
-    }
 
     const doSearch = () => {
-        console.log('Searching for:', query.keyword);
+        console.log('Searching for:', query);
     }
 
     return (
         <Flex vertical gap={4} className="p-4">
             <XBreadcrumb items={breadcrumbItems} />
 
-            <TableFilter doChangeQuery={doChangeQuery} doSearch={doSearch} />
+            <TableFilter doChangeQuery={setQuery} doSearch={doSearch} />
 
             <Title level={2} className="mb-6">
                 Available Tables

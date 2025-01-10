@@ -8,7 +8,7 @@ interface IProps {
   doSearch: () => void;
 }
 
-const TableFilter = ({ doChangeQuery, doSearch }: IProps) => {
+const LocationFilter = ({ doChangeQuery, doSearch }: IProps) => {
   return (
     <XCollapse title="Search for table">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
@@ -33,4 +33,4 @@ const TableFilter = ({ doChangeQuery, doSearch }: IProps) => {
   )
 }
 
-export default TableFilter
+export default LocationFilter

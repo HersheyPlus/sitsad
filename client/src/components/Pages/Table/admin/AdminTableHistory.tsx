@@ -93,7 +93,12 @@ const AdminTableHistory = ({ data }: IProps) => {
     ];
 
     return (
-        <Card style={{ backgroundColor: "##ffffff", padding: "20px", borderRadius: "8px" }}>
+        <Card style={{ backgroundColor: "##ffffff", padding: "20px", borderRadius: "8px" }} title={
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5rem" }}>
+                <h2>Reserveation History</h2>
+            </div>
+        }>
+
             <AdminTableFilter doChangeQuery={doChangeQuery} doSearch={doSearch} />
 
             <Table
