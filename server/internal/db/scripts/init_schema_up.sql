@@ -5,6 +5,8 @@ USE hackathon2025;
 CREATE TABLE buildings (
     building_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     building_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    image_url TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -45,6 +47,7 @@ CREATE TABLE items (
 CREATE TABLE booking_time_periods (
     booking_time_period_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     item_id INTEGER,
+    phone_number VARCHAR(20) NOT NULL,
     started_booking_time TIMESTAMP NOT NULL,
     ended_booking_time TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES items(item_id)

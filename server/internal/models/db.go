@@ -7,6 +7,8 @@ import (
 type Building struct {
 	BuildingID   int       `gorm:"primaryKey;column:building_id;autoIncrement" json:"building_id"`
 	BuildingName string    `gorm:"column:building_name;type:varchar(100);not null" json:"building_name"`
+	Description  string    `gorm:"column:description;type:text" json:"description"`
+	ImageURL     string    `gorm:"column:image_url;type:text" json:"image_url"`
 	CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Relationships
@@ -59,8 +61,9 @@ type Item struct {
 type BookingTimePeriod struct {
 	BookingTimePeriodID int       `gorm:"primaryKey;column:booking_time_period_id;autoIncrement" json:"booking_time_period_id"`
 	ItemID              int       `gorm:"column:item_id" json:"item_id"`
-	StartBookingTime    time.Time `gorm:"column:started_booking_time;not null" json:"started_booking_time"`
-	EndBookingTime      time.Time `gorm:"column:ended_booking_time;default:null" json:"ended_booking_time"`
+	PhoneNumber               string    `gorm:"column:phone_number;type:varchar(20);not null" json:"phone_number"`
+	StartedBookingTime    time.Time `gorm:"column:started_booking_time;not null" json:"started_booking_time"`
+	EndedBookingTime      time.Time `gorm:"column:ended_booking_time;default:null" json:"ended_booking_time"`
 	Item                Item      `gorm:"foreignKey:ItemID" json:"item,omitempty"`
 }
 

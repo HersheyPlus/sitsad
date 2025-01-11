@@ -160,7 +160,7 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
         now := time.Now()
         bookingTimePeriod := &models.BookingTimePeriod{
             ItemID:           item.ItemID,
-            StartBookingTime: now,
+            StartedBookingTime: now,
         }
 
         if err := tx.Create(bookingTimePeriod).Error; err != nil {

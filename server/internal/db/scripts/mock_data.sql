@@ -1,33 +1,40 @@
 USE hackathon2025;
+-- Insert mock buildings
+INSERT INTO buildings (building_name, description, image_url) VALUES
+('Engineering Building', 'Main engineering faculty building', 'https://example.com/eng.jpg'),
+('Science Center', 'Science and research facility', 'https://example.com/science.jpg'),
+('Library', 'Central university library', 'https://example.com/library.jpg');
 
--- Populate `buildings`
-INSERT INTO buildings (building_name) VALUES
-('Main Building'),
-('Annex Building');
-
--- Populate `rooms`
+-- Insert mock rooms
 INSERT INTO rooms (building_id, room_name, description, floor, image_url) VALUES
-(1, 'Conference Room', 'Spacious room for meetings', 1, 'http://example.com/conference_room.jpg'),
-(1, 'Restroom', 'Clean restroom with all facilities', 1, 'http://example.com/restroom.jpg'),
-(2, 'Study Room', 'Quiet space for study', 2, 'http://example.com/study_room.jpg');
+(1, 'E101', 'Computer Lab', 1, 'https://example.com/e101.jpg'),
+(1, 'E201', 'Study Room', 2, 'https://example.com/e201.jpg'),
+(2, 'S101', 'Physics Lab', 1, 'https://example.com/s101.jpg'),
+(2, 'S202', 'Chemistry Lab', 2, 'https://example.com/s202.jpg'),
+(3, 'L101', 'Reading Room', 1, 'https://example.com/l101.jpg');
 
--- Populate `items` with type `table`
-INSERT INTO items (type, building_id, room_id, available, position_x, position_y, width, height, floor, name) VALUES
-('table', 1, 1, true, 10.5, 20.3, 1.5, 1.0, 3, "table 1"),
-('table', 1, 1, true, 11.5, 21.3, 1.5, 1.0, 4,"table 2"),
-('table', 2, 3, true, 15.0, 25.0, 1.5, 1.0, 6, "table 3");
+-- Insert mock items (tables and toilets)
+INSERT INTO items (building_id, room_id, name, type, available, position_x, position_y, width, height, floor, gender) VALUES
+-- Tables in rooms
+(NULL, 1, 'Study Table 1', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 1, 'Study Table 2', 'table', true, 80.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 2, 'Study Table 3', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 3, 'Lab Table 1', 'table', true, 30.0, 40.0, 80.0, 160.0, NULL, NULL),
+(NULL, 4, 'Lab Table 2', 'table', true, 120.0, 40.0, 80.0, 160.0, NULL, NULL),
 
--- Populate `items` with type `table` and `toilet`
-INSERT INTO items (type, building_id, available, position_x, position_y, width, height, floor, name, gender) VALUES
-('toilet', 1, false, 5.0, 10.0, 2.0, 1.5, 1, "toilet 1", 'Male'),
-('toilet', 1, true, 6.0, 11.0, 2.0, 1.5, 1, "toilet 2", 'Female'),
-('toilet', 2, false, 12.0, 15.0, 2.0, 1.5, 2, "toilet 3", 'Female');
+-- Toilets in buildings
+(1, NULL, 'Engineering F1 Female', 'toilet', true, 150.0, 200.0, NULL, NULL, 1, 'female'),
+(1, NULL, 'Engineering F1 Male', 'toilet', true, 180.0, 200.0, NULL, NULL, 1, 'male'),
+(2, NULL, 'Science F1 Female', 'toilet', true, 100.0, 150.0, NULL, NULL, 1, 'female'),
+(2, NULL, 'Science F1 Male', 'toilet', true, 130.0, 150.0, NULL, NULL, 1, 'male'),
+(3, NULL, 'Library F1 Female', 'toilet', true, 90.0, 120.0, NULL, NULL, 1, 'female'),
+(3, NULL, 'Library F1 Male', 'toilet', true, 120.0, 120.0, NULL, NULL, 1, 'male');
 
-
--- Populate `booking_time_periods` (assuming a `tables` table exists)
-INSERT INTO booking_time_periods (item_id, started_booking_time, ended_booking_time) VALUES
-(1, '2025-01-09 10:00:00', '2025-01-09 12:00:00'),
-(2, '2025-01-10 14:00:00', '2025-01-10 16:00:00'),
-(3, '2025-01-11 18:00:00', '2025-01-11 20:00:00'),
-(4, '2025-01-11 18:00:00',NULL),
-(6, '2025-01-11 18:00:00',NULL);
+-- Insert mock booking time periods
+INSERT INTO booking_time_periods (item_id, phone_number, started_booking_time, ended_booking_time) VALUES
+(1,"08148148141" ,'2025-01-10 09:00:00', '2025-01-10 11:00:00'),
+(1, "08148148141" ,'2025-01-10 14:00:00', '2025-01-10 16:00:00'),
+(2, "08148148141",'2025-01-10 10:00:00', '2025-01-10 12:00:00'),
+(4, "08148148141",'2025-01-10 13:00:00', '2025-01-10 15:00:00'),
+(6, "08148148141",'2025-01-10 09:30:00', '2025-01-10 09:35:00'),
+(8, "08148148141" ,'2025-01-10 10:45:00', '2025-01-10 10:50:00');
