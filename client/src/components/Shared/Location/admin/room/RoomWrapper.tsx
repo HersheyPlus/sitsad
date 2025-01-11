@@ -1,20 +1,36 @@
-import { IRoom } from "@/types/location";
+import { IBuilding, IRoom } from "@/types/location";
 import { Flex } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LocationFilter from "../LocationFilter";
 import RoomTable from "./RoomTable";
 import RoomModal from "./RoomModal";
+import BuildingService from "@/services/building.service";
+import RoomService from "@/services/room.service";
 
 
 const RoomWrapper = () => {
     const [data, setData] = useState<IRoom[]>([]);
+    const [buildings, setBuildings] = useState<IBuilding[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
 
-    const doSearch = () => {
+    useEffect(() => {
+        doGetBuildings();
+        doSearch()
+    }, [])
+
+
+    const doSearch = async () => {
         // do something
-        console.log("Query: ", query);
+        const data = await RoomService.findByKeyword(query)
+        setData(data)
+    }
+
+    const doGetBuildings = async () => {
+        const data = await BuildingService.findAll()
+
+        setBuildings(data)
     }
 
     const doAdd = () => {
@@ -61,6 +77,7 @@ const RoomWrapper = () => {
             <RoomModal
                 visible={isModalOpen}
                 editingRoom={editingRoom}
+                buildings={buildings}
                 onCancel={() => setIsModalOpen(false)}
                 onSave={doSave}
             />

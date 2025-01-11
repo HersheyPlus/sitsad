@@ -1,9 +1,10 @@
 import { IBuilding } from "@/types/location";
 import { Flex } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LocationFilter from "../LocationFilter";
 import BuildingTable from "./BuildingTable";
 import BuildingModal from "./BuildingModal";
+import BuildingService from "@/services/building.service";
 
 const BuildingWrapper = () => {
     const [data, setData] = useState<IBuilding[]>([]);
@@ -11,9 +12,14 @@ const BuildingWrapper = () => {
     const [query, setQuery] = useState<string>("");
     const [editingBuilding, setEditingRoom] = useState<IBuilding | null>(null);
 
-    const doSearch = () => {
+    useEffect(() => {
+        doSearch()
+    }, [])
+
+    const doSearch = async () => {
         // do something
-        console.log("Query: ", query);
+        const data = await BuildingService.findByKeyword(query)
+        setData(data)
     }
 
     const doAdd = () => {

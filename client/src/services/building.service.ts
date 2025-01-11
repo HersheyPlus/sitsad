@@ -37,7 +37,7 @@ const BuildingService = {
     async findByKeyword(keyword: string) {
         if (!keyword) return mockupBuildings;
 
-        return mockupBuildings.filter(building => building.building_name.includes(keyword));
+        return mockupBuildings.filter(building => building.building_name.toLowerCase().includes(keyword.toLowerCase()));
     },
 
     async findByKeywordAndItemType(keyword: string, itemType: string) {

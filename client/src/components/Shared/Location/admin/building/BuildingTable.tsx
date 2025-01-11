@@ -16,8 +16,8 @@ const BuildingTable: React.FC<IProps> = ({
 }) => {
     const columns = [
         {
-            title: "Title",
-            dataIndex: "title",
+            title: "Building Name",
+            dataIndex: "building_name",
             key: "title",
         },
         {
@@ -32,16 +32,6 @@ const BuildingTable: React.FC<IProps> = ({
             render: (text: string) => (
                 <img src={text} alt="Location" className="object-cover w-16 h-16" />
             ),
-        },
-        {
-            title: "Current",
-            dataIndex: "current",
-            key: "current",
-        },
-        {
-            title: "Total",
-            dataIndex: "total",
-            key: "total",
         },
         {
             title: "Actions",

@@ -67,8 +67,8 @@ const BuildingModal: React.FC<IProps> = ({
         >
             <Form form={form} layout="vertical">
                 <Form.Item
-                    name="title"
-                    label="Title"
+                    name="building_name"
+                    label="Building Name"
                     rules={[{ required: true, message: "Please enter the title" }]}
                 >
                     <Input placeholder="Enter title" />
@@ -83,7 +83,6 @@ const BuildingModal: React.FC<IProps> = ({
                 <Form.Item
                     name="image"
                     label="Image"
-                    rules={[{ required: true, message: "Please upload an image" }]}
                 >
                     <Upload {...uploadProps} listType="picture">
                         <Button icon={<UploadOutlined />}>Click to Upload</Button>

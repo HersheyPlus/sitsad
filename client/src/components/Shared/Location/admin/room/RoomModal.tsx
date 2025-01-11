@@ -1,17 +1,19 @@
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Upload, Button, message } from "antd";
+import { Modal, Form, Input, Upload, Button, message, Select } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { IRoom } from "@/types/location";
+import { IBuilding, IRoom } from "@/types/location";
 
 interface LocationModalProps {
     visible: boolean;
     editingRoom: IRoom | null;
     onCancel: () => void;
     onSave: (values: IRoom) => void;
+    buildings: IBuilding[];
 }
 
 const RoomModal: React.FC<LocationModalProps> = ({
     visible,
+    buildings,
     editingRoom,
     onCancel,
     onSave,
@@ -67,8 +69,8 @@ const RoomModal: React.FC<LocationModalProps> = ({
         >
             <Form form={form} layout="vertical">
                 <Form.Item
-                    name="title"
-                    label="Title"
+                    name="room_name"
+                    label="Room name"
                     rules={[{ required: true, message: "Please enter the title" }]}
                 >
                     <Input placeholder="Enter title" />
@@ -81,14 +83,28 @@ const RoomModal: React.FC<LocationModalProps> = ({
                     <Input.TextArea rows={3} placeholder="Enter description" />
                 </Form.Item>
                 <Form.Item
+                    name="building_id"
+                    label="Building"
+                    rules={[{ required: true, message: "Please select a building" }]}
+                >
+                    <Select placeholder="Select a building">
+                        {buildings.map((building) => (
+                            <Select.Option key={building.building_id} value={building.building_id}>
+                                {building.building_name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item
                     name="image"
                     label="Image"
-                    rules={[{ required: true, message: "Please upload an image" }]}
+                    rules={[{ required: false, message: "Please upload an image" }]}
                 >
                     <Upload {...uploadProps} listType="picture">
                         <Button icon={<UploadOutlined />}>Click to Upload</Button>
                     </Upload>
                 </Form.Item>
+
             </Form>
         </Modal>
     );

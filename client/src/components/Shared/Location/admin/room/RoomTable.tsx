@@ -16,8 +16,8 @@ const RoomTable: React.FC<LocationTableProps> = ({
 }) => {
     const columns = [
         {
-            title: "Title",
-            dataIndex: "title",
+            title: "Room Name",
+            dataIndex: "room_name",
             key: "title",
         },
         {
@@ -34,14 +34,9 @@ const RoomTable: React.FC<LocationTableProps> = ({
             ),
         },
         {
-            title: "Current",
-            dataIndex: "current",
-            key: "current",
-        },
-        {
-            title: "Total",
-            dataIndex: "total",
-            key: "total",
+            title: "Building",
+            dataIndex: "building_name",
+            key: "building",
         },
         {
             title: "Actions",

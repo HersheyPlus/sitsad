@@ -41,13 +41,13 @@ const RoomService = {
     },
 
     async findByKeyword(keyword: string) {
-        return mockupRooms.filter(room => room.room_name.includes(keyword));
+        return mockupRooms.filter(room => room.room_name.toLowerCase().includes(keyword.toLowerCase()));
     },
 
     async findByKeywordAndItemType(keyword: string, itemType: string) {
         if (!keyword) return mockupRooms;
 
-        return mockupRooms.filter(room => room.room_name.includes(keyword));
+        return mockupRooms.filter(room => room.room_name.toLowerCase().includes(keyword.toLowerCase()));
     },
 
     async create(room: IRoom) {
