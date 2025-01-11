@@ -59,12 +59,12 @@ type Item struct {
 }
 
 type BookingTimePeriod struct {
-	BookingTimePeriodID string       `gorm:"primaryKey;column:booking_time_period_id;" json:"booking_time_period_id"`
-	ItemID              string       `gorm:"column:item_id;not null" json:"item_id"`
-	PhoneNumber               string    `gorm:"column:phone_number;type:varchar(20);not null" json:"phone_number"`
-	StartedBookingTime    time.Time `gorm:"column:started_booking_time;not null" json:"started_booking_time"`
-	EndedBookingTime      time.Time `gorm:"column:ended_booking_time;default:null" json:"ended_booking_time"`
-	Item                Item      `gorm:"foreignKey:ItemID" json:"item,omitempty"`
+    BookingTimePeriodID string    `gorm:"primaryKey;column:booking_time_period_id;" json:"booking_time_period_id"`
+    ItemID             string    `gorm:"column:item_id;not null" json:"item_id"`
+    PhoneNumber        string    `gorm:"column:phone_number;type:varchar(20);not null" json:"phone_number"`
+    StartedBookingTime time.Time `gorm:"column:started_booking_time;not null" json:"started_booking_time"`
+    EndedBookingTime   time.Time `gorm:"column:ended_booking_time;default:null" json:"ended_booking_time"`
+    Item              Item      `gorm:"foreignKey:ItemID;references:ItemID" json:"item"`
 }
 
 // TableName methods

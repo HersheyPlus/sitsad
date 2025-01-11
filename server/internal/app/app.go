@@ -109,12 +109,13 @@ func (a *App) setupRoutes() {
 
 	// Booking Time Period Routes
 	bookingTimePeriods := api.Group("/booking-time-periods")
-	bookingTimePeriods.Get("/", a.handlers.GetListBookingTimePeriods)
+	bookingTimePeriods.Get("/", a.handlers.GetBookingTimePeriods)
 	bookingTimePeriods.Get("/items", a.handlers.GetBookingTimePeriodsByItemType)
 
 	// Filter Routes
-	items.Get("/filter", a.handlers.FindBuildingByItemType)
-	rooms.Get("/filter/:building_id", a.handlers.FindRoomsByBuildingID)
+	filter := api.Group("/filter")
+	filter.Get("/items", a.handlers.FindBuildingByItemType)
+	filter.Get("/rooms", a.handlers.FindRoomsByBuildingID)
 
 }
 

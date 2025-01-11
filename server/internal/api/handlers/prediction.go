@@ -4,19 +4,44 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"server/internal/models"
 	res "server/internal/utils"
+    "fmt"
 )
 
-func (h *Handler) GetListBookingTimePeriods(c *fiber.Ctx) error {
+func (h *Handler) GetBookingTimePeriods(c *fiber.Ctx) error {
     var bookings []models.BookingTimePeriod
-    if err := h.db.Preload("Item").
-        Preload("Item.Building").
+
+    result := h.db.
+        Joins("LEFT JOIN items ON booking_time_periods.item_id = items.item_id").
+        Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
+        Joins("LEFT JOIN buildings ON items.building_id = buildings.building_id OR rooms.building_id = buildings.building_id").
+        Preload("Item").
         Preload("Item.Room").
-        Find(&bookings).Error; err != nil {
-        return res.InternalServerError(c, err)
+        Preload("Item.Building").
+        Preload("Item.Room.Building").
+        Select("DISTINCT booking_time_periods.*").
+        Order("booking_time_periods.started_booking_time DESC").
+        Find(&bookings)
+
+    if result.Error != nil {
+        return res.InternalServerError(c, result.Error)
     }
-    
+
+    // Debug print to check data
+    fmt.Printf("Found %d bookings\n", len(bookings))
+    if len(bookings) > 0 {
+        fmt.Printf("First booking: %+v\n", bookings[0])
+        if bookings[0].Item.ItemID != "" {
+            fmt.Printf("Item data: %+v\n", bookings[0].Item)
+        }
+    }
+
+    if len(bookings) == 0 {
+        return res.GetSuccess(c, "No booking time periods found", []models.BookingTimePeriod{})
+    }
+
     return res.GetSuccess(c, "List of booking time periods", bookings)
 }
+
 
 func (h *Handler) GetBookingTimePeriodsByItemType(c *fiber.Ctx) error {
     itemType := c.Query("type")
@@ -26,17 +51,27 @@ func (h *Handler) GetBookingTimePeriodsByItemType(c *fiber.Ctx) error {
     }
     
     var bookings []models.BookingTimePeriod
-    
-    if err := h.db.
-        Joins("JOIN items ON items.item_id = booking_time_periods.item_id").
+ 
+    result := h.db.
+        Joins("LEFT JOIN items ON booking_time_periods.item_id = items.item_id").
+        Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
+        Joins("LEFT JOIN buildings ON items.building_id = buildings.building_id OR rooms.building_id = buildings.building_id").
         Preload("Item").
-        Preload("Item.Building").
         Preload("Item.Room").
+        Preload("Item.Building"). 
+        Preload("Item.Room.Building").
+        Select("DISTINCT booking_time_periods.*").
         Where("items.type = ?", itemType).
-        Find(&bookings).Error; err != nil {
-        return res.InternalServerError(c, err)
+        Order("booking_time_periods.started_booking_time DESC").
+        Find(&bookings)
+ 
+    if result.Error != nil {
+        return res.InternalServerError(c, result.Error)
     }
-    
-    return res.GetSuccess(c, "List of booking time periods", bookings)
-}
-
+ 
+    if len(bookings) == 0 {
+        return res.GetSuccess(c, fmt.Sprintf("No booking time periods found for %s", itemType), []models.BookingTimePeriod{})
+    }
+ 
+    return res.GetSuccess(c, fmt.Sprintf("List of booking time periods for %s", itemType), bookings)
+ }
