@@ -29,60 +29,127 @@ func (h *Handler) GetBuilding(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
-	var building models.Building
-	if err := c.BodyParser(&building); err != nil {
-		return res.BadRequest(c, err.Error())
-	}
-	if (building.BuildingName == "") {
-		return res.BadRequest(c, "building_name is required")
-	}
-	if err := h.db.Create(&building).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.CreatedSuccess(c, building)
+    var building models.Building
+    if err := c.BodyParser(&building); err != nil {
+        return res.BadRequest(c, err.Error())
+    }
+    if building.BuildingName == "" || building.ImageURL == "" || building.Description == ""{
+        return res.BadRequest(c, "building_name, image_url, description are required")
+    }
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    if err := tx.Create(&building).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+    return res.CreatedSuccess(c, building)
 }
 
 func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var building models.Building
-	result := h.db.First(&building, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Building", result.Error)
-		}
-	}
-	if err := c.BodyParser(&building); err != nil {
-		return res.BadRequest(c, err.Error())
-	}
+    id := c.Params("id")
+    var building models.Building
 
-	if err := h.db.Save(&building).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.UpdatedSuccess(c, building)
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    result := tx.First(&building, id)
+    if result.Error != nil {
+        tx.Rollback()
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Building", result.Error)
+        }
+        return res.InternalServerError(c, result.Error)
+    }
+
+    if err := c.BodyParser(&building); err != nil {
+        tx.Rollback()
+        return res.BadRequest(c, err.Error())
+    }
+
+    if err := tx.Save(&building).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+    return res.UpdatedSuccess(c, building)
 }
 
 func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var building models.Building
-	result := h.db.First(&building, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Building", result.Error)
-		}
-	}
-	if err := h.db.Delete(&building).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.DeleteSuccess(c)
+    id := c.Params("id")
+    var building models.Building
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    result := tx.First(&building, id)
+    if result.Error != nil {
+        tx.Rollback()
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Building", result.Error)
+        }
+        return res.InternalServerError(c, result.Error)
+    }
+
+    // Check for related records before deletion
+    var relatedRooms int64
+    if err := tx.Model(&models.Room{}).Where("building_id = ?", id).Count(&relatedRooms).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    var relatedItems int64
+    if err := tx.Model(&models.Item{}).Where("building_id = ?", id).Count(&relatedItems).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if relatedRooms > 0 || relatedItems > 0 {
+        tx.Rollback()
+        return res.BadRequest(c, "Cannot delete building with existing rooms or items")
+    }
+
+    if err := tx.Delete(&building).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+    return res.DeleteSuccess(c)
 }
 
-func (h *Handler) ExistingBuilding(c *fiber.Ctx, buildingId int) bool {
-	var building models.Building
-	result := h.db.First(&building, buildingId)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return false
-		}
-	}
-	return true
+
+func (h *Handler) ExistingBuilding(tx *gorm.DB, c *fiber.Ctx, buildingId int) error {
+    var building models.Building
+    if err := tx.Where("building_id = ?", buildingId).First(&building).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return err
+        }
+    }
+    return nil
 }

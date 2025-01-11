@@ -12,12 +12,12 @@ type Handler struct {
 }
 
 type CreateTableRequest struct {
-	RoomID    int     `json:"room_id" validate:"required"`
+	RoomID    string     `json:"room_id" validate:"required"`
+	Name      string  `json:"name" validate:"required"`
 	PositionX float64 `json:"position_x" validate:"required"`
 	PositionY float64 `json:"position_y" validate:"required"`
 	Width     float64 `json:"width" validate:"required"`
 	Height    float64 `json:"height" validate:"required"`
-	Name      string  `json:"name" validate:"required"`
 }
 
 type CreateToiletRequest struct {
@@ -28,6 +28,22 @@ type CreateToiletRequest struct {
 	PositionY  float64 `json:"position_y" validate:"required"`
 	Name       string  `json:"name" validate:"required"`
 }
+type CreateBuildingRequest struct {
+	BuildingName string `json:"building_name" validate:"required"`
+	Description  string `json:"description" validate:"required"`
+	ImageURL     string `json:"image_url" validate:"required"`
+}
+
+type CreateRoomRequest struct {
+	RoomID	string `json:"room_id" validate:"required"`
+	BuildingID  int    `json:"building_id" validate:"required"`
+	RoomName    string `json:"room_name" validate:"required"`
+	Description string `json:"description"`
+	Floor       int    `json:"floor" validate:"required"`
+	ImageURL    string `json:"image_url"`
+}
+
+
 
 func NewHandler(db *gorm.DB, wsHub *ws.Hub) *Handler {
 	return &Handler{

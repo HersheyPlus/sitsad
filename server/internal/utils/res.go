@@ -37,7 +37,7 @@ func UpdatedSuccess(c *fiber.Ctx, data interface{}) error {
 }
 
 func DeleteSuccess(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusCreated).JSON(Response{
+	return c.Status(fiber.StatusOK).JSON(Response{
 		Success: true,
 		Message: "Deleted successfully",
 	})

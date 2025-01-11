@@ -33,29 +33,6 @@ func (h *Handler) GetListItems(c *fiber.Ctx) error {
 }
 
 
-func (h *Handler) GetTable(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var table models.Item
-	result :=  h.db.Where("type = ?", "table").First(&table, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Table", result.Error)
-		}
-	}
-	return res.GetSuccess(c, "Table found", table)
-}
-func (h *Handler) GetToilet(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var toilet models.Item
-	result :=  h.db.Where("type = ?", "toilet").First(&toilet, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Toilet", result.Error)
-		}
-	}
-	return res.GetSuccess(c, "Toilet found", toilet)
-}
-
 
 func (h *Handler) CreateTable(c *fiber.Ctx) error {
     var req CreateTableRequest
@@ -63,10 +40,23 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-	if req.PositionX < 0 || req.PositionY < 0 || req.Width < 0 || req.Height < 0 || req.RoomID == 0 || req.Name == "" {
-		return res.BadRequest(c, "position_x, position_y, width, height and room_id, name are required")
-	}
+    if req.PositionX < 0 || req.PositionY < 0 || req.Width < 0 || req.Height < 0 || req.RoomID == "" || req.Name == "" {
+        return res.BadRequest(c, "room_id, name, position_x, position_y, width, height are required")
+    }
 
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Check if room exists
+    if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Room", err)
+    }
 
     table := models.NewTable(
         req.RoomID,
@@ -77,61 +67,70 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         req.Name,
     )
 
-    if err := h.db.First(&models.Room{}, req.RoomID).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return res.NotFound(c, "Room", err)
-        }
+    if err := tx.Create(table).Error; err != nil {
+        tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    if err := h.db.Create(table).Error; err != nil {
+    if err := tx.Preload("Room").First(table, table.ItemID).Error; err != nil {
+        tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    if err := h.db.Preload("Room").First(table, table.ItemID).Error; err != nil {
+    if err := tx.Commit().Error; err != nil {
         return res.InternalServerError(c, err)
     }
 
     h.wsHub.BroadcastNewItem(table, "table")
     return res.CreatedSuccess(c, table)
 }
-
-// CreateToilet handles the creation of a new toilet
 func (h *Handler) CreateToilet(c *fiber.Ctx) error {
-	var req CreateToiletRequest
-	if err := c.BodyParser(&req); err != nil {
-		return res.BadRequest(c, "Invalid request body")
-	}
+    var req CreateToiletRequest
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
 
     if req.BuildingID == 0 || req.Floor == 0 || req.Name == "" || (req.Gender != "female" && req.Gender != "male") || req.PositionX < 0 || req.PositionY < 0 {
-		return res.BadRequest(c, "building_id, floor, number, gender (female or male), position_x, position_y, name are required")
-	}
+        return res.BadRequest(c, "building_id, floor, name, gender (female or male), position_x, position_y, name are required")
+    }
 
-	toilet := models.NewToilet(
-		req.BuildingID,
-		req.Floor,
-		req.Gender,
-        req.Name,
-		req.PositionX,
-		req.PositionY,
-	)
-
-	if err := h.db.First(&models.Building{}, req.BuildingID).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return res.NotFound(c, "Building", err)
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
         }
+    }()
+
+    if err := h.ExistingBuilding(tx, c, req.BuildingID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Building", err)
+    }
+
+    toilet := models.NewToilet(
+        req.BuildingID,
+        req.Floor,
+        req.Gender,
+        req.Name,
+        req.PositionX,
+        req.PositionY,
+    )
+
+    if err := tx.Create(toilet).Error; err != nil {
+        tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    if err := h.db.Create(toilet).Error; err != nil {
+    if err := tx.Preload("Building").First(toilet, toilet.ItemID).Error; err != nil {
+        tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    if err := h.db.Preload("Building").First(toilet, toilet.ItemID).Error; err != nil {
+    if err := tx.Commit().Error; err != nil {
         return res.InternalServerError(c, err)
     }
+
     h.wsHub.BroadcastNewItem(toilet, "toilet")
-
     return res.CreatedSuccess(c, toilet)
 }
 
@@ -200,17 +199,48 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
 }
 
 func (h *Handler) DeleteItem(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var item models.Item
-	result := h.db.First(&item, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Item", result.Error)
-		}
-	}
-	if err := h.db.Delete(&item).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.GetSuccess(c, "Item deleted", item)
-}
+    id := c.Params("id")
+    
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
 
+    var item models.Item
+    if err := tx.First(&item, id).Error; err != nil {
+        tx.Rollback()
+        if err == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Item", err)
+        }
+        return res.InternalServerError(c, err)
+    }
+
+    // Check for related booking periods
+    var bookingsCount int64
+    if err := tx.Model(&models.BookingTimePeriod{}).Where("item_id = ?", id).Count(&bookingsCount).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    // Delete related booking periods first if they exist
+    if bookingsCount > 0 {
+        if err := tx.Where("item_id = ?", id).Delete(&models.BookingTimePeriod{}).Error; err != nil {
+            tx.Rollback()
+            return res.InternalServerError(c, err)
+        }
+    }
+
+    if err := tx.Delete(&item).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.DeleteSuccess(c)
+}

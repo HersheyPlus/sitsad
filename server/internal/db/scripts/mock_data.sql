@@ -6,21 +6,21 @@ INSERT INTO buildings (building_name, description, image_url) VALUES
 ('Library', 'Central university library', 'https://example.com/library.jpg');
 
 -- Insert mock rooms
-INSERT INTO rooms (building_id, room_name, description, floor, image_url) VALUES
-(1, 'E101', 'Computer Lab', 1, 'https://example.com/e101.jpg'),
-(1, 'E201', 'Study Room', 2, 'https://example.com/e201.jpg'),
-(2, 'S101', 'Physics Lab', 1, 'https://example.com/s101.jpg'),
-(2, 'S202', 'Chemistry Lab', 2, 'https://example.com/s202.jpg'),
-(3, 'L101', 'Reading Room', 1, 'https://example.com/l101.jpg');
+INSERT INTO rooms (room_id, building_id, room_name, description, floor, image_url) VALUES
+('E101',1, 'Computer Lab', 'For computer', 1, 'https://example.com/e101.jpg'),
+('E201',1, 'Study Room', 'For sleeping', 2, 'https://example.com/e201.jpg'),
+('S101',2, 'Physics Lab', 'xxx', 1, 'https://example.com/s101.jpg'),
+('S202',2, 'Chemistry Lab', 'eiei', 2, 'https://example.com/s202.jpg'),
+('L101',3, 'Reading Room', NULL, 1, 'https://example.com/l101.jpg');
 
 -- Insert mock items (tables and toilets)
 INSERT INTO items (building_id, room_id, name, type, available, position_x, position_y, width, height, floor, gender) VALUES
 -- Tables in rooms
-(NULL, 1, 'Study Table 1', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 1, 'Study Table 2', 'table', true, 80.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 2, 'Study Table 3', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 3, 'Lab Table 1', 'table', true, 30.0, 40.0, 80.0, 160.0, NULL, NULL),
-(NULL, 4, 'Lab Table 2', 'table', true, 120.0, 40.0, 80.0, 160.0, NULL, NULL),
+(NULL, 'L101', 'Study Table 1', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 'L101', 'Study Table 2', 'table', true, 80.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 'S101', 'Study Table 3', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
+(NULL, 'E201', 'Lab Table 1', 'table', true, 30.0, 40.0, 80.0, 160.0, NULL, NULL),
+(NULL, 'E201', 'Lab Table 2', 'table', true, 120.0, 40.0, 80.0, 160.0, NULL, NULL),
 
 -- Toilets in buildings
 (1, NULL, 'Engineering F1 Female', 'toilet', true, 150.0, 200.0, NULL, NULL, 1, 'female'),

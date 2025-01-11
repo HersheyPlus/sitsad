@@ -100,11 +100,10 @@ func (a *App) setupRoutes() {
 	// Item Routes
 	items := api.Group("/items")
 	items.Get("/", a.handlers.GetListItems)
-	items.Get("/tables/:id", a.handlers.GetTable)
-	items.Get("/toilets/:id", a.handlers.GetToilet)
 	items.Post("/table", a.handlers.CreateTable)
 	items.Post("/toilet", a.handlers.CreateToilet)
 	items.Put("/available/:id", a.handlers.UpdateItemAvailable)
+	items.Delete("/:id", a.handlers.DeleteItem)
 
 	// Booking Time Period Routes
 	bookingTimePeriods := api.Group("/booking-time-periods")

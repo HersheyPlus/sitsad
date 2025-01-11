@@ -5,14 +5,14 @@ USE hackathon2025;
 CREATE TABLE buildings (
     building_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     building_name VARCHAR(100) NOT NULL,
-    description TEXT,
+    description TEXT NOT NULL,
     image_url TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE rooms (
-    room_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    room_id VARCHAR(10) NOT NULL PRIMARY KEY,
     building_id INTEGER NOT NULL,
     room_name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -26,7 +26,7 @@ CREATE TABLE rooms (
 CREATE TABLE items (
     item_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     building_id INTEGER,
-    room_id INTEGER,
+    room_id VARCHAR(10),
     name VARCHAR(100) NOT NULL,
     type VARCHAR(10) NOT NULL,
     available BOOLEAN DEFAULT true,

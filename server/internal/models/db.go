@@ -17,7 +17,7 @@ type Building struct {
 }
 
 type Room struct {
-	RoomID      int       `gorm:"primaryKey;column:room_id;autoIncrement" json:"room_id"`
+	RoomID      string       `gorm:"primaryKey;column:room_id;not null" json:"room_id"`
 	BuildingID  int       `gorm:"column:building_id;not null" json:"building_id"`
 	RoomName    string    `gorm:"column:room_name;type:varchar(100);not null" json:"room_name"`
 	Description string    `gorm:"column:description;type:text" json:"description"`
@@ -41,7 +41,7 @@ type Item struct {
 	ItemID     int       `gorm:"primaryKey;column:item_id;autoIncrement" json:"item_id"`
 	Type       ItemType  `gorm:"column:type;type:varchar(10);not null" json:"type"`
 	BuildingID *int      `gorm:"column:building_id" json:"building_id,omitempty"`
-	RoomID     *int      `gorm:"column:room_id" json:"room_id,omitempty"`
+	RoomID     *string      `gorm:"column:room_id" json:"room_id,omitempty"`
 	Available  bool      `gorm:"column:available;default:true" json:"available"`
 	PositionX  *float64  `gorm:"column:position_x" json:"position_x,omitempty"`
 	PositionY  *float64  `gorm:"column:position_y" json:"position_y,omitempty"`
@@ -91,19 +91,38 @@ func (i *Item) IsTable() bool {
 func (i *Item) IsToilet() bool {
 	return i.Type == ItemTypeToilet
 }
-
-func NewTable(roomID int, posX, posY, width, height float64, name string) *Item {
-	return &Item{
-		Type:      ItemTypeTable,
-		RoomID:    &roomID,
-		Available: true,
-		PositionX: &posX,
-		PositionY: &posY,
-		Width:     &width,
-		Height:    &height,
-		Name:      name,
+func NewBuilding(name, description, imageURL string) *Building {
+	return &Building{
+		BuildingName: name,
+		Description:  description,
+		ImageURL:     imageURL,
 	}
 }
+
+func NewRoom(roomId string, buildingID int, roomName, description, imageURL string, floor int) *Room {
+	return &Room{
+		RoomID: 	roomId,
+		BuildingID:  buildingID,
+		RoomName:    roomName,
+		Description: description,
+		ImageURL:    imageURL,
+		Floor:       floor,
+	}
+}
+
+func NewTable(roomID string, posX, posY, width, height float64, name string) *Item {
+    return &Item{
+        Type:      ItemTypeTable,
+        RoomID:    &roomID,
+        Available: true,
+        PositionX: &posX,
+        PositionY: &posY,
+        Width:     &width,
+        Height:    &height,
+        Name:      name,
+    }
+}
+
 
 func NewToilet(buildingID, floor int, gender, name string, posX, posY float64) *Item {
 	return &Item{
