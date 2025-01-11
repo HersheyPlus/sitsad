@@ -27,6 +27,8 @@ func (h *Handler) GetListItems(c *fiber.Ctx) error {
 	if err := h.db.Where("type = ?", itemType).Find(&items).Error; err != nil {
 		return res.InternalServerError(c, err)
 	}
+
+
 	return res.GetSuccess(c, fmt.Sprintf("List of items (%s)",itemType), items)
 }
 
@@ -90,6 +92,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
+    h.wsHub.BroadcastNewItem(table, "table")
     return res.CreatedSuccess(c, table)
 }
 
@@ -127,11 +130,11 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     if err := h.db.Preload("Building").First(toilet, toilet.ItemID).Error; err != nil {
         return res.InternalServerError(c, err)
     }
+    h.wsHub.BroadcastNewItem(toilet, "toilet")
 
     return res.CreatedSuccess(c, toilet)
 }
 
-// In handlers/items.go
 func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
     id := c.Params("id")
     

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+
 	"github.com/gofiber/websocket/v2"
 )
 
@@ -25,6 +26,13 @@ type ItemAvailabilityUpdate struct {
 	ItemID    int  `json:"item_id"`
 	Available bool `json:"available"`
 	Type      string `json:"type"`
+}
+
+
+type ItemCreationUpdate struct {
+    Item interface{} `json:"item"`
+    Type string      `json:"type"`
+    Action string    `json:"action"`
 }
 
 func NewHub() *Hub {
@@ -94,4 +102,20 @@ func (h *Hub) BroadcastItemUpdate(update ItemAvailabilityUpdate) {
             h.mu.RLock()
         }
     }
+}
+
+func (h *Hub) BroadcastNewItem(item interface{}, itemType string) {
+    update := ItemCreationUpdate{
+        Item: item,
+        Type: itemType,
+        Action: "create",
+    }
+    
+    message, err := json.Marshal(update)
+    if err != nil {
+        log.Printf("Error marshaling new item update: %v", err)
+        return
+    }
+
+    h.broadcast <- message
 }
