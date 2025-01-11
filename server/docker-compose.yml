@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: goapp-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: hackathon2025
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 1234
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - goapp_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goapp-server
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: 1234
+      DB_NAME: hackathon2025
+    depends_on:
+      - mysql
+    networks:
+      - goapp_network
+
+volumes:
+  mysql_data:
+
+networks:
+  goapp_network:

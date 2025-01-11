@@ -6,7 +6,7 @@ BINARY_NAME=server
 
 # Database parameters
 DB_USER ?= root
-DB_PASS ?= $(DATABASE_PASSWORD)
+DB_PASS ?= 1234
 DB_NAME ?= hackathon2025
 DOCKER_COMPOSE ?= docker compose
 MQTT_PATH ?= mqtt_server/mqtt
