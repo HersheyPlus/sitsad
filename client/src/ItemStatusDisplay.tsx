@@ -6,16 +6,19 @@ interface Item {
   available: boolean;
 }
 
-interface WebSocketUpdate {
-  item_id: number;
-  available: boolean;
-  type: string;
+interface WebSocketMessage {
+  item_id?: number;
+  available?: boolean;
+  type?: string;
+  item?: Item;
+  action?: string;
 }
 
 const ItemStatusDisplay = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const processedItemsRef = useRef(new Set<number>());
 
   // Add function to fetch items
   const fetchItems = async () => {
@@ -30,6 +33,7 @@ const ItemStatusDisplay = () => {
       console.error('Error fetching items:', error);
     }
   };
+
 
   // Call fetchItems when component mounts
   useEffect(() => {
@@ -52,23 +56,35 @@ const ItemStatusDisplay = () => {
 
       websocket.onmessage = (event: MessageEvent) => {
         try {
-          const update = JSON.parse(event.data) as WebSocketUpdate;
+          const update = JSON.parse(event.data) as WebSocketMessage;
           console.log('Received WebSocket update:', update);
-          setItems(prevItems => 
-            prevItems.map(item => 
-              item.item_id === update.item_id 
-                ? { ...item, available: update.available }
-                : item
-            )
-          );
+          
+          if (update.action === 'create' && update.item) {
+            const newItem = update.item as Item;
+            // Check if we've already processed this item ID
+            if (!processedItemsRef.current.has(newItem.item_id)) {
+              processedItemsRef.current.add(newItem.item_id);
+              setItems(prevItems => [...prevItems, newItem]);
+            }
+          } else if (update.item_id && update.available !== undefined) {
+            setItems(prevItems => 
+              prevItems.map(item => 
+                item.item_id === update.item_id 
+                  ? { ...item, available: update.available! }
+                  : item
+              )
+            );
+          }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
       };
 
+      // Reset processed items when WebSocket reconnects
       websocket.onclose = (event) => {
         console.log('WebSocket closed:', event);
         setIsConnected(false);
+        processedItemsRef.current.clear(); // Clear the set on disconnect
         setTimeout(connectWebSocket, 3000);
       };
 
@@ -83,6 +99,7 @@ const ItemStatusDisplay = () => {
       if (wsRef.current) {
         console.log('Cleaning up WebSocket connection');
         wsRef.current.close();
+        processedItemsRef.current.clear(); // Clear on cleanup
       }
     };
   }, []);
