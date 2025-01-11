@@ -64,10 +64,10 @@ func InitializeConfig() (*models.AppConfig, error) {
 
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.host", "localhost")
-	v.SetDefault("database.port", 3306)
-	v.SetDefault("database.user", "mysql")
-	v.SetDefault("database.password", "password")
-	v.SetDefault("database.name", "postgres")
+	v.SetDefault("database.port", 3307)
+	v.SetDefault("database.user", "root")
+	v.SetDefault("database.password", "1234")
+	v.SetDefault("database.name", "mysql")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.max_connections", 100)
 
