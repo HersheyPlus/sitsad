@@ -5,9 +5,11 @@ include .env
 BINARY_NAME=server
 
 # Database parameters
+DB_HOST ?= goapp-mysql
 DB_USER ?= root
 DB_PASS ?= 1234
 DB_NAME ?= hackathon2025
+DB_PORT ?= 330
 DOCKER_COMPOSE ?= docker compose
 MQTT_PATH ?= mqtt_server/mqtt
 
@@ -21,15 +23,15 @@ RESET  := $(shell tput -Txterm sgr0)
 ## Database:
 db-up: ## Run up migration script
 	@echo "${GREEN}Running database up script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_up.sql
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_up.sql
 
 db-down: ## Run down migration script
 	@echo "${YELLOW}Running database down script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_down.sql
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_down.sql
 
 db-mockup: ## Mock up data, insert into database
 	@echo "${GREEN}Running database mock up data script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/mock_data.sql
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/mock_data.sql
 
 db-start: ## Start database
 	@echo "${GREEN}Starting database...${RESET}"

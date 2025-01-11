@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -17,7 +15,8 @@ services:
     networks:
       - goapp_network
     volumes:
-      - mysql_data:/var/lib/mysql # Persist MySQL data
+      - mysql_data:/var/lib/mysql
+      - ./internal/db/scripts:/docker-entrypoint-initdb.d
 
   app:
     build:
@@ -27,17 +26,22 @@ services:
     ports:
       - "3001:8080"
     environment:
-      HACKATHON_2025_DATABASE_HOST: goapp-mysql  # Use container name
+      HACKATHON_2025_DATABASE_HOST: goapp-mysql
       HACKATHON_2025_DATABASE_PORT: 3306
       HACKATHON_2025_DATABASE_USER: root
       HACKATHON_2025_DATABASE_PASSWORD: 1234
       HACKATHON_2025_DATABASE_NAME: hackathon2025
+      DB_HOST: goapp-mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: 1234
+      DB_NAME: hackathon2025
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - goapp_network
-    command: sh -c "make db-start && air" # Ensure make command runs before starting app
+    command: air
 
 networks:
   goapp_network:
