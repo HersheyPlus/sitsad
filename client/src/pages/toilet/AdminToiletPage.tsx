@@ -1,111 +1,75 @@
-import { useState } from 'react';
+// import { useEffect, useState } from 'react';
 
-import ItemLayout from '@/components/Pages/Item/admin/AdminItemLayout';
-import ItemHistory from '@/components/Pages/Item/admin/AdminItemHistory';
-import ItemCrud from '@/components/Pages/Item/admin/AdminItemCrud';
+// import ItemLayout from '@/components/Pages/Item/admin/AdminItemLayout';
+// import ItemHistory from '@/components/Pages/Item/admin/AdminItemHistory';
+// import ItemCrud from '@/components/Pages/Item/admin/AdminItemCrud';
 
-import { Flex } from 'antd';
+// import { Flex } from 'antd';
 
-import XBreadcrumb from '@/components/XBreadcrumb';
-import { ILocation } from '@/types/location';
-import { IItem, IItemHistory, ItemType } from '@/types/item';
+// import XBreadcrumb from '@/components/XBreadcrumb';
+// import { IBuilding, ILocation, IRoom } from '@/types/location';
+// import { IItem, IItemHistory, ItemType } from '@/types/item';
+// import ToiletService from '@/services/toilet.service';
+// import BuildingService from '@/services/building.service';
+// import RoomService from '@/services/room.service';
 
-const breadcrumbItems = [
-    {
-        title: <a href="/">Home</a>,
-    },
-    {
-        title: <a href="/dashboard">Dashboard</a>,
-    },
-    {
-        title: "Table",
-    },
-];
-
-const history: IItemHistory[] = [
-    {
-        id: 1,
-        itemId: 101,
-        reservationTime: "2025-01-09 10:00 AM",
-        leaveTime: "2025-01-09 12:00 PM",
-        phoneNo: "1234567890",
-    },
-    {
-        id: 2,
-        itemId: 102,
-        reservationTime: "2025-01-09 01:00 PM",
-        leaveTime: "2025-01-09 03:00 PM",
-        phoneNo: undefined,
-    },
-];
-
-const table: IItem[] = [
-    {
-        id: 101,
-        x: 0,
-        y: 0,
-        available: true,
-        name: "Toilet 1",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 102,
-        x: 100,
-        y: 0,
-        available: true,
-        name: "Toilet 2",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 103,
-        x: 200,
-        y: 0,
-        available: false,
-        name: "Toilet 3",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 104,
-        x: 300,
-        y: 0,
-        available: false,
-        name: "Toilet 4",
-        width: 100,
-        height: 100,
-    },
-]
-
-const locations: ILocation[] = [
-    {
-        id: "1",
-        title: "Location 1",
-        description: "Location 1 description",
-        image: "/placeholder.svg?height=96&width=96",
-        current: 7,
-        total: 10,
-    }
-]
+// const breadcrumbItems = [
+//     {
+//         title: <a href="/">Home</a>,
+//     },
+//     {
+//         title: <a href="/dashboard">Dashboard</a>,
+//     },
+//     {
+//         title: "Table",
+//     },
+// ];
 
 
-const AdminToiletPage = () => {
-    const [items, setItems] = useState<IItem[]>(table);
+// const AdminToiletPage = () => {
+//     const [items, setItems] = useState<IItem[]>([]);
+//     const [buildings, setBuildings] = useState<IBuilding[]>([]);
+//     const [rooms, setRooms] = useState<IRoom[]>([]);
 
-    // TODO: fetch data from API
+//     const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
 
-    return (
-        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
-            <XBreadcrumb items={breadcrumbItems} />
+//     useEffect(() => {
+//         doSearchBuildings()
+//     }, [])
 
-            <ItemLayout data={items} doUpdateItem={setItems} />
+//     useEffect(() => {
+//         if (!buildings.length) return;
+//         doSearchRooms()
+//     }, [])
 
-            <ItemCrud data={items} locations={locations} />
+//     // TODO: fetch data from API
+//     const doSearchItems = async () => {
+//         // Search using ItemType.Table
+//         const data = await ToiletService.findAll();
+//         setItems(data);
+//     }
 
-            <ItemHistory data={history} itemName={ItemType.TOILET} />
-        </Flex>
-    );
-};
+//     const doSearchBuildings = async () => {
+//         const data = await BuildingService.findAll();
+//         setBuildings(data || []);
+//     }
 
-export default AdminToiletPage;
+//     const doSearchRooms = async () => {
+//         const data = await RoomService.findAll();
+//         setRooms(data || []);
+//     }
+
+//     return (
+//         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+//             <XBreadcrumb items={breadcrumbItems} />
+
+//             <ItemLayout data={items} doUpdateItem={setItems} />
+
+//             <ItemCrud data={items} locations={locations} />
+
+//             <ItemHistory data={history} itemName={ItemType.TOILET} />
+//         </Flex>
+//     );
+// };
+
+// export default AdminToiletPage;

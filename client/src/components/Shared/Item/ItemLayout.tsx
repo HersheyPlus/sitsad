@@ -16,8 +16,8 @@ const ItemLayout = ({ itemName, items }: IProps) => {
                     <div
                         style={{
                             position: 'absolute',
-                            top: item.y,
-                            left: item.x,
+                            top: item.position_y,
+                            left: item.position_x,
                             width: item.width,
                             height: item.height,
                             display: 'flex',

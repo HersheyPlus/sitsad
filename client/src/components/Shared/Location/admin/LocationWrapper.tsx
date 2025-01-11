@@ -1,9 +1,9 @@
 import { useState } from "react";
-import LocationTable from "./LocationTable";
-import LocationModal from "./LocationModal";
+import LocationTable from "../LocationTable";
+import LocationModal from "../LocationModal";
 import { ILocation } from "@/types/location";
 import { Flex } from "antd";
-import LocationFilter from "./LocationFilter";
+import LocationFilter from "../LocationFilter";
 
 const LocationWrapper = () => {
     const [data, setData] = useState<ILocation[]>([]);

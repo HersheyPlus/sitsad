@@ -6,13 +6,13 @@ const { Title } = Typography
 const historyColumns = [
     {
         title: 'Reservation Time',
-        dataIndex: 'reservationTime',
+        dataIndex: 'started_booking_time',
         key: 'reservationTime',
         render: (text: string) => new Date(text).toLocaleString(),
     },
     {
         title: 'Leave Time',
-        dataIndex: 'leaveTime',
+        dataIndex: 'ended_booking_time',
         key: 'leaveTime',
         render: (text: string) => new Date(text).toLocaleString(),
     },

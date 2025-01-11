@@ -41,7 +41,7 @@ const AdminTableHistory = ({ data }: IProps) => {
         const filtered = data.filter((item) => {
             const matchesDate =
                 date && date[0] && date[1]
-                    ? dayjs(item.reservationTime).isBetween(date[0], date[1], "day", "[]")
+                    ? dayjs(item.started_booking_time).isBetween(date[0], date[1], "day", "[]")
                     : true;
 
             const matchesPhone = phoneNo
@@ -69,18 +69,18 @@ const AdminTableHistory = ({ data }: IProps) => {
         },
         {
             title: "Reservation Time",
-            dataIndex: "reservationTime",
-            key: "reservationTime",
+            dataIndex: "started_booking_time",
+            key: "started_booking_time",
             sorter: (a, b) =>
-                new Date(a.reservationTime).getTime() -
-                new Date(b.reservationTime).getTime(),
+                new Date(a.started_booking_time).getTime() -
+                new Date(b.started_booking_time).getTime(),
         },
         {
             title: "Leave Time",
-            dataIndex: "leaveTime",
-            key: "leaveTime",
+            dataIndex: "ended_booking_time",
+            key: "ended_booking_time",
             sorter: (a, b) =>
-                new Date(a.leaveTime).getTime() - new Date(b.leaveTime).getTime(),
+                new Date(a.ended_booking_time).getTime() - new Date(b.ended_booking_time).getTime(),
         },
         {
             title: 'Phone Number',

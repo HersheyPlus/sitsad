@@ -1,28 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/XBreadcrumb';
 import { useParams } from 'react-router-dom';
 import NotFoundPage from '../NotFoundPage';
-import TableOverview from '@/components/Pages/Item/overview/ItemOverview';
-import ItemLayout from '@/components/Pages/Item/ItemLayout';
+import TableOverview from '@/components/Shared/Item/overview/ItemOverview';
+import ItemLayout from '@/components/Shared/Item/ItemLayout';
 import { IItem, ItemType } from '@/types/item';
-
-const item: IItem = {
-    id: 1,
-    name: "Table 1",
-    description: "Table 1 description",
-    width: 100,
-    height: 100,
-    x: 0,
-    y: 0,
-    available: true,
-}
-
+import TableService from '@/services/table.service';
 
 const TableSlugPage: React.FC = () => {
-    const [items] = useState<IItem[]>([item]);
+    const [items, setItems] = useState<IItem[]>([]);
+    const [item, setItem] = useState<IItem | null>(null);
+
     const params = useParams();
 
     const breadcrumbItems = [
@@ -30,18 +21,48 @@ const TableSlugPage: React.FC = () => {
             title: <a href="/">Home</a>,
         },
         {
-            title: <a href="/table">Tables</a>,
+            title: <a href="/table">Table</a>,
         },
         {
-            title: params?.slug || "",
+            title: <a href={`/table?buildingId=${item?.location.building.building_id}`}>Rooms</a>,
+        },
+        {
+            title: item?.name || "",
         },
     ];
 
+    const doSearchItem = async () => {
+        // Search using ItemType.Toilet
+        if (!params?.slug) return;
 
-    // TODO: fetch an item by slug
+        const data = await TableService.findById(params?.slug);
 
+        if (!data) return;
 
-    if (!params?.slug) {
+        setItem(data);
+    }
+
+    const doSearchMultipleItems = async () => {
+        if (!item) return;
+
+        const roomId = item.location.room.room_id;
+
+        const data = await TableService.findByRoomId(roomId);
+
+        if (!data) return;
+
+        setItems(data);
+    }
+
+    useEffect(() => {
+        doSearchItem();
+    }, [params]);
+
+    useEffect(() => {
+        doSearchMultipleItems();
+    }, [item]);
+
+    if (!params?.slug || !item) {
         return <NotFoundPage />
     }
 

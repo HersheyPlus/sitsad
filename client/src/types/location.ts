@@ -1,8 +1,16 @@
-export interface ILocation {
-    id: string;
-    title: string;
+export interface IBuilding {
+    building_id: number;
+    building_name: string;
+    description?: string;
+    imageURL?: string;
+    // limitFloor: number;
+}
+
+export interface IRoom {
+    room_id: string;
+    building_id: number
+    room_name: string;
     description: string;
-    image: string;
-    current: number;
-    total: number;
+    imageURL: string;
+    floor?: number;
 }

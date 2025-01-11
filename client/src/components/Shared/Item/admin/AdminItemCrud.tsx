@@ -6,16 +6,17 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Filter from "./AdminItemCrudFilter";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-import { ILocation } from "@/types/location";
+import { IBuilding, IRoom } from "@/types/location";
 
 dayjs.extend(isBetween);
 
 interface IProps {
     data: IItem[];
-    locations: ILocation[]; // Assuming locations are passed as a prop
+    buildings: IBuilding[];
+    rooms: IRoom[];
 }
 
-const AdminTableCrud = ({ data, locations }: IProps) => {
+const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -35,7 +36,7 @@ const AdminTableCrud = ({ data, locations }: IProps) => {
     };
 
     // Handle table data edit
-    const doEdit = (key: React.Key, value: string | number | ILocation | undefined, column: string) => {
+    const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | undefined, column: string) => {
         const newData = [...filteredData];
         const index = newData.findIndex((item) => key === item.id);
         if (index > -1) {
@@ -94,24 +95,53 @@ const AdminTableCrud = ({ data, locations }: IProps) => {
             ),
         },
         {
-            title: "Location",
-            dataIndex: "location",
-            key: "location",
-            render: (location: ILocation, record) => (
+            title: "Building",
+            dataIndex: ["location", "building"],
+            key: "building",
+            render: (building: IBuilding, record) => (
                 <Select
-                    style={{
-                        width: "100%",
+                    style={{ width: "100%" }}
+                    value={building.building_id}
+                    onChange={(value) => {
+                        const selectedBuilding = buildings.find((loc) => loc.building_id === value);
+                        if (selectedBuilding) {
+                            const newLocation = {
+                                ...record.location,
+                                building: selectedBuilding,
+                            };
+                            doEdit(record.item_id, newLocation, "location");
+                        }
                     }}
-                    value={location ? location.id : undefined}
-                    onChange={(value) => doEdit(record.id, locations.find((loc) => loc.id === value), "location")}
-                    disabled={editingKey !== record.id.toString()}
+                    disabled={editingKey !== record.item_id.toString()}
                 >
-                    {locations.map((loc) => (
-                        <Select.Option key={loc.id} value={loc.id}>
-                            {loc.title}
+                    {buildings.map((loc) => (
+                        <Select.Option key={loc.building_id} value={loc.building_id}>
+                            {loc.building_name}
                         </Select.Option>
                     ))}
                 </Select>
+            ),
+        },
+        {
+            title: "Room",
+            dataIndex: ["location", "room"],
+            key: "room",
+            render: (room: IRoom, record) => (
+                <EditableCell
+                    editable={editingKey === record.item_id.toString()}
+                    value={room.room_id}
+                    onChange={(value) => {
+                        const selectedRoom = rooms.find((loc) => loc.room_id === value);
+                        if (selectedRoom) {
+                            const newLocation = {
+                                ...record.location,
+                                room: selectedRoom,
+                            };
+
+                            doEdit(record.item_id, newLocation, "location");
+                        }
+                    }}
+                />
             ),
         },
         {

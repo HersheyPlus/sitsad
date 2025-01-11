@@ -1,4 +1,4 @@
-import LocationWrapper from '@/components/Pages/Location/LocationWrapper'
+import LocationWrapper from '@/components/Shared/Location/admin/LocationWrapper'
 import XBreadcrumb from '@/components/XBreadcrumb';
 import { Flex } from 'antd'
 
