@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
+	"time"
 )
 
 func (h *Handler) GetListRooms(c *fiber.Ctx) error {
@@ -18,7 +19,7 @@ func (h *Handler) GetListRooms(c *fiber.Ctx) error {
 func (h *Handler) GetRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var room models.Room
-	result := h.db.First(&room, id)
+	result := h.db.Where("room_id = ?", id).First(&room)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return res.NotFound(c, "Room", result.Error)
@@ -34,7 +35,7 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     }
 
     // Manual validation
-    if req.RoomID == "" ||req.RoomName == "" || req.BuildingID == 0 || req.Floor == 0 || req.ImageURL == "" {
+    if req.RoomID == "" ||req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
         return res.BadRequest(c, "room_id, room_name, floor, building_id, image_url are required")
     }
 
@@ -73,55 +74,90 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     return res.CreatedSuccess(c, room)
 }
 
- func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var room models.Room
+func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
+    id := c.Params("id")
+    var room models.Room
+    var updateData models.Room
  
-	// Start transaction
-	tx := h.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
  
-	result := tx.First(&room, id)
-	if result.Error != nil {
-		tx.Rollback()
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Room", result.Error)
-		}
-		return res.InternalServerError(c, result.Error)
-	}
+    // Find existing room
+    result := tx.Where("room_id = ?", id).First(&room)
+    if result.Error != nil {
+        tx.Rollback()
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Room", result.Error)
+        }
+        return res.InternalServerError(c, result.Error)
+    }
+
+    // Store original values
+    originalBuildingID := room.BuildingID
+
+    // Parse update data
+    if err := c.BodyParser(&updateData); err != nil {
+        tx.Rollback()
+        return res.BadRequest(c, err.Error())
+    }
  
-	if err := c.BodyParser(&room); err != nil {
-		tx.Rollback()
-		return res.BadRequest(c, err.Error())
-	}
+    // If building ID is provided and different from original, verify it exists
+    if updateData.BuildingID != "" && updateData.BuildingID != originalBuildingID {
+        var building models.Building
+        if err := tx.Where("building_id = ?", updateData.BuildingID).First(&building).Error; err != nil {
+            tx.Rollback()
+            if err == gorm.ErrRecordNotFound {
+                return res.BadRequest(c, "New building does not exist")
+            }
+            return res.InternalServerError(c, err)
+        }
+    } else {
+        // Keep the original building ID if not provided
+        updateData.BuildingID = originalBuildingID
+    }
  
-	// If building ID is changed, verify the new building exists
-	if room.BuildingID != 0 {
-		var building models.Building
-		if err := tx.First(&building, room.BuildingID).Error; err != nil {
-			tx.Rollback()
-			if err == gorm.ErrRecordNotFound {
-				return res.BadRequest(c, "New building does not exist")
-			}
-			return res.InternalServerError(c, err)
-		}
-	}
+    // Update only non-empty fields
+    updates := map[string]interface{}{
+        "building_id": updateData.BuildingID, // This will be the original ID if not provided
+        "updated_at": time.Now(),
+    }
+
+    if updateData.RoomName != "" {
+        updates["room_name"] = updateData.RoomName
+    }
+    if updateData.Description != "" {
+        updates["description"] = updateData.Description
+    }
+    if updateData.Floor != 0 {
+        updates["floor"] = updateData.Floor
+    }
+    if updateData.ImageURL != "" {
+        updates["image_url"] = updateData.ImageURL
+    }
  
-	if err := tx.Save(&room).Error; err != nil {
-		tx.Rollback()
-		return res.InternalServerError(c, err)
-	}
+    if err := tx.Model(&room).Updates(updates).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
  
-	if err := tx.Commit().Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.UpdatedSuccess(c, room)
- }
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    // Fetch the updated room with relationships
+    var updatedRoom models.Room
+    if err := h.db.Preload("Building").Where("room_id = ?", id).First(&updatedRoom).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
  
+    return res.UpdatedSuccess(c, updatedRoom)
+}
+
  func (h *Handler) DeleteRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var room models.Room
@@ -134,7 +170,7 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
 		}
 	}()
  
-	result := tx.First(&room, id)
+	result := tx.Where("room_id = ?", id).First(&room)
 	if result.Error != nil {
 		tx.Rollback()
 		if result.Error == gorm.ErrRecordNotFound {

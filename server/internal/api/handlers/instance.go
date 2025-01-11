@@ -21,7 +21,7 @@ type CreateTableRequest struct {
 }
 
 type CreateToiletRequest struct {
-	BuildingID int     `json:"building_id" validate:"required"`
+	BuildingID   string `json:"building_id" validate:"required"`
 	Floor      int     `json:"floor" validate:"required"`
 	Gender     string  `json:"gender" validate:"required,oneof=Male Female Unisex"`
 	PositionX  float64 `json:"position_x" validate:"required"`
@@ -29,6 +29,7 @@ type CreateToiletRequest struct {
 	Name       string  `json:"name" validate:"required"`
 }
 type CreateBuildingRequest struct {
+	BuildingID   string `json:"building_id" validate:"required"`
 	BuildingName string `json:"building_name" validate:"required"`
 	Description  string `json:"description" validate:"required"`
 	ImageURL     string `json:"image_url" validate:"required"`
@@ -36,7 +37,7 @@ type CreateBuildingRequest struct {
 
 type CreateRoomRequest struct {
 	RoomID	string `json:"room_id" validate:"required"`
-	BuildingID  int    `json:"building_id" validate:"required"`
+	BuildingID   string `json:"building_id" validate:"required"`
 	RoomName    string `json:"room_name" validate:"required"`
 	Description string `json:"description"`
 	Floor       int    `json:"floor" validate:"required"`

@@ -3,7 +3,7 @@ USE hackathon2025;
 
 -- Create Tables with corrected data types
 CREATE TABLE buildings (
-    building_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    building_id VARCHAR(30) NOT NULL PRIMARY KEY,
     building_name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
@@ -12,8 +12,8 @@ CREATE TABLE buildings (
 );
 
 CREATE TABLE rooms (
-    room_id VARCHAR(10) NOT NULL PRIMARY KEY,
-    building_id INTEGER NOT NULL,
+    room_id VARCHAR(30) NOT NULL PRIMARY KEY,
+    building_id VARCHAR(30) NOT NULL,
     room_name VARCHAR(100) NOT NULL,
     description TEXT,
     floor INTEGER NOT NULL,
@@ -24,11 +24,11 @@ CREATE TABLE rooms (
 );
 
 CREATE TABLE items (
-    item_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    building_id INTEGER,
-    room_id VARCHAR(10),
-    name VARCHAR(100) NOT NULL,
+    item_id VARCHAR(30) PRIMARY KEY,
+    building_id VARCHAR(30),
     type VARCHAR(10) NOT NULL,
+    room_id VARCHAR(30),
+    name VARCHAR(100) NOT NULL,
     available BOOLEAN DEFAULT true,
     position_x FLOAT,
     position_y FLOAT,
@@ -45,8 +45,8 @@ CREATE TABLE items (
 
 
 CREATE TABLE booking_time_periods (
-    booking_time_period_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    item_id INTEGER,
+    booking_time_period_id VARCHAR(100) NOT NULL PRIMARY KEY,
+    item_id VARCHAR(30),
     phone_number VARCHAR(20) NOT NULL,
     started_booking_time TIMESTAMP NOT NULL,
     ended_booking_time TIMESTAMP,

@@ -104,13 +104,17 @@ func (a *App) setupRoutes() {
 	items.Post("/toilet", a.handlers.CreateToilet)
 	items.Put("/available/:id", a.handlers.UpdateItemAvailable)
 	items.Delete("/:id", a.handlers.DeleteItem)
+	items.Put("/table/:id", a.handlers.UpdateTable)
+	items.Put("/toilet/:id", a.handlers.UpdateToilet)
 
 	// Booking Time Period Routes
 	bookingTimePeriods := api.Group("/booking-time-periods")
 	bookingTimePeriods.Get("/", a.handlers.GetListBookingTimePeriods)
 	bookingTimePeriods.Get("/items", a.handlers.GetBookingTimePeriodsByItemType)
 
-	// Options Routes
+	// Filter Routes
+	items.Get("/filter", a.handlers.FindBuildingByItemType)
+	rooms.Get("/filter/:building_id", a.handlers.FindRoomsByBuildingID)
 
 }
 

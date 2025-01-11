@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
-
 	"github.com/gofiber/websocket/v2"
 )
 
@@ -23,7 +22,7 @@ type Hub struct {
 }
 
 type ItemAvailabilityUpdate struct {
-	ItemID    int  `json:"item_id"`
+	ItemID    string  `json:"item_id"`
 	Available bool `json:"available"`
 	Type      string `json:"type"`
 }

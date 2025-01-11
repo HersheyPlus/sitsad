@@ -1,40 +1,42 @@
 USE hackathon2025;
--- Insert mock buildings
-INSERT INTO buildings (building_name, description, image_url) VALUES
-('Engineering Building', 'Main engineering faculty building', 'https://example.com/eng.jpg'),
-('Science Center', 'Science and research facility', 'https://example.com/science.jpg'),
-('Library', 'Central university library', 'https://example.com/library.jpg');
+-- Insert Buildings
+INSERT INTO buildings (building_id, building_name, description, image_url) VALUES
+('ENG-A', 'Engineering Building A', 'Main engineering building with laboratories and classrooms', 'https://example.com/eng-a.jpg'),
+('ENG-B', 'Engineering Building B', 'Advanced research labs and workshop spaces', 'https://example.com/eng-b.jpg'),
+('SC-MAIN', 'Science Complex', 'Central science facility with modern equipment', 'https://example.com/sc-main.jpg');
 
--- Insert mock rooms
+-- Insert Rooms
 INSERT INTO rooms (room_id, building_id, room_name, description, floor, image_url) VALUES
-('E101',1, 'Computer Lab', 'For computer', 1, 'https://example.com/e101.jpg'),
-('E201',1, 'Study Room', 'For sleeping', 2, 'https://example.com/e201.jpg'),
-('S101',2, 'Physics Lab', 'xxx', 1, 'https://example.com/s101.jpg'),
-('S202',2, 'Chemistry Lab', 'eiei', 2, 'https://example.com/s202.jpg'),
-('L101',3, 'Reading Room', NULL, 1, 'https://example.com/l101.jpg');
+('A101', 'ENG-A', 'Computer Lab 1', 'Primary computer science laboratory', 1, 'https://example.com/a101.jpg'),
+('A102', 'ENG-A', 'Computer Lab 2', 'Secondary computer lab with specialized software', 1, 'https://example.com/a102.jpg'),
+('A201', 'ENG-A', 'Study Room', 'Quiet study space with individual desks', 2, 'https://example.com/a201.jpg'),
+('B101', 'ENG-B', 'Workshop Room', 'Engineering workshop with workbenches', 1, 'https://example.com/b101.jpg'),
+('B102', 'ENG-B', 'Research Lab', 'Research space for graduate students', 1, 'https://example.com/b102.jpg'),
+('SC101', 'SC-MAIN', 'Physics Lab', 'General physics laboratory', 1, 'https://example.com/sc101.jpg');
 
--- Insert mock items (tables and toilets)
-INSERT INTO items (building_id, room_id, name, type, available, position_x, position_y, width, height, floor, gender) VALUES
--- Tables in rooms
-(NULL, 'L101', 'Study Table 1', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 'L101', 'Study Table 2', 'table', true, 80.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 'S101', 'Study Table 3', 'table', true, 10.5, 20.5, 60.0, 120.0, NULL, NULL),
-(NULL, 'E201', 'Lab Table 1', 'table', true, 30.0, 40.0, 80.0, 160.0, NULL, NULL),
-(NULL, 'E201', 'Lab Table 2', 'table', true, 120.0, 40.0, 80.0, 160.0, NULL, NULL),
+-- Insert Items (Tables)
+INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height) VALUES
+('TBL-A101-1', 'table', 'A101', 'Computer Desk 1', true, 10.5, 15.2, 120.0, 60.0),
+('TBL-A101-2', 'table', 'A101', 'Computer Desk 2', true, 10.5, 25.2, 120.0, 60.0),
+('TBL-A101-3', 'table', 'A101', 'Computer Desk 3', true, 10.5, 35.2, 120.0, 60.0),
+('TBL-A201-1', 'table', 'A201', 'Study Table 1', true, 5.0, 8.0, 150.0, 75.0),
+('TBL-A201-2', 'table', 'A201', 'Study Table 2', true, 5.0, 18.0, 150.0, 75.0),
+('TBL-B101-1', 'table', 'B101', 'Workbench 1', true, 15.0, 10.0, 200.0, 90.0);
 
--- Toilets in buildings
-(1, NULL, 'Engineering F1 Female', 'toilet', true, 150.0, 200.0, NULL, NULL, 1, 'female'),
-(1, NULL, 'Engineering F1 Male', 'toilet', true, 180.0, 200.0, NULL, NULL, 1, 'male'),
-(2, NULL, 'Science F1 Female', 'toilet', true, 100.0, 150.0, NULL, NULL, 1, 'female'),
-(2, NULL, 'Science F1 Male', 'toilet', true, 130.0, 150.0, NULL, NULL, 1, 'male'),
-(3, NULL, 'Library F1 Female', 'toilet', true, 90.0, 120.0, NULL, NULL, 1, 'female'),
-(3, NULL, 'Library F1 Male', 'toilet', true, 120.0, 120.0, NULL, NULL, 1, 'male');
+-- Insert Items (Toilets)
+INSERT INTO items (item_id, building_id, type, floor, name, gender, position_x, position_y) VALUES
+('TOI-ENGA-1M', 'ENG-A', 'toilet', 1, 'Male Restroom 1F', 'male', 2.0, 3.0),
+('TOI-ENGA-1F', 'ENG-A', 'toilet', 1, 'Female Restroom 1F', 'female', 2.0, 8.0),
+('TOI-ENGA-2M', 'ENG-A', 'toilet', 2, 'Male Restroom 2F', 'male', 2.0, 3.0),
+('TOI-ENGA-2F', 'ENG-A', 'toilet', 2, 'Female Restroom 2F', 'female', 2.0, 8.0),
+('TOI-ENGB-1M', 'ENG-B', 'toilet', 1, 'Male Restroom 1F', 'male', 3.0, 4.0),
+('TOI-ENGB-1F', 'ENG-B', 'toilet', 1, 'Female Restroom 1F', 'female', 3.0, 9.0);
 
--- Insert mock booking time periods
-INSERT INTO booking_time_periods (item_id, phone_number, started_booking_time, ended_booking_time) VALUES
-(1,"08148148141" ,'2025-01-10 09:00:00', '2025-01-10 11:00:00'),
-(1, "08148148141" ,'2025-01-10 14:00:00', '2025-01-10 16:00:00'),
-(2, "08148148141",'2025-01-10 10:00:00', '2025-01-10 12:00:00'),
-(4, "08148148141",'2025-01-10 13:00:00', '2025-01-10 15:00:00'),
-(6, "08148148141",'2025-01-10 09:30:00', '2025-01-10 09:35:00'),
-(8, "08148148141" ,'2025-01-10 10:45:00', '2025-01-10 10:50:00');
+-- Insert Bookings (current date adjustments for 2025)
+INSERT INTO booking_time_periods (booking_time_period_id, item_id, phone_number, started_booking_time, ended_booking_time) VALUES
+('BK-20250111-001', 'TBL-A101-1', '0801234567', '2025-01-11 09:00:00', '2025-01-11 12:00:00'),
+('BK-20250111-002', 'TBL-A101-2', '0809876543', '2025-01-11 13:00:00', '2025-01-11 16:00:00'),
+('BK-20250111-003', 'TBL-A201-1', '0812345678', '2025-01-11 14:00:00', '2025-01-11 17:00:00'),
+('BK-20250111-004', 'TBL-B101-1', '0823456789', '2025-01-11 10:00:00', '2025-01-11 15:00:00'),
+('BK-20250112-001', 'TBL-A101-3', '0834567890', '2025-01-12 09:00:00', '2025-01-12 12:00:00'),
+('BK-20250112-002', 'TBL-A201-2', '0845678901', '2025-01-12 13:00:00', '2025-01-12 16:00:00');

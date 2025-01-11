@@ -17,24 +17,27 @@ func (h *Handler) GetListBuildings(c *fiber.Ctx) error {
 }
 
 func (h *Handler) GetBuilding(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var building models.Building
-	result := h.db.First(&building, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Building", result.Error)
-		}
-	}
-	return res.GetSuccess(c, "Building found", building)
+    id := c.Params("id")
+    var building models.Building
+    
+    result := h.db.Where("building_id = ?", id).First(&building)
+    if result.Error != nil {
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Building", result.Error)
+        }
+        return res.InternalServerError(c, result.Error)
+    }
+    
+    return res.GetSuccess(c, "Building found", building)
 }
 
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
-    var building models.Building
-    if err := c.BodyParser(&building); err != nil {
+    var req CreateBuildingRequest
+    if err := c.BodyParser(&req); err != nil {
         return res.BadRequest(c, err.Error())
     }
-    if building.BuildingName == "" || building.ImageURL == "" || building.Description == ""{
-        return res.BadRequest(c, "building_name, image_url, description are required")
+    if req.BuildingName == "" || req.ImageURL == "" || req.Description == "" || req.BuildingID == "" {
+        return res.BadRequest(c, "building_id, building_name, image_url, description are required")
     }
 
     // Start transaction
@@ -44,6 +47,13 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
             tx.Rollback()
         }
     }()
+
+    building := models.NewBuilding(
+        req.BuildingID,
+        req.BuildingName,
+        req.Description,
+        req.ImageURL,
+    )
 
     if err := tx.Create(&building).Error; err != nil {
         tx.Rollback()
@@ -68,7 +78,8 @@ func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
         }
     }()
 
-    result := tx.First(&building, id)
+    // Use Where clause for string ID
+    result := tx.Where("building_id = ?", id).First(&building)
     if result.Error != nil {
         tx.Rollback()
         if result.Error == gorm.ErrRecordNotFound {
@@ -77,10 +88,16 @@ func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
         return res.InternalServerError(c, result.Error)
     }
 
+    // Store the original ID
+    originalID := building.BuildingID
+
     if err := c.BodyParser(&building); err != nil {
         tx.Rollback()
         return res.BadRequest(c, err.Error())
     }
+
+    // Ensure ID doesn't change
+    building.BuildingID = originalID
 
     if err := tx.Save(&building).Error; err != nil {
         tx.Rollback()
@@ -92,7 +109,6 @@ func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
     }
     return res.UpdatedSuccess(c, building)
 }
-
 func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
     id := c.Params("id")
     var building models.Building
@@ -105,7 +121,7 @@ func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
         }
     }()
 
-    result := tx.First(&building, id)
+    result := tx.Where("building_id = ?", id).First(&building)
     if result.Error != nil {
         tx.Rollback()
         if result.Error == gorm.ErrRecordNotFound {
@@ -144,7 +160,7 @@ func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
 }
 
 
-func (h *Handler) ExistingBuilding(tx *gorm.DB, c *fiber.Ctx, buildingId int) error {
+func (h *Handler) ExistingBuilding(tx *gorm.DB, c *fiber.Ctx, buildingId string) error {
     var building models.Building
     if err := tx.Where("building_id = ?", buildingId).First(&building).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
