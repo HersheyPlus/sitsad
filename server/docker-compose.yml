@@ -7,8 +7,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: hackathon2025
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 1234
+      # Remove MYSQL_USER and MYSQL_PASSWORD for root
+      # Or create a different user if needed:
+      # MYSQL_USER: myuser
+      # MYSQL_PASSWORD: mypassword
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -24,8 +26,8 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: 1234
+      DB_USER: root           # This is fine because it's for connecting
+      DB_PASSWORD: 1234       # Uses MYSQL_ROOT_PASSWORD value
       DB_NAME: hackathon2025
     depends_on:
       - mysql
