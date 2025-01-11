@@ -1,75 +1,115 @@
-// import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-// import ItemLayout from '@/components/Pages/Item/admin/AdminItemLayout';
-// import ItemHistory from '@/components/Pages/Item/admin/AdminItemHistory';
-// import ItemCrud from '@/components/Pages/Item/admin/AdminItemCrud';
+import { Flex } from 'antd';
 
-// import { Flex } from 'antd';
+import XBreadcrumb from '@/components/XBreadcrumb';
+import { IBuilding, IRoom } from '@/types/location';
+import { IItem, IItemHistory, ItemType } from '@/types/item';
 
-// import XBreadcrumb from '@/components/XBreadcrumb';
-// import { IBuilding, ILocation, IRoom } from '@/types/location';
-// import { IItem, IItemHistory, ItemType } from '@/types/item';
-// import ToiletService from '@/services/toilet.service';
-// import BuildingService from '@/services/building.service';
-// import RoomService from '@/services/room.service';
+import BuildingService from '@/services/building.service';
+import RoomService from '@/services/room.service';
+import AdminItemLayout from '@/components/Shared/Item/admin/AdminItemLayout';
+import AdminItemCrud from '@/components/Shared/Item/admin/AdminItemCrud';
+import AdminSelector from '@/components/Shared/Item/admin/AdminSelector';
+import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
+import HistoryService from '@/services/history.service';
+import ToiletService from '@/services/toilet.service';
 
-// const breadcrumbItems = [
-//     {
-//         title: <a href="/">Home</a>,
-//     },
-//     {
-//         title: <a href="/dashboard">Dashboard</a>,
-//     },
-//     {
-//         title: "Table",
-//     },
-// ];
+const breadcrumbItems = [
+    {
+        title: <a href="/">Home</a>,
+    },
+    {
+        title: <a href="/dashboard">Dashboard</a>,
+    },
+    {
+        title: "Toilet",
+    },
+];
+
+const AdminToiletPage = () => {
+    const [items, setItems] = useState<IItem[]>([]);
+    const [history, setHistory] = useState<IItemHistory[]>([]);
+    const [buildings, setBuildings] = useState<IBuilding[]>([]);
+    const [rooms, setRooms] = useState<IRoom[]>([]);
+
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
+    const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
+
+    useEffect(() => {
+        doSearchBuildings()
+    }, [])
+
+    useEffect(() => {
+        if (selectedBuilding) {
+            doSearchRooms(selectedBuilding.building_id)
+            setSelectedRoom(undefined)
+        }
+    }, [selectedBuilding])
+
+    useEffect(() => {
+        if (selectedRoom) {
+            doSearchItems(selectedRoom.room_id)
+            doSearchHistory(selectedRoom.room_id)
+        } else {
+            setItems([]);
+            setHistory([]);
+        }
+    }, [selectedBuilding, selectedRoom])
 
 
-// const AdminToiletPage = () => {
-//     const [items, setItems] = useState<IItem[]>([]);
-//     const [buildings, setBuildings] = useState<IBuilding[]>([]);
-//     const [rooms, setRooms] = useState<IRoom[]>([]);
+    const doSearchItems = async (roomId: string) => {
+        const data = await ToiletService.findByRoomId(roomId);
+        setItems(data);
+    }
 
-//     const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
+    const doSearchHistory = async (roomId: string) => {
+        const data = await HistoryService.findByRoomId(roomId);
+        setHistory(data);
+    }
 
-//     useEffect(() => {
-//         doSearchBuildings()
-//     }, [])
+    const doSearchBuildings = async () => {
+        const data = await BuildingService.findAll();
+        setBuildings(data || []);
+    }
 
-//     useEffect(() => {
-//         if (!buildings.length) return;
-//         doSearchRooms()
-//     }, [])
+    const doSearchRooms = async (buildingId: string) => {
+        const data = await RoomService.findByBuildingId(buildingId);
+        setRooms(data || []);
+    }
 
-//     // TODO: fetch data from API
-//     const doSearchItems = async () => {
-//         // Search using ItemType.Table
-//         const data = await ToiletService.findAll();
-//         setItems(data);
-//     }
+    const doAddItem = async (item: IItem) => {
+        const newItem = await ToiletService.create(item);
+        setItems((prevItems) => [...prevItems, newItem]);
+    }
 
-//     const doSearchBuildings = async () => {
-//         const data = await BuildingService.findAll();
-//         setBuildings(data || []);
-//     }
+    return (
+        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+            <XBreadcrumb items={breadcrumbItems} />
 
-//     const doSearchRooms = async () => {
-//         const data = await RoomService.findAll();
-//         setRooms(data || []);
-//     }
+            <AdminSelector
+                buildings={buildings}
+                rooms={rooms}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+                onBuildingSelect={setSelectedBuilding}
+                onRoomSelect={setSelectedRoom}
+            />
 
-//     return (
-//         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
-//             <XBreadcrumb items={breadcrumbItems} />
+            <AdminItemLayout
+                data={items}
+                doUpdateItem={setItems}
+                doAddItem={doAddItem}
+                itemType={ItemType.TOILET}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+            />
 
-//             <ItemLayout data={items} doUpdateItem={setItems} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} />
 
-//             <ItemCrud data={items} locations={locations} />
+            <AdminItemHistory data={history} itemName={ItemType.TOILET} />
+        </Flex>
+    );
+};
 
-//             <ItemHistory data={history} itemName={ItemType.TOILET} />
-//         </Flex>
-//     );
-// };
-
-// export default AdminToiletPage;
+export default AdminToiletPage;

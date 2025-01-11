@@ -1,30 +1,30 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Upload, Button, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { ILocation } from "@/types/location";
+import { IRoom } from "@/types/location";
 
 interface LocationModalProps {
     visible: boolean;
-    editingLocation: ILocation | null;
+    editingRoom: IRoom | null;
     onCancel: () => void;
-    onSave: (values: ILocation) => void;
+    onSave: (values: IRoom) => void;
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({
+const RoomModal: React.FC<LocationModalProps> = ({
     visible,
-    editingLocation,
+    editingRoom,
     onCancel,
     onSave,
 }) => {
     const [form] = Form.useForm();
 
     useEffect(() => {
-        if (editingLocation) {
-            form.setFieldsValue(editingLocation);
+        if (editingRoom) {
+            form.setFieldsValue(editingRoom);
         } else {
             form.resetFields();
         }
-    }, [editingLocation, form]);
+    }, [editingRoom, form]);
 
     const uploadProps = {
         beforeUpload: (file: File) => {
@@ -60,7 +60,7 @@ const LocationModal: React.FC<LocationModalProps> = ({
 
     return (
         <Modal
-            title={editingLocation ? "Edit Location" : "Add Location"}
+            title={editingRoom ? "Edit Location" : "Add Location"}
             visible={visible}
             onOk={doSubmit}
             onCancel={onCancel}
@@ -94,4 +94,4 @@ const LocationModal: React.FC<LocationModalProps> = ({
     );
 };
 
-export default LocationModal;
+export default RoomModal;

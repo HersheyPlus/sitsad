@@ -1,111 +1,115 @@
-// import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-// import TableLayout from '@/components/Pages/Item/admin/AdminItemLayout';
-// import TableHistory from '@/components/Pages/Item/admin/AdminItemHistory';
-// import TableCrud from '@/components/Pages/Item/admin/AdminItemCrud';
+import { Flex } from 'antd';
 
-// import { IItem, IItemHistory, ItemType } from '@/types/item';
-// import { Flex } from 'antd';
+import XBreadcrumb from '@/components/XBreadcrumb';
+import { IBuilding, IRoom } from '@/types/location';
+import { IItem, IItemHistory, ItemType } from '@/types/item';
 
-// import XBreadcrumb from '@/components/XBreadcrumb';
-// import { ILocation } from '@/types/location';
+import BuildingService from '@/services/building.service';
+import RoomService from '@/services/room.service';
+import AdminItemLayout from '@/components/Shared/Item/admin/AdminItemLayout';
+import AdminItemCrud from '@/components/Shared/Item/admin/AdminItemCrud';
+import AdminSelector from '@/components/Shared/Item/admin/AdminSelector';
+import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
+import HistoryService from '@/services/history.service';
+import TableService from '@/services/table.service';
 
-// const breadcrumbItems = [
-//     {
-//         title: <a href="/">Home</a>,
-//     },
-//     {
-//         title: <a href="/dashboard">Dashboard</a>,
-//     },
-//     {
-//         title: "Table",
-//     },
-// ];
+const breadcrumbItems = [
+    {
+        title: <a href="/">Home</a>,
+    },
+    {
+        title: <a href="/dashboard">Dashboard</a>,
+    },
+    {
+        title: "Table",
+    },
+];
 
-// const history: IItemHistory[] = [
-//     {
-//         id: 1,
-//         itemId: 101,
-//         reservationTime: "2025-01-09 10:00 AM",
-//         leaveTime: "2025-01-09 12:00 PM",
-//         phoneNo: "1234567890",
-//     },
-//     {
-//         id: 2,
-//         itemId: 102,
-//         reservationTime: "2025-01-09 01:00 PM",
-//         leaveTime: "2025-01-09 03:00 PM",
-//         phoneNo: undefined,
-//     },
-// ];
+const AdminTablePage = () => {
+    const [items, setItems] = useState<IItem[]>([]);
+    const [history, setHistory] = useState<IItemHistory[]>([]);
+    const [buildings, setBuildings] = useState<IBuilding[]>([]);
+    const [rooms, setRooms] = useState<IRoom[]>([]);
 
-// const table: IItem[] = [
-//     {
-//         id: 101,
-//         x: 0,
-//         y: 0,
-//         available: true,
-//         name: "Table 1",
-//         width: 100,
-//         height: 100,
-//     },
-//     {
-//         id: 102,
-//         x: 100,
-//         y: 0,
-//         available: true,
-//         name: "Table 2",
-//         width: 100,
-//         height: 100,
-//     },
-//     {
-//         id: 103,
-//         x: 200,
-//         y: 0,
-//         available: false,
-//         name: "Table 3",
-//         width: 100,
-//         height: 100,
-//     },
-//     {
-//         id: 104,
-//         x: 300,
-//         y: 0,
-//         available: false,
-//         name: "Table 4",
-//         width: 100,
-//         height: 100,
-//     },
-// ]
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
+    const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
 
-// const locations: ILocation[] = [
-//     {
-//         id: "1",
-//         title: "Location 1",
-//         description: "Location 1 description",
-//         image: "/placeholder.svg?height=96&width=96",
-//         current: 7,
-//         total: 10,
-//     }
-// ]
+    useEffect(() => {
+        doSearchBuildings()
+    }, [])
+
+    useEffect(() => {
+        if (selectedBuilding) {
+            doSearchRooms(selectedBuilding.building_id)
+            setSelectedRoom(undefined)
+        }
+    }, [selectedBuilding])
+
+    useEffect(() => {
+        if (selectedRoom) {
+            doSearchItems(selectedRoom.room_id)
+            doSearchHistory(selectedRoom.room_id)
+        } else {
+            setItems([]);
+            setHistory([]);
+        }
+    }, [selectedBuilding, selectedRoom])
 
 
-// const AdminTablePage = () => {
-//     const [tables, setTables] = useState<IItem[]>(table);
+    const doSearchItems = async (roomId: string) => {
+        const data = await TableService.findByRoomId(roomId);
+        setItems(data);
+    }
 
-//     // TODO: fetch data from API
+    const doSearchHistory = async (roomId: string) => {
+        const data = await HistoryService.findByRoomId(roomId);
+        setHistory(data);
+    }
 
-//     return (
-//         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
-//             <XBreadcrumb items={breadcrumbItems} />
+    const doSearchBuildings = async () => {
+        const data = await BuildingService.findAll();
+        setBuildings(data || []);
+    }
 
-//             <TableLayout data={tables} doUpdateItem={setTables} />
+    const doSearchRooms = async (buildingId: string) => {
+        const data = await RoomService.findByBuildingId(buildingId);
+        setRooms(data || []);
+    }
 
-//             <TableCrud data={tables} locations={locations} />
+    const doAddItem = async (item: IItem) => {
+        const newItem = await TableService.create(item);
+        setItems((prevItems) => [...prevItems, newItem]);
+    }
 
-//             <TableHistory data={history} itemName={ItemType.TOILET} />
-//         </Flex>
-//     );
-// };
+    return (
+        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+            <XBreadcrumb items={breadcrumbItems} />
 
-// export default AdminTablePage;
+            <AdminSelector
+                buildings={buildings}
+                rooms={rooms}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+                onBuildingSelect={setSelectedBuilding}
+                onRoomSelect={setSelectedRoom}
+            />
+
+            <AdminItemLayout
+                data={items}
+                doUpdateItem={setItems}
+                doAddItem={doAddItem}
+                itemType={ItemType.TABLE}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+            />
+
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} />
+
+            <AdminItemHistory data={history} itemName={ItemType.TABLE} />
+        </Flex>
+    );
+};
+
+export default AdminTablePage;

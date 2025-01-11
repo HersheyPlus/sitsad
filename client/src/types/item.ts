@@ -1,9 +1,9 @@
 import { IBuilding, IRoom } from "./location";
 
 export interface IItem {
-    item_id: number;
+    item_id: string;
     type: ItemType;
-    building_id: number;
+    building_id?: string;
     available: boolean;
     position_x: number;
     position_y: number;
@@ -17,8 +17,7 @@ export interface IItem {
         room: IRoom
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Add this line
+    // [key: string]: any; // Add this line
 }
 
 export enum ItemType {
@@ -32,8 +31,9 @@ export enum Gender {
 }
 
 export interface IItemHistory {
-    id: number;
-    itemId: number;
+    id: string;
+    item_id: string;
+    room_id: string;
     started_booking_time: string;
     ended_booking_time: string;
     phoneNo?: string;

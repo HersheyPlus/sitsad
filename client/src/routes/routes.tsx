@@ -20,6 +20,9 @@ import DashboardPage from "@/pages/DashboardPage";
 import ToiletSlugPage from "@/pages/toilet/ToiletSlugPage";
 import ToiletPage from "@/pages/toilet/ToiletPage";
 import TablePage from "@/pages/table/TablePage";
+import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
+import LocationPage from "@/pages/LocationPage";
+import AdminTablePage from "@/pages/table/AdminTablePage";
 // import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
@@ -60,9 +63,9 @@ export const routes = [
         ),
         children: [
             { path: "", element: <DashboardPage /> },
-            // { path: "table", element: <AdminTablePage /> },
-            // { path: "toilet", element: <AdminToiletPage /> },
-            // { path: "location", element: <LocationPage /> },
+            { path: "table", element: <AdminTablePage /> },
+            { path: "toilet", element: <AdminToiletPage /> },
+            { path: "location", element: <LocationPage /> },
         ],
     },
     {

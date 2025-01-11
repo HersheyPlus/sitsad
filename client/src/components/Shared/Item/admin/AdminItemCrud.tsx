@@ -1,6 +1,6 @@
 import { Table, Card, Space, Input, Select, Button, Popconfirm } from "antd";
 import { IItem } from "@/types/item";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Filter from "./AdminItemCrudFilter";
@@ -14,17 +14,22 @@ interface IProps {
     data: IItem[];
     buildings: IBuilding[];
     rooms: IRoom[];
+    itemType: string;
 }
 
-const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
+const AdminItemCrud = ({ data, buildings, rooms, itemType }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
 
+    useEffect(() => {
+        setFilteredData(data);
+    }, [data])
+
     // Apply the filter and update filteredData
     const doSearch = () => {
         const filtered = data.filter((item) => {
-            const matchesTableId = item.id.toString().includes(query);
+            const matchesTableId = item.item_id.toString().includes(query);
             const matchesTableName = item.name?.toLowerCase().includes(query.toLowerCase());
             return matchesTableId || matchesTableName;
         });
@@ -38,7 +43,7 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
     // Handle table data edit
     const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | undefined, column: string) => {
         const newData = [...filteredData];
-        const index = newData.findIndex((item) => key === item.id);
+        const index = newData.findIndex((item) => key === item.item_id);
         if (index > -1) {
             const editedTable = newData[index];
             editedTable[column] = value;
@@ -53,20 +58,54 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
     const doSave = (key: string) => {
         console.log("Save", key);
         setEditingKey(null);
-        // Here you can handle the save logic, like making an API call
+
+        const editedItem = filteredData.find((item) => item.item_id === key);
+
+        if (!editedItem) return;
+
+        // try {
+        //     // Example API call to save the data (replace with your API endpoint)
+        //     const response = await fetch(`/api/items/${key}`, {
+        //         method: "PUT",
+        //         headers: {
+        //             "Content-Type": "application/json",
+        //         },
+        //         body: JSON.stringify(editedItem),
+        //     });
+
+        //     if (response.ok) {
+        //         const updatedItem = await response.json();
+
+        //         // Update the filteredData with the saved data from the API response
+        //         setFilteredData((prevData) =>
+        //             prevData.map((item) =>
+        //                 item.item_id === key ? { ...item, ...updatedItem } : item
+        //             )
+        //         );
+
+        //         console.log("Item saved successfully:", updatedItem);
+        //     } else {
+        //         console.error("Failed to save the item:", response.statusText);
+        //     }
+        // } catch (error) {
+        //     console.error("An error occurred while saving the item:", error);
+        // }
+
     };
 
     // Handle remove table
-    const doRemove = (id: number) => {
-        setFilteredData(filteredData.filter((item) => item.id !== id));
+    const doRemove = (id: string) => {
+        setFilteredData(filteredData.filter((item) => item.item_id !== id));
     };
+
+    const idTitle = itemType.charAt(0).toUpperCase() + itemType.slice(1);
 
     const columns: ColumnsType<IItem> = [
         {
-            title: "Table ID",
-            dataIndex: "id",
+            title: `${idTitle} ID`,
+            dataIndex: "item_id",
             key: "id",
-            sorter: (a, b) => a.id - b.id,
+            sorter: (a, b) => a.item_id.localeCompare(b.item_id),
             render: (text) => <span>{text}</span>,
         },
         {
@@ -76,9 +115,9 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (text, record) => (
                 <EditableCell
-                    editable={editingKey === record.id.toString()}
+                    editable={editingKey === record.item_id.toString()}
                     value={text}
-                    onChange={(value) => doEdit(record.id, value, "name")}
+                    onChange={(value) => doEdit(record.item_id, value, "name")}
                 />
             ),
         },
@@ -88,9 +127,9 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             key: "description",
             render: (text, record) => (
                 <EditableCell
-                    editable={editingKey === record.id.toString()}
+                    editable={editingKey === record.item_id.toString()}
                     value={text}
-                    onChange={(value) => doEdit(record.id, value, "description")}
+                    onChange={(value) => doEdit(record.item_id, value, "description")}
                 />
             ),
         },
@@ -127,8 +166,8 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             dataIndex: ["location", "room"],
             key: "room",
             render: (room: IRoom, record) => (
-                <EditableCell
-                    editable={editingKey === record.item_id.toString()}
+                <Select
+                    style={{ width: "100%" }}
                     value={room.room_id}
                     onChange={(value) => {
                         const selectedRoom = rooms.find((loc) => loc.room_id === value);
@@ -137,11 +176,17 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
                                 ...record.location,
                                 room: selectedRoom,
                             };
-
                             doEdit(record.item_id, newLocation, "location");
                         }
                     }}
-                />
+                    disabled={editingKey !== record.item_id.toString()}
+                >
+                    {rooms.map((loc) => (
+                        <Select.Option key={loc.room_id} value={loc.room_id}>
+                            {loc.room_name}
+                        </Select.Option>
+                    ))}
+                </Select>
             ),
         },
         {
@@ -161,9 +206,9 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             key: "action",
             render: (_, record) => (
                 <Space size="middle">
-                    {editingKey === record.id.toString() ? (
+                    {editingKey === record.item_id.toString() ? (
                         <>
-                            <Button type="link" onClick={() => doSave(record.id.toString())}>Save</Button>
+                            <Button type="link" onClick={() => doSave(record.item_id.toString())}>Save</Button>
                             <Button type="link" onClick={doCancel}>Cancel</Button>
                         </>
                     ) : (
@@ -171,11 +216,11 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
                             <Button
                                 type="link"
                                 icon={<EditOutlined />}
-                                onClick={() => enterEditMode(record.id.toString())}
+                                onClick={() => enterEditMode(record.item_id.toString())}
                             />
                             <Popconfirm
                                 title="Are you sure to delete this item?"
-                                onConfirm={() => doRemove(record.id)}
+                                onConfirm={() => doRemove(record.item_id)}
                             >
                                 <Button
                                     type="link"
@@ -194,7 +239,7 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             style={{ backgroundColor: "#ffffff", padding: "20px", borderRadius: "8px" }}
             title={
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5rem" }}>
-                    <h2>Table Manager</h2>
+                    <h2>{idTitle} Manager</h2>
                 </div>
             }
         >
@@ -202,7 +247,7 @@ const AdminTableCrud = ({ data, buildings, rooms }: IProps) => {
             <Table
                 columns={columns}
                 dataSource={filteredData}
-                rowKey="id"
+                rowKey="item_id"
                 bordered
                 style={{
                     backgroundColor: "#ffffff",
@@ -231,4 +276,4 @@ const EditableCell = ({ editable, value, onChange }: EditableCellProps) => {
     );
 };
 
-export default AdminTableCrud;
+export default AdminItemCrud;

@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 const TablePage = () => {
     const [searchParams] = useSearchParams();
 
-    const hasRoomId = searchParams.has("buildingId");
+    const hasRoomId = searchParams.get("buildingId");
 
     if (hasRoomId) {
         return (

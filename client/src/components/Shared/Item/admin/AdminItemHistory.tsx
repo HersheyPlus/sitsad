@@ -1,7 +1,7 @@
 
 import { Table, Card, Space } from "antd";
 import { IItemHistory } from "@/types/item";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "dayjs";
 
@@ -18,13 +18,17 @@ interface IProps {
 
 dayjs.extend(isBetween);
 
-const AdminTableHistory = ({ data }: IProps) => {
+const AdminItemHistory = ({ data }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItemHistory[]>(data);
 
     const [query, setQuery] = useState<{
         date?: [Dayjs, Dayjs] | null;
         phoneNo?: string;
     }>({});
+
+    useEffect(() => {
+        setFilteredData(data);
+    }, [data]);
 
     // Update the query state
     const doChangeQuery = (key: string, value: [Dayjs, Dayjs] | string | null) => {
@@ -56,16 +60,10 @@ const AdminTableHistory = ({ data }: IProps) => {
 
     const columns: ColumnsType<IItemHistory> = [
         {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-            sorter: (a, b) => a.id - b.id,
-        },
-        {
             title: "Item ID",
             dataIndex: "id",
             key: "id",
-            sorter: (a, b) => a.itemId - b.itemId,
+            sorter: (a, b) => a.id.localeCompare(b.id),
         },
         {
             title: "Reservation Time",
@@ -118,4 +116,4 @@ const AdminTableHistory = ({ data }: IProps) => {
     );
 };
 
-export default AdminTableHistory;
+export default AdminItemHistory;

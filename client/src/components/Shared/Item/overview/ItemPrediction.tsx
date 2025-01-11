@@ -14,6 +14,7 @@ const conicColors: ProgressProps['strokeColor'] = {
 interface IProps {
     history: IItemHistory[]
 }
+
 const ItemPrediction = ({ history }: IProps) => {
 
     const predictAvailableSlots = () => {

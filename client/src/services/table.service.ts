@@ -4,45 +4,45 @@ import { mockupRooms } from "./room.service";
 
 
 const mockupTable: IItem[] = [{
-    item_id: 1,
+    item_id: "1",
     type: ItemType.TABLE,
-    building_id: 1,
+    building_id: "1",
     available: true,
     position_x: 0,
     position_y: 0,
-    width: 1,
-    height: 1,
-    name: "LX Table",
+    width: 100,
+    height: 100,
+    name: "LX Table 1",
     location: {
         building: mockupBuildings[0],
         room: mockupRooms[0]
     }
 },
 {
-    item_id: 2,
+    item_id: "2",
     type: ItemType.TABLE,
-    building_id: 1,
+    building_id: "1",
     available: true,
     position_x: 0,
     position_y: 0,
-    width: 1,
-    height: 1,
-    name: "LX Table",
+    width: 100,
+    height: 100,
+    name: "LX Table 2",
     location: {
         building: mockupBuildings[0],
         room: mockupRooms[1]
     }
 },
 {
-    item_id: 3,
+    item_id: "3",
     type: ItemType.TABLE,
-    building_id: 1,
+    building_id: "1",
     available: true,
     position_x: 0,
     position_y: 0,
-    width: 1,
-    height: 1,
-    name: "SIT Table",
+    width: 100,
+    height: 100,
+    name: "SIT Table 3",
     location: {
         building: mockupBuildings[1],
         room: mockupRooms[2]
@@ -59,8 +59,8 @@ const TableService = {
         return mockupTable.find(table => `${table.item_id}` === id);
     },
 
-    async findByRoomId(building_id: string) {
-        return mockupTable.filter(table => `${table.location.room}` === building_id);
+    async findByRoomId(roomId: string) {
+        return mockupTable.filter(table => table.location.room.room_id === roomId);
     },
 
     async findByKeyword(keyword: string) {
@@ -73,6 +73,8 @@ const TableService = {
 
     async create(table: IItem) {
         mockupTable.push(table);
+
+        return table;
     },
 
     async update(table: IItem) {
@@ -82,7 +84,7 @@ const TableService = {
         }
     },
 
-    async delete(id: number) {
+    async delete(id: string) {
         const index = mockupTable.findIndex(t => t.item_id === id);
         if (index !== -1) {
             mockupTable.splice(index, 1);

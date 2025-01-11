@@ -13,9 +13,13 @@ import ToiletService from '@/services/toilet.service';
 
 const ToiletSlugPage: React.FC = () => {
     const [items, setItems] = useState<IItem[]>([]);
-    const [item, setItem] = useState<IItem | null>(null);
+    const [selectedItem, setSelectedItem] = useState<IItem | null>(null);
+
+    const firstItem = items?.[0];
 
     const params = useParams();
+
+    const roomId = params?.slug;
 
     const breadcrumbItems = [
         {
@@ -25,28 +29,15 @@ const ToiletSlugPage: React.FC = () => {
             title: <a href="/table">Table</a>,
         },
         {
-            title: <a href={`/table?buildingId=${item?.location.building.building_id}`}>Rooms</a>,
+            title: <a href={`/table?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
         },
         {
-            title: item?.name || "",
+            title: firstItem?.location?.room.room_name || "",
         },
     ];
 
-    const doSearchItem = async () => {
-        // Search using ItemType.Toilet
-        if (!params?.slug) return;
-
-        const data = await ToiletService.findById(params?.slug);
-
-        if (!data) return;
-
-        setItem(data);
-    }
-
     const doSearchMultipleItems = async () => {
-        if (!item) return;
-
-        const roomId = item.location.room.room_id;
+        if (!roomId) return;
 
         const data = await ToiletService.findByRoomId(roomId);
 
@@ -55,25 +46,35 @@ const ToiletSlugPage: React.FC = () => {
         setItems(data);
     }
 
-    useEffect(() => {
-        doSearchItem();
-    }, [params]);
+    const doSelectItem = (item: IItem | null) => {
+        if (item === null && selectedItem !== null) {
+            setSelectedItem(null);
+            return;
+        }
+
+        if (item === selectedItem) {
+            setSelectedItem(null);
+            return;
+        }
+
+        setSelectedItem(item);
+    }
 
     useEffect(() => {
         doSearchMultipleItems();
-    }, [item]);
+    }, [roomId]);
 
-    if (!params?.slug || !item) {
+    if (!params?.slug || !items) {
         return <NotFoundPage />
     }
 
     return (
-        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100' >
             <XBreadcrumb items={breadcrumbItems} />
 
-            <ItemLayout itemName={ItemType.TOILET} items={items} />
+            <ItemLayout itemName={ItemType.TOILET} items={items} selectedItem={selectedItem} onSelectItem={doSelectItem} />
 
-            <TableOverview item={item} itemName={ItemType.TOILET} />
+            <TableOverview item={selectedItem} itemName={ItemType.TOILET} roomId={roomId} />
         </Flex>
     );
 };
