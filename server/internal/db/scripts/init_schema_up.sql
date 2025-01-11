@@ -23,16 +23,16 @@ CREATE TABLE rooms (
 
 CREATE TABLE items (
     item_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(10) NOT NULL,
     building_id INTEGER,
     room_id INTEGER,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(10) NOT NULL,
     available BOOLEAN DEFAULT true,
     position_x FLOAT,
     position_y FLOAT,
     width FLOAT,
     height FLOAT,
     floor INT,
-    number INT,
     gender VARCHAR(10),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

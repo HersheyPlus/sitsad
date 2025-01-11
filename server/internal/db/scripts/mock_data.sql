@@ -12,16 +12,16 @@ INSERT INTO rooms (building_id, room_name, description, floor, image_url) VALUES
 (2, 'Study Room', 'Quiet space for study', 2, 'http://example.com/study_room.jpg');
 
 -- Populate `items` with type `table`
-INSERT INTO items (type, building_id, room_id, available, position_x, position_y, width, height, floor, number) VALUES
-('table', 1, 1, true, 10.5, 20.3, 1.5, 1.0, 1, 1),
-('table', 1, 1, true, 11.5, 21.3, 1.5, 1.0, 1, 2),
-('table', 2, 3, true, 15.0, 25.0, 1.5, 1.0, 2, 3);
+INSERT INTO items (type, building_id, room_id, available, position_x, position_y, width, height, floor, name) VALUES
+('table', 1, 1, true, 10.5, 20.3, 1.5, 1.0, 3, "table 1"),
+('table', 1, 1, true, 11.5, 21.3, 1.5, 1.0, 4,"table 2"),
+('table', 2, 3, true, 15.0, 25.0, 1.5, 1.0, 6, "table 3");
 
 -- Populate `items` with type `table` and `toilet`
-INSERT INTO items (type, building_id, available, position_x, position_y, width, height, floor, number, gender) VALUES
-('toilet', 1, false, 5.0, 10.0, 2.0, 1.5, 1, 3, 'Male'),
-('toilet', 1, true, 6.0, 11.0, 2.0, 1.5, 1, 4, 'Female'),
-('toilet', 2, false, 12.0, 15.0, 2.0, 1.5, 2, 5, 'Unisex');
+INSERT INTO items (type, building_id, available, position_x, position_y, width, height, floor, name, gender) VALUES
+('toilet', 1, false, 5.0, 10.0, 2.0, 1.5, 1, "toilet 1", 'Male'),
+('toilet', 1, true, 6.0, 11.0, 2.0, 1.5, 1, "toilet 2", 'Female'),
+('toilet', 2, false, 12.0, 15.0, 2.0, 1.5, 2, "toilet 3", 'Female');
 
 
 -- Populate `booking_time_periods` (assuming a `tables` table exists)

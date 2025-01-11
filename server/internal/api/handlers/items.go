@@ -61,8 +61,8 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-	if req.PositionX < 0 || req.PositionY < 0 || req.Width < 0 || req.Height < 0 || req.RoomID == 0 {
-		return res.BadRequest(c, "position_x, position_y, width, height and room_id are required and must be greater than 0")
+	if req.PositionX < 0 || req.PositionY < 0 || req.Width < 0 || req.Height < 0 || req.RoomID == 0 || req.Name == "" {
+		return res.BadRequest(c, "position_x, position_y, width, height and room_id, name are required")
 	}
 
 
@@ -72,6 +72,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         req.PositionY,
         req.Width,
         req.Height,
+        req.Name,
     )
 
     if err := h.db.First(&models.Room{}, req.RoomID).Error; err != nil {
@@ -99,15 +100,15 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
 		return res.BadRequest(c, "Invalid request body")
 	}
 
-    if req.BuildingID == 0 || req.Floor == 0 || req.Number == 0 || (req.Gender != "female" && req.Gender != "male") || req.PositionX < 0 || req.PositionY < 0 {
-		return res.BadRequest(c, "building_id, floor, number, gender (female or male), position_x, position_y are required and must be greater than 0")
+    if req.BuildingID == 0 || req.Floor == 0 || req.Name == "" || (req.Gender != "female" && req.Gender != "male") || req.PositionX < 0 || req.PositionY < 0 {
+		return res.BadRequest(c, "building_id, floor, number, gender (female or male), position_x, position_y, name are required")
 	}
 
 	toilet := models.NewToilet(
 		req.BuildingID,
 		req.Floor,
-		req.Number,
 		req.Gender,
+        req.Name,
 		req.PositionX,
 		req.PositionY,
 	)

@@ -10,8 +10,8 @@ type Building struct {
 	CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Relationships
-	Rooms        []Room           `gorm:"foreignKey:BuildingID" json:"rooms,omitempty"`
-	Items        []Item          `gorm:"foreignKey:BuildingID" json:"items,omitempty"`
+	Rooms []Room `gorm:"foreignKey:BuildingID" json:"rooms,omitempty"`
+	Items []Item `gorm:"foreignKey:BuildingID" json:"items,omitempty"`
 }
 
 type Room struct {
@@ -24,8 +24,8 @@ type Room struct {
 	CreatedAt   time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Relationships
-	Building    Building  `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
-	Items       []Item    `gorm:"foreignKey:RoomID" json:"items,omitempty"`
+	Building Building `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
+	Items    []Item   `gorm:"foreignKey:RoomID" json:"items,omitempty"`
 }
 
 type ItemType string
@@ -46,23 +46,22 @@ type Item struct {
 	Width      *float64  `gorm:"column:width" json:"width,omitempty"`
 	Height     *float64  `gorm:"column:height" json:"height,omitempty"`
 	Floor      *int      `gorm:"column:floor" json:"floor,omitempty"`
-	Number     *int      `gorm:"column:number" json:"number,omitempty"`
+	Name       string   `gorm:"column:name;not null" json:"name"`
 	Gender     *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
 	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Relationships
-	Building   *Building `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
-	Room       *Room     `gorm:"foreignKey:RoomID" json:"room,omitempty"`
-	Bookings   []BookingTimePeriod `gorm:"foreignKey:ItemID" json:"bookings,omitempty"`
+	Building *Building           `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
+	Room     *Room               `gorm:"foreignKey:RoomID" json:"room,omitempty"`
+	Bookings []BookingTimePeriod `gorm:"foreignKey:ItemID" json:"bookings,omitempty"`
 }
-
 
 type BookingTimePeriod struct {
 	BookingTimePeriodID int       `gorm:"primaryKey;column:booking_time_period_id;autoIncrement" json:"booking_time_period_id"`
 	ItemID              int       `gorm:"column:item_id" json:"item_id"`
 	StartBookingTime    time.Time `gorm:"column:started_booking_time;not null" json:"started_booking_time"`
 	EndBookingTime      time.Time `gorm:"column:ended_booking_time;default:null" json:"ended_booking_time"`
-	Item               Item      `gorm:"foreignKey:ItemID" json:"item,omitempty"`
+	Item                Item      `gorm:"foreignKey:ItemID" json:"item,omitempty"`
 }
 
 // TableName methods
@@ -78,11 +77,9 @@ func (Item) TableName() string {
 	return "items"
 }
 
-
 func (BookingTimePeriod) TableName() string {
 	return "booking_time_periods"
 }
-
 
 func (i *Item) IsTable() bool {
 	return i.Type == ItemTypeTable
@@ -92,8 +89,7 @@ func (i *Item) IsToilet() bool {
 	return i.Type == ItemTypeToilet
 }
 
-
-func NewTable(roomID int, posX, posY, width, height float64) *Item {
+func NewTable(roomID int, posX, posY, width, height float64, name string) *Item {
 	return &Item{
 		Type:      ItemTypeTable,
 		RoomID:    &roomID,
@@ -102,19 +98,19 @@ func NewTable(roomID int, posX, posY, width, height float64) *Item {
 		PositionY: &posY,
 		Width:     &width,
 		Height:    &height,
+		Name:      name,
 	}
 }
 
-
-func NewToilet(buildingID, floor, number int, gender string, posX, posY float64) *Item {
+func NewToilet(buildingID, floor int, gender, name string, posX, posY float64) *Item {
 	return &Item{
 		Type:       ItemTypeToilet,
 		BuildingID: &buildingID,
 		Floor:      &floor,
-		Number:     &number,
+		Name:       name,
 		Gender:     &gender,
-		PositionX: &posX,
-		PositionY: &posY,
+		PositionX:  &posX,
+		PositionY:  &posY,
 		Available:  true,
 	}
 }
