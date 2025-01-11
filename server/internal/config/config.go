@@ -63,16 +63,16 @@ func InitializeConfig() (*models.AppConfig, error) {
 }
 
 func setDefaults(v *viper.Viper) {
-	v.SetDefault("database.host", "localhost")
-	v.SetDefault("database.port", 3307)
+	v.SetDefault("database.host", "mysql")
+	v.SetDefault("database.port", 3306)
 	v.SetDefault("database.user", "root")
 	v.SetDefault("database.password", "1234")
-	v.SetDefault("database.name", "mysql")
+	v.SetDefault("database.name", "hackathon2025")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.max_connections", 100)
 
 	v.SetDefault("server.port", 8080)
-	v.SetDefault("server.host", "localhost")
+	v.SetDefault("server.host", "0.0.0.0")
 	v.SetDefault("server.timeout", "30s")
 	v.SetDefault("server.read_timeout", "15s")
 	v.SetDefault("server.write_timeout", "15s")

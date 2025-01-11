@@ -15,53 +15,64 @@ type Database struct {
 }
 
 func NewDatabase(cfg *models.AppConfig) (*Database, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DatabaseConfig.User,
-		cfg.DatabaseConfig.Password,
-		cfg.DatabaseConfig.Host,
-		cfg.DatabaseConfig.Port,
-		cfg.DatabaseConfig.Name,
-	)
+    dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+        cfg.DatabaseConfig.User,
+        cfg.DatabaseConfig.Password,
+        cfg.DatabaseConfig.Host,
+        cfg.DatabaseConfig.Port,
+        cfg.DatabaseConfig.Name,
+    )
 
-	// Configure GORM logger
-	gormLogger := logger.Default.LogMode(logger.Info)
+    // Configure GORM logger
+    gormLogger := logger.Default.LogMode(logger.Info)
 
-	// GORM configuration
-	gormConfig := &gorm.Config{
-		Logger: gormLogger,
-		NowFunc: func() time.Time {
-			return time.Now().UTC()
-		},
-	}
+    // GORM configuration
+    gormConfig := &gorm.Config{
+        Logger: gormLogger,
+        NowFunc: func() time.Time {
+            return time.Now().UTC()
+        },
+    }
 
-	// Connect to MySQL database
-	db, err := gorm.Open(mysql.Open(dsn), gormConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to database: %w. Use `make db-up` to create the database", err)
-	}
+    var db *gorm.DB
+    var err error
+    
+    // Retry connection with backoff
+    maxRetries := 5
+    for i := 0; i < maxRetries; i++ {
+        db, err = gorm.Open(mysql.Open(dsn), gormConfig)
+        if err == nil {
+            break
+        }
+        log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxRetries, err)
+        time.Sleep(time.Second * time.Duration(i+1))
+    }
+    
+    if err != nil {
+        return nil, fmt.Errorf("error connecting to database after %d attempts: %w", maxRetries, err)
+    }
 
-	// Configure connection pool
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("error getting underlying SQL DB: %w", err)
-	}
+    // Configure connection pool
+    sqlDB, err := db.DB()
+    if err != nil {
+        return nil, fmt.Errorf("error getting underlying SQL DB: %w", err)
+    }
 
-	sqlDB.SetMaxOpenConns(cfg.DatabaseConfig.MaxConnections)
-	sqlDB.SetMaxIdleConns(cfg.DatabaseConfig.MaxConnections / 2)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+    sqlDB.SetMaxOpenConns(cfg.DatabaseConfig.MaxConnections)
+    sqlDB.SetMaxIdleConns(cfg.DatabaseConfig.MaxConnections / 2)
+    sqlDB.SetConnMaxLifetime(time.Hour)
 
-	// Test connection
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("error pinging database: %w", err)
-	}
+    // Test connection
+    if err := sqlDB.Ping(); err != nil {
+        return nil, fmt.Errorf("error pinging database: %w", err)
+    }
 
-	log.Printf("Successfully connected to database: %s", cfg.DatabaseConfig.Name)
+    log.Printf("Successfully connected to database: %s", cfg.DatabaseConfig.Name)
 
-	return &Database{
-		DB: db,
-	}, nil
+    return &Database{
+        DB: db,
+    }, nil
 }
-
 // Close the database connection
 func (d *Database) Close() error {
 	sqlDB, err := d.DB.DB()

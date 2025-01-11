@@ -6,6 +6,8 @@ RUN apk update && \
     apk add --no-cache \
     git \
     build-base \
+    make \
+    mysql-client \
     && rm -rf /var/cache/apk/*
 
 # Install air version 1.40.4
@@ -27,4 +29,4 @@ COPY . .
 EXPOSE 8080
 
 # Run the application using air for live-reloading
-CMD ["air"]
+CMD sh -c "make db-start && air"
