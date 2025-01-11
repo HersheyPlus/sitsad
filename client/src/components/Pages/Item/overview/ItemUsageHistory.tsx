@@ -1,4 +1,4 @@
-import { ITableHistory } from "@/types/table"
+import { IItemHistory } from "@/types/item"
 import { Card, Table, Typography } from "antd"
 
 const { Title } = Typography
@@ -19,15 +19,15 @@ const historyColumns = [
 ]
 
 interface IProps {
-    tableHistory: ITableHistory[]
+    history: IItemHistory[]
 }
 
-const TableUsageHistory = ({ tableHistory }: IProps) => {
+const ItemUsageHistory = ({ history }: IProps) => {
     return (
         <Card title={<Title level={4}>Table Usage History</Title>} className="w-full">
-            <Table dataSource={tableHistory} columns={historyColumns} rowKey="id" />
+            <Table dataSource={history} columns={historyColumns} rowKey="id" />
         </Card>
     )
 }
 
-export default TableUsageHistory
+export default ItemUsageHistory

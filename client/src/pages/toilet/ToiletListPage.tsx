@@ -49,16 +49,16 @@ const breadcrumbItems = [
         title: <a href="/">Home</a>
     },
     {
-        title: "Tables"
+        title: "Toilets"
     }
 ];
 
-const TableListPage = () => {
+const ToiletListPage = () => {
     const [query, setQuery] = useState("")
 
 
     const doSearch = () => {
-        // Search using ItemType.Table
+        // Search using ItemType.Toilet
         console.log('Searching for:', query);
     }
 
@@ -71,12 +71,12 @@ const TableListPage = () => {
             <ItemFilter doChangeQuery={setQuery} doSearch={doSearch} />
 
             <Title level={2} className="mb-6">
-                Available Tables
+                Available Toilets
             </Title>
 
-            <ItemList items={mockupLocations} itemType={ItemType.TABLE} />
+            <ItemList items={mockupLocations} itemType={ItemType.TOILET} />
         </Flex>
     )
 }
 
-export default TableListPage
+export default ToiletListPage

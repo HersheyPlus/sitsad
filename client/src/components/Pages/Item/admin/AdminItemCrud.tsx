@@ -1,9 +1,9 @@
 import { Table, Card, Space, Input, Select, Button, Popconfirm } from "antd";
-import { ITable } from "@/types/table";
+import { IItem } from "@/types/item";
 import { useState } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import Filter from "./AdminTableCrudFilter";
+import Filter from "./AdminItemCrudFilter";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { ILocation } from "@/types/location";
@@ -11,12 +11,12 @@ import { ILocation } from "@/types/location";
 dayjs.extend(isBetween);
 
 interface IProps {
-    data: ITable[];
+    data: IItem[];
     locations: ILocation[]; // Assuming locations are passed as a prop
 }
 
 const AdminTableCrud = ({ data, locations }: IProps) => {
-    const [filteredData, setFilteredData] = useState<ITable[]>(data);
+    const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ const AdminTableCrud = ({ data, locations }: IProps) => {
         setFilteredData(filteredData.filter((item) => item.id !== id));
     };
 
-    const columns: ColumnsType<ITable> = [
+    const columns: ColumnsType<IItem> = [
         {
             title: "Table ID",
             dataIndex: "id",
@@ -144,7 +144,7 @@ const AdminTableCrud = ({ data, locations }: IProps) => {
                                 onClick={() => enterEditMode(record.id.toString())}
                             />
                             <Popconfirm
-                                title="Are you sure to delete this table?"
+                                title="Are you sure to delete this item?"
                                 onConfirm={() => doRemove(record.id)}
                             >
                                 <Button

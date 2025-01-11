@@ -1,22 +1,25 @@
 
 import { Table, Card, Space } from "antd";
-import { ITableHistory } from "@/types/table";
+import { IItemHistory } from "@/types/item";
 import { useState } from "react";
-import type { ColumnsType } from "antd/es/table";
+
 import dayjs, { Dayjs } from "dayjs";
 
+import type { ColumnsType } from "antd/es/table";
+
 import isBetween from "dayjs/plugin/isBetween";
-import AdminTableFilter from "./AdminTableFilter";
+import Filter from "./AdminItemFilter";
 import { PhoneOutlined } from "@ant-design/icons";
 
 interface IProps {
-    data: ITableHistory[];
+    data: IItemHistory[];
+    itemName: string;
 }
 
 dayjs.extend(isBetween);
 
 const AdminTableHistory = ({ data }: IProps) => {
-    const [filteredData, setFilteredData] = useState<ITableHistory[]>(data);
+    const [filteredData, setFilteredData] = useState<IItemHistory[]>(data);
 
     const [query, setQuery] = useState<{
         date?: [Dayjs, Dayjs] | null;
@@ -51,7 +54,7 @@ const AdminTableHistory = ({ data }: IProps) => {
         setFilteredData(filtered);
     };
 
-    const columns: ColumnsType<ITableHistory> = [
+    const columns: ColumnsType<IItemHistory> = [
         {
             title: "ID",
             dataIndex: "id",
@@ -59,10 +62,10 @@ const AdminTableHistory = ({ data }: IProps) => {
             sorter: (a, b) => a.id - b.id,
         },
         {
-            title: "Table ID",
-            dataIndex: "tableId",
-            key: "tableId",
-            sorter: (a, b) => a.tableId - b.tableId,
+            title: "Item ID",
+            dataIndex: "id",
+            key: "id",
+            sorter: (a, b) => a.itemId - b.itemId,
         },
         {
             title: "Reservation Time",
@@ -99,7 +102,7 @@ const AdminTableHistory = ({ data }: IProps) => {
             </div>
         }>
 
-            <AdminTableFilter doChangeQuery={doChangeQuery} doSearch={doSearch} />
+            <Filter doChangeQuery={doChangeQuery} doSearch={doSearch} />
 
             <Table
                 columns={columns}

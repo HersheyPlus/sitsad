@@ -1,6 +1,6 @@
 import { ILocation } from "./location";
 
-export interface ITable {
+export interface IItem {
     id: number;
     x: number;
     y: number;
@@ -15,10 +15,15 @@ export interface ITable {
     [key: string]: any; // Add this line
 }
 
-export interface ITableHistory {
+export interface IItemHistory {
     id: number;
-    tableId: number;
+    itemId: number;
     reservationTime: string;
     leaveTime: string;
     phoneNo?: string;
+}
+
+export const ItemType = {
+    TABLE: 'Table',
+    TOILET: 'Toilet',
 }

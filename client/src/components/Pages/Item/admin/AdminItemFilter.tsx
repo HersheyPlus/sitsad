@@ -10,18 +10,18 @@ interface IProps {
   doSearch: () => void;
 }
 
-const AdminTableFilter = ({ doChangeQuery, doSearch }: IProps) => {
+const AdminItemFilter = ({ doChangeQuery, doSearch }: IProps) => {
   return (
     <XCollapse title="Search history...">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={6}>
             <Input
-              type="number"
-              placeholder="Search by Phone Number"
-              onChange={(e) => doChangeQuery("phoneNo", e.target.value)}
+              type="string"
+              placeholder="Search by keyword"
+              onChange={(e) => doChangeQuery("keyword", e.target.value)}
               allowClear
-              style={{ width: "100%" }}
+              style={{ width: "100%", borderRadius: "8px" }}
             />
           </Col>
           <Col xs={24} sm={12} md={4}>
@@ -40,4 +40,4 @@ const AdminTableFilter = ({ doChangeQuery, doSearch }: IProps) => {
   )
 }
 
-export default AdminTableFilter
+export default AdminItemFilter

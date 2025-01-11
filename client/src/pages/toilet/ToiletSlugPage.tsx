@@ -21,7 +21,7 @@ const item: IItem = {
 }
 
 
-const TableSlugPage: React.FC = () => {
+const ToiletSlugPage: React.FC = () => {
     const [items] = useState<IItem[]>([item]);
     const params = useParams();
 
@@ -30,7 +30,7 @@ const TableSlugPage: React.FC = () => {
             title: <a href="/">Home</a>,
         },
         {
-            title: <a href="/table">Tables</a>,
+            title: <a href="/toilets">Toilets</a>,
         },
         {
             title: params?.slug || "",
@@ -56,4 +56,4 @@ const TableSlugPage: React.FC = () => {
     );
 };
 
-export default TableSlugPage;
+export default ToiletSlugPage;
