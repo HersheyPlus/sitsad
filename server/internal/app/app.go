@@ -5,22 +5,23 @@ import (
 	"fmt"
 	"server/internal/api/handlers"
 	"server/internal/models"
+	"server/internal/ws"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"gorm.io/gorm"
-	"server/internal/ws"
 	"github.com/gofiber/websocket/v2"
-	"strings"
+	"gorm.io/gorm"
 )
 
 type App struct {
-	db      *gorm.DB
-	app     *fiber.App
-	config  *models.AppConfig
+	db       *gorm.DB
+	app      *fiber.App
+	config   *models.AppConfig
 	handlers *handlers.Handler
-	wsHub   *ws.Hub
+	wsHub    *ws.Hub
 }
 
 func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
@@ -33,13 +34,13 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	)
 
 	app.Use(cors.New(cors.Config{
-        AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
-        AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-        AllowHeaders:     "Origin, Content-Type, Accept",
-        ExposeHeaders:    "Content-Length",
-        AllowCredentials: false,
-        MaxAge:          300,
-    }))
+		AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		ExposeHeaders:    "Content-Length",
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -49,36 +50,36 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	handlers := handlers.NewHandler(db, wsHub)
 
 	return &App{
-		app:     app,
-		db:      db,
-		config:  cfg,
+		app:      app,
+		db:       db,
+		config:   cfg,
 		handlers: handlers,
-		wsHub:   wsHub,
+		wsHub:    wsHub,
 	}
 }
 
 func (a *App) setupRoutes() {
-	api := a.app.Group("/api")	
+	api := a.app.Group("/api")
 
 	api.Use("/ws", func(c *fiber.Ctx) error {
-        origin := c.Get("Origin")
-        allowed := false
-        for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
-            if origin == allowedOrigin {
-                allowed = true
-                break
-            }
-        }
-        if !allowed {
-            return fiber.ErrForbidden
-        }
+		origin := c.Get("Origin")
+		allowed := false
+		for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
+			if origin == allowedOrigin {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return fiber.ErrForbidden
+		}
 
-        if websocket.IsWebSocketUpgrade(c) {
-            return c.Next()
-        }
-        return fiber.ErrUpgradeRequired
-    })
-    api.Get("/ws", ws.HandleWebSocket(a.wsHub))
+		if websocket.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
 
 	// Buildings Routes
 	buildings := api.Group("/buildings")
@@ -110,11 +111,12 @@ func (a *App) setupRoutes() {
 	bookingTimePeriods.Get("/", a.handlers.GetListBookingTimePeriods)
 	bookingTimePeriods.Get("/items", a.handlers.GetBookingTimePeriodsByItemType)
 
-	
+	// Options Routes
+
 }
 
 func (a *App) Start() error {
-    a.setupRoutes()
-    addr := fmt.Sprintf("%s:%d", a.config.ServerConfig.Host, a.config.ServerConfig.Port)
-    return a.app.Listen(addr)
+	a.setupRoutes()
+	addr := fmt.Sprintf("%s:%d", a.config.ServerConfig.Host, a.config.ServerConfig.Port)
+	return a.app.Listen(addr)
 }
