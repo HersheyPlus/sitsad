@@ -4,7 +4,7 @@ import { Collapse, ConfigProvider } from "antd";
 const { Panel } = Collapse;
 
 interface IProps {
-  title: string;
+  title: string | React.ReactNode;
   children: React.ReactNode;
 }
 

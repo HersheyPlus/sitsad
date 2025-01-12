@@ -21,3 +21,16 @@ a {
 a:hover {
   color: #4682B4; /* Hover color for links */
 }
+
+
+.ant-drawer-close {
+  color: #FFFFFF !important;
+}
+
+.ant-drawer-close:hover {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.ant-drawer-body {
+  border: none !important;
+}

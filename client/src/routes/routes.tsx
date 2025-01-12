@@ -13,12 +13,19 @@ import AdminLayout from "@/components/Layout/AdminLayout";
 
 // import ProtectedRoute from "@/components/Pages/Auth/ProtectedRoute";
 
-import TableListPage from "@/pages/table/TableListPage";
-import AdminTablePage from "@/pages/table/AdminTablePage";
+// import AdminTablePage from "@/pages/table/AdminTablePage";
 import TableSlugPage from "@/pages/table/TableSlugPage";
-import LocationPage from "@/pages/LocationPage";
+// import LocationPage from "@/pages/LocationPage";
 import DashboardPage from "@/pages/DashboardPage";
-
+import ToiletSlugPage from "@/pages/toilet/ToiletSlugPage";
+import ToiletPage from "@/pages/toilet/ToiletPage";
+import TablePage from "@/pages/table/TablePage";
+import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
+import LocationPage from "@/pages/LocationPage";
+import AdminTablePage from "@/pages/table/AdminTablePage";
+import ForgotItemPage from "@/pages/forgot-item/ForgotItemPage";
+import DevicePage from "@/pages/DevicePage";
+// import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
     {
@@ -29,11 +36,26 @@ export const routes = [
         ],
     },
     {
+        path: "/forgot-item",
+        element: <MainLayout />,
+        children: [
+            { path: "", element: <ForgotItemPage /> },
+        ]
+    },
+    {
         path: "/table",
         element: <MainLayout />,
         children: [
-            { path: "", element: <TableListPage /> },
-            { path: ":slug", element: <TableSlugPage /> },
+            { path: "", element: <TablePage /> },
+            { path: "room/:slug", element: <TableSlugPage /> },
+        ]
+    },
+    {
+        path: "/toilet",
+        element: <MainLayout />,
+        children: [
+            { path: "", element: <ToiletPage /> },
+            { path: "room/:slug", element: <ToiletSlugPage /> },
         ]
     },
     {
@@ -51,7 +73,13 @@ export const routes = [
         children: [
             { path: "", element: <DashboardPage /> },
             { path: "table", element: <AdminTablePage /> },
+            { path: "toilet", element: <AdminToiletPage /> },
             { path: "location", element: <LocationPage /> },
+            { path: "forgot-item", element: <ForgotItemPage /> },
+            { path: "device", element: <DevicePage /> },
+            {
+                path: "*", element: <NotFoundPage />
+            }
         ],
     },
     {

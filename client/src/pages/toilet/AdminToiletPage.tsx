@@ -13,7 +13,7 @@ import AdminItemCrud from '@/components/Shared/Item/admin/AdminItemCrud';
 import AdminSelector from '@/components/Shared/Item/admin/AdminSelector';
 import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
 import HistoryService from '@/services/history.service';
-import TableService from '@/services/table.service';
+import ToiletService from '@/services/toilet.service';
 import { useNotificationStore } from '@/stores/notification.store';
 
 const breadcrumbItems = [
@@ -24,11 +24,11 @@ const breadcrumbItems = [
         title: <a href="/dashboard">Dashboard</a>,
     },
     {
-        title: "Table",
+        title: "Toilet",
     },
 ];
 
-const AdminTablePage = () => {
+const AdminToiletPage = () => {
     const [items, setItems] = useState<IItem[]>([]);
     const [history, setHistory] = useState<IItemHistory[]>([]);
     const [buildings, setBuildings] = useState<IBuilding[]>([]);
@@ -39,7 +39,6 @@ const AdminTablePage = () => {
     const openNotification = useNotificationStore(
         (state) => state.openNotification
     )
-
     useEffect(() => {
         doSearchBuildings()
     }, [])
@@ -64,9 +63,8 @@ const AdminTablePage = () => {
 
     const doSearchItems = async (roomId: string) => {
         try {
-            const data = await TableService.findByRoomId(roomId);
+            const data = await ToiletService.findByRoomId(roomId);
             setItems(data);
-
         } catch (error) {
             openNotification({
                 type: 'error',
@@ -75,15 +73,14 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchHistory = async (roomId: string) => {
         try {
             const data = await HistoryService.findByRoomId(roomId);
             setHistory(data);
-
-        } catch (error) {
+        }
+        catch (error) {
             openNotification({
                 type: 'error',
                 message: 'Error',
@@ -97,8 +94,9 @@ const AdminTablePage = () => {
     const doSearchBuildings = async () => {
         try {
             const data = await BuildingService.findAll();
-            setBuildings(data || []);
-        } catch (error) {
+            setBuildings(data);
+        }
+        catch (error) {
             openNotification({
                 type: 'error',
                 message: 'Error',
@@ -126,13 +124,8 @@ const AdminTablePage = () => {
 
     const doAddItem = async (item: IItem) => {
         try {
-            const newItem = await TableService.create(item);
+            const newItem = await ToiletService.create(item);
             setItems((prevItems) => [...prevItems, newItem]);
-            openNotification({
-                type: 'success',
-                message: 'Success',
-                description: 'Table created successfully'
-            })
         } catch (error) {
             openNotification({
                 type: 'error',
@@ -141,7 +134,6 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     return (
@@ -161,16 +153,16 @@ const AdminTablePage = () => {
                 data={items}
                 doUpdateItem={setItems}
                 doAddItem={doAddItem}
-                itemType={ItemType.TABLE}
+                itemType={ItemType.TOILET}
                 selectedBuilding={selectedBuilding}
                 selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} service={TableService} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} service={ToiletService} />
 
-            <AdminItemHistory data={history} itemName={ItemType.TABLE} />
+            <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>
     );
 };
 
-export default AdminTablePage;
+export default AdminToiletPage;

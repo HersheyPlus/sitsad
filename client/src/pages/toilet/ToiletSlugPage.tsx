@@ -8,11 +8,11 @@ import NotFoundPage from '../NotFoundPage';
 import TableOverview from '@/components/Shared/Item/overview/ItemOverview';
 import ItemLayout from '@/components/Shared/Item/ItemLayout';
 import { IItem, ItemType } from '@/types/item';
+import ToiletService from '@/services/toilet.service';
 import { useNotificationStore } from '@/stores/notification.store';
-import TableService from '@/services/table.service';
 
 
-const TableSlugPage: React.FC = () => {
+const ToiletSlugPage: React.FC = () => {
     const [items, setItems] = useState<IItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<IItem | null>(null);
     const openNotification = useNotificationStore(
@@ -30,10 +30,10 @@ const TableSlugPage: React.FC = () => {
             title: <a href="/">Home</a>,
         },
         {
-            title: <a href="/table">Table</a>,
+            title: <a href="/toilet">Toilet</a>,
         },
         {
-            title: <a href={`/table?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
+            title: <a href={`/toilet?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
         },
         {
             title: firstItem?.location?.room.room_name || "",
@@ -44,7 +44,7 @@ const TableSlugPage: React.FC = () => {
         if (!roomId) return;
 
         try {
-            const data = await TableService.findByRoomId(roomId);
+            const data = await ToiletService.findByRoomId(roomId);
             if (!data) return;
             setItems(data);
         } catch (error) {
@@ -83,11 +83,11 @@ const TableSlugPage: React.FC = () => {
         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100' >
             <XBreadcrumb items={breadcrumbItems} />
 
-            <ItemLayout itemName={ItemType.TABLE} items={items} selectedItem={selectedItem} onSelectItem={doSelectItem} />
+            <ItemLayout itemName={ItemType.TOILET} items={items} selectedItem={selectedItem} onSelectItem={doSelectItem} />
 
-            <TableOverview item={selectedItem} itemName={ItemType.TABLE} roomId={roomId} />
+            <TableOverview item={selectedItem} itemName={ItemType.TOILET} roomId={roomId} />
         </Flex>
     );
 };
 
-export default TableSlugPage;
+export default ToiletSlugPage;
