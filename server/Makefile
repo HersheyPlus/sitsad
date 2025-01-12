@@ -7,7 +7,7 @@ BINARY_NAME=server
 # Database parameters
 DB_HOST ?= goapp-mysql
 DB_USER ?= root
-DB_PASS ?= Rsv18221
+DB_PASS ?= 1234
 DB_NAME ?= hackathon2025
 DB_PORT ?= 3306
 DOCKER_COMPOSE ?= docker compose
@@ -27,11 +27,11 @@ db-create: ## Create database
 
 db-up: ## Run up migration script
 	@echo "Running database up script..."
-	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/schema.sql
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/schema_up.sql
 
 db-down: ## Run down migration script
 	@echo "Running database down script..."
-	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/init_schema_down.sql
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/schema_down.sql
 
 db-mockup: ## Mock up data, insert into database
 	@echo "Running database mock up data script..."
