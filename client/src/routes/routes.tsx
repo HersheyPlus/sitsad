@@ -23,6 +23,7 @@ import TablePage from "@/pages/table/TablePage";
 import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 import LocationPage from "@/pages/LocationPage";
 import AdminTablePage from "@/pages/table/AdminTablePage";
+import ForgotItemPage from "@/pages/forgot-item/ForgotItemPage";
 // import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
@@ -32,6 +33,13 @@ export const routes = [
         children: [
             { path: "", element: <HomePage /> },
         ],
+    },
+    {
+        path: "/forgot-item",
+        element: <MainLayout />,
+        children: [
+            { path: "", element: <ForgotItemPage /> },
+        ]
     },
     {
         path: "/table",

@@ -166,7 +166,7 @@ const AdminTablePage = () => {
                 selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} service={TableService} />
 
             <AdminItemHistory data={history} itemName={ItemType.TABLE} />
         </Flex>

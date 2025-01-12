@@ -158,7 +158,7 @@ const AdminToiletPage = () => {
                 selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} service={ToiletService} />
 
             <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>

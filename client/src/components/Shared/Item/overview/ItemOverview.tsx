@@ -28,7 +28,7 @@ const ItemOverview = ({ item, itemName, roomId }: IProps) => {
 
     const doGetHistory = async () => {
         if (!roomId) return
-        try {
+        try { 
             if (!item) {
                 const data = await HistoryService.findByRoomId(roomId)
                 setHistory(data)

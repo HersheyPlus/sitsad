@@ -9,7 +9,7 @@ const { Content, Footer } = Layout;
 const MainLayout = () => (
     <Layout className="min-h-screen bg-gray">
         <XLoader />
-        
+
         <NotificationProvider />
 
         <Header />

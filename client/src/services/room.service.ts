@@ -54,7 +54,7 @@ const RoomService = {
         mockupRooms.push(room);
     },
 
-    async update(roomId: string, room: IRoom) {
+    async update(room: IRoom) {
         const index = mockupRooms.findIndex(r => r.room_id === room.room_id);
         if (index !== -1) {
             mockupRooms[index] = room;
