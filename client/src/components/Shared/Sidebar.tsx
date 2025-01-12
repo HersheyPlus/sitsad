@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layout, Menu, ConfigProvider } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Menu, ConfigProvider, Drawer, Button } from 'antd';
 import {
     HomeOutlined,
     EnvironmentOutlined,
@@ -9,16 +9,18 @@ import {
 } from '@ant-design/icons';
 import { ChartArea, Table, TableIcon as Toilet } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { MenuOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
 
 const Sidebar: React.FC = () => {
     const location = useLocation();
+    const [isDrawerVisible, setDrawerVisible] = useState(false);
 
     const sidebarTheme = {
         token: {
             colorPrimary: "#FFFFFF",
-            colorBgContainer: "#1A1F37", // Darker background to match design
+            colorBgContainer: "#1A1F37",
             colorText: "#FFFFFF",
             colorTextSecondary: "#94A3B8",
             colorBgTextHover: "rgba(255, 255, 255, 0.08)",
@@ -85,11 +87,14 @@ const Sidebar: React.FC = () => {
         },
     ];
 
+    const toggleDrawer = () => setDrawerVisible(!isDrawerVisible);
+
     return (
         <ConfigProvider theme={sidebarTheme}>
+            {/* Fixed Sidebar for Larger Screens */}
             <Sider
                 width={250}
-                className="fixed top-0 left-0 h-screen"
+                className="fixed top-0 left-0 hidden h-screen sm:block"
             >
                 <div className="h-16 px-4 flex items-center bg-[#1A1F37] border-b border-gray-700">
                     <Link to="/" className="flex items-center gap-3">
@@ -105,6 +110,38 @@ const Sidebar: React.FC = () => {
                     items={menuItems}
                 />
             </Sider>
+
+            {/* Drawer Sidebar for Smaller Screens */}
+            <Drawer
+                title={
+                    <div className="flex items-center gap-3">
+                        <img src="/assets/logo.png" alt="SIT Krana" className="w-7 h-7" />
+                        <span className="text-lg font-medium text-white">SIT Krana</span>
+                    </div>
+                }
+                placement="left"
+                closable
+                onClose={toggleDrawer}
+                visible={isDrawerVisible}
+                bodyStyle={{ padding: 0 }}
+                drawerStyle={{ backgroundColor: '#1A1F37' }}
+            >
+                <Menu
+                    mode="inline"
+                    selectedKeys={[location.pathname.split('/').pop() || 'dashboard']}
+                    defaultOpenKeys={['management', 'report']}
+                    className="border-r-0"
+                    items={menuItems}
+                />
+            </Drawer>
+
+            {/* Hamburger Button for Smaller Screens */}
+            <Button
+                type="text"
+                icon={<MenuOutlined />}
+                onClick={toggleDrawer}
+                className="fixed z-50 p-2 text-2xl text-white bg-blue-600 rounded sm:hidden top-4 left-4"
+            />
         </ConfigProvider>
     );
 };

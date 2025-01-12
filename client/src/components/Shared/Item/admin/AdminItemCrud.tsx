@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Table, Card, Space, Input, Select, Button, Popconfirm } from "antd";
 import { IItem } from "@/types/item";
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import Filter from "./AdminItemCrudFilter";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { IBuilding, IRoom } from "@/types/location";
+import { useNotificationStore } from "@/stores/notification.store";
 
 dayjs.extend(isBetween);
 
@@ -15,12 +17,14 @@ interface IProps {
     buildings: IBuilding[];
     rooms: IRoom[];
     itemType: string;
+    service: any;
 }
 
-const AdminItemCrud = ({ data, buildings, rooms, itemType }: IProps) => {
+const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
+    const openNotification = useNotificationStore((state) => state.openNotification);
 
     useEffect(() => {
         setFilteredData(data);
@@ -56,40 +60,28 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType }: IProps) => {
     };
 
     const doSave = (key: string) => {
-        console.log("Save", key);
         setEditingKey(null);
 
         const editedItem = filteredData.find((item) => item.item_id === key);
 
         if (!editedItem) return;
 
-        // try {
-        //     // Example API call to save the data (replace with your API endpoint)
-        //     const response = await fetch(`/api/items/${key}`, {
-        //         method: "PUT",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         body: JSON.stringify(editedItem),
-        //     });
+        try {
+            service.update(editedItem);
+            openNotification({
+                message: "Item updated",
+                description: "The item has been updated successfully.",
+                type: "success",
+            })
 
-        //     if (response.ok) {
-        //         const updatedItem = await response.json();
-
-        //         // Update the filteredData with the saved data from the API response
-        //         setFilteredData((prevData) =>
-        //             prevData.map((item) =>
-        //                 item.item_id === key ? { ...item, ...updatedItem } : item
-        //             )
-        //         );
-
-        //         console.log("Item saved successfully:", updatedItem);
-        //     } else {
-        //         console.error("Failed to save the item:", response.statusText);
-        //     }
-        // } catch (error) {
-        //     console.error("An error occurred while saving the item:", error);
-        // }
+        } catch (error) {
+            openNotification({
+                message: "Error",
+                description: "An error occurred while updating the item.",
+                type: "error",
+            })
+            console.error(error);
+        }
 
     };
 

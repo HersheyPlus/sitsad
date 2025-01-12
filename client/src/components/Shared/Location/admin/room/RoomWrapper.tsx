@@ -77,7 +77,7 @@ const RoomWrapper = () => {
             );
 
             try {
-                await RoomService.update(editingRoom.building_id, editingRoom)
+                await RoomService.update(editingRoom)
 
                 openNotification({
                     type: 'success',
