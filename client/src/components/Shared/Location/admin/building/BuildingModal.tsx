@@ -60,7 +60,7 @@ const BuildingModal: React.FC<IProps> = ({
 
     return (
         <Modal
-            title={editingBuilding ? "Edit Location" : "Add Location"}
+            title={editingBuilding ? "Edit Building" : "Add Building"}
             visible={visible}
             onOk={doSubmit}
             onCancel={onCancel}
