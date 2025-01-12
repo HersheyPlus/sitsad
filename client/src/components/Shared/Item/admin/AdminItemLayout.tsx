@@ -4,6 +4,7 @@ import { Button } from 'antd';
 import { useEffect, useState } from 'react';
 import { IItem, ItemType } from '@/types/item';
 import { IBuilding, IRoom } from '@/types/location';
+import { useNotificationStore } from '@/stores/notification.store';
 
 const GRID_SIZE = 100;
 
@@ -18,6 +19,7 @@ interface IProps {
 
 const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuilding, selectedRoom }: IProps) => {
     const [items, setItems] = useState<IItem[]>(data);
+    const openNotification = useNotificationStore(state => state.openNotification);
 
     useEffect(() => {
         setItems(data)
@@ -83,7 +85,15 @@ const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuil
 
     // Add new item
     const handleAddItems = () => {
-        if (!selectedBuilding || !selectedRoom) return;
+        if (!selectedBuilding || !selectedRoom) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                description: 'Please select a building and room first'
+            })
+
+            return
+        }
 
         // TODO: Notify alert
 

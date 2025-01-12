@@ -14,6 +14,7 @@ import AdminSelector from '@/components/Shared/Item/admin/AdminSelector';
 import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
 import HistoryService from '@/services/history.service';
 import ToiletService from '@/services/toilet.service';
+import { useNotificationStore } from '@/stores/notification.store';
 
 const breadcrumbItems = [
     {
@@ -35,7 +36,9 @@ const AdminToiletPage = () => {
 
     const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
     const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
-
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
     useEffect(() => {
         doSearchBuildings()
     }, [])
@@ -59,32 +62,82 @@ const AdminToiletPage = () => {
 
 
     const doSearchItems = async (roomId: string) => {
-        const data = await ToiletService.findByRoomId(roomId);
-        setItems(data);
+        try {
+            const data = await ToiletService.findByRoomId(roomId);
+            setItems(data);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
     const doSearchHistory = async (roomId: string) => {
-        const data = await HistoryService.findByRoomId(roomId);
-        setHistory(data);
+        try {
+            const data = await HistoryService.findByRoomId(roomId);
+            setHistory(data);
+        }
+        catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
     }
 
     const doSearchBuildings = async () => {
-        const data = await BuildingService.findAll();
-        setBuildings(data || []);
+        try {
+            const data = await BuildingService.findAll();
+            setBuildings(data);
+        }
+        catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
     }
 
     const doSearchRooms = async (buildingId: string) => {
-        const data = await RoomService.findByBuildingId(buildingId);
-        setRooms(data || []);
+        try {
+            const data = await RoomService.findByBuildingId(buildingId);
+            setRooms(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
     }
 
     const doAddItem = async (item: IItem) => {
-        const newItem = await ToiletService.create(item);
-        setItems((prevItems) => [...prevItems, newItem]);
+        try {
+            const newItem = await ToiletService.create(item);
+            setItems((prevItems) => [...prevItems, newItem]);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
     return (
-        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+        <Flex vertical gap={4} className='p-4'>
             <XBreadcrumb items={breadcrumbItems} />
 
             <AdminSelector

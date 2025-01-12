@@ -6,6 +6,7 @@ import RoomTable from "./RoomTable";
 import RoomModal from "./RoomModal";
 import BuildingService from "@/services/building.service";
 import RoomService from "@/services/room.service";
+import { useNotificationStore } from "@/stores/notification.store";
 
 
 const RoomWrapper = () => {
@@ -14,7 +15,9 @@ const RoomWrapper = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
-
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
     useEffect(() => {
         doGetBuildings();
         doSearch()
@@ -23,17 +26,35 @@ const RoomWrapper = () => {
 
     const doSearch = async () => {
         // do something
-        const data = await RoomService.findByKeyword(query)
-        setData(data)
+        try {
+            const data = await RoomService.findByKeyword(query)
+            setData(data)
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
     }
 
     const doGetBuildings = async () => {
-        const data = await BuildingService.findAll()
-
-        setBuildings(data)
+        try {
+            const data = await BuildingService.findAll()
+            setBuildings(data)
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
-    const doAdd = () => {
+    const openAddModal = () => {
         setEditingRoom(null);
         setIsModalOpen(true);
     };
@@ -47,19 +68,54 @@ const RoomWrapper = () => {
         setData((prevData) => prevData.filter((item) => item.room_id !== id));
     };
 
-    const doSave = (payload: IRoom) => {
+    const doSave = async (payload: IRoom) => {
         if (editingRoom) {
             setData((prevData) =>
                 prevData.map((item) =>
                     item.room_id === editingRoom.room_id ? { ...editingRoom, ...payload } : item
                 )
             );
+
+            try {
+                await RoomService.update(editingRoom.building_id, editingRoom)
+
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Building updated successfully'
+                })
+            } catch (error) {
+                openNotification({
+                    type: 'error',
+                    message: 'Error',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    description: (error as any).message
+                })
+            }
         } else {
             setData((prevData) => [
                 ...prevData,
                 { ...payload, id: Math.random().toString(36).substr(2, 9) },
             ]);
+
+            try {
+                await RoomService.create(payload)
+
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Room created successfully'
+                })
+            } catch (error) {
+                openNotification({
+                    type: 'error',
+                    message: 'Error',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    description: (error as any).message
+                })
+            }
         }
+
         setIsModalOpen(false);
     };
 
@@ -69,7 +125,7 @@ const RoomWrapper = () => {
 
             <RoomTable
                 data={data}
-                onAdd={doAdd}
+                onAdd={openAddModal}
                 onEdit={doEdit}
                 onDelete={doDelete}
             />

@@ -5,12 +5,16 @@ import LocationFilter from "../LocationFilter";
 import BuildingTable from "./BuildingTable";
 import BuildingModal from "./BuildingModal";
 import BuildingService from "@/services/building.service";
+import { useNotificationStore } from "@/stores/notification.store";
 
 const BuildingWrapper = () => {
     const [data, setData] = useState<IBuilding[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [editingBuilding, setEditingRoom] = useState<IBuilding | null>(null);
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
 
     useEffect(() => {
         doSearch()
@@ -18,11 +22,21 @@ const BuildingWrapper = () => {
 
     const doSearch = async () => {
         // do something
-        const data = await BuildingService.findByKeyword(query)
-        setData(data)
+        try {
+            const data = await BuildingService.findByKeyword(query)
+            setData(data)
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
     }
 
-    const doAdd = () => {
+    const openAddModal = () => {
         setEditingRoom(null);
         setIsModalOpen(true);
     };
@@ -36,18 +50,52 @@ const BuildingWrapper = () => {
         setData((prevData) => prevData.filter((item) => item.building_id !== id));
     };
 
-    const doSave = (payload: IBuilding) => {
+    const doSave = async (payload: IBuilding) => {
         if (editingBuilding) {
             setData((prevData) =>
                 prevData.map((item) =>
                     item.building_id === editingBuilding.building_id ? { ...editingBuilding, ...payload } : item
                 )
             );
+
+            try {
+                await BuildingService.update(editingBuilding.building_id, editingBuilding)
+
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Building updated successfully'
+                })
+            } catch (error) {
+                openNotification({
+                    type: 'error',
+                    message: 'Error',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    description: (error as any).message
+                })
+            }
         } else {
             setData((prevData) => [
                 ...prevData,
                 { ...payload, id: Math.random().toString(36).substr(2, 9) },
             ]);
+
+            try {
+                await BuildingService.create(payload)
+
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Building created successfully'
+                })
+            } catch (error) {
+                openNotification({
+                    type: 'error',
+                    message: 'Error',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    description: (error as any).message
+                })
+            }
         }
         setIsModalOpen(false);
     };
@@ -58,7 +106,7 @@ const BuildingWrapper = () => {
 
             <BuildingTable
                 data={data}
-                onAdd={doAdd}
+                onAdd={openAddModal}
                 onEdit={doEdit}
                 onDelete={doDelete}
             />

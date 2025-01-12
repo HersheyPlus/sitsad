@@ -66,6 +66,9 @@ export const routes = [
             { path: "table", element: <AdminTablePage /> },
             { path: "toilet", element: <AdminToiletPage /> },
             { path: "location", element: <LocationPage /> },
+            {
+                path: "*", element: <NotFoundPage />
+            }
         ],
     },
     {

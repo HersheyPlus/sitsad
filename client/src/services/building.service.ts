@@ -50,7 +50,7 @@ const BuildingService = {
         mockupBuildings.push(building);
     },
 
-    async update(building: IBuilding) {
+    async update(buildingId: string, building: IBuilding) {
         const index = mockupBuildings.findIndex(b => b.building_id === building.building_id);
         if (index !== -1) {
             mockupBuildings[index] = building;

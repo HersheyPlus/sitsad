@@ -9,11 +9,15 @@ import TableOverview from '@/components/Shared/Item/overview/ItemOverview';
 import ItemLayout from '@/components/Shared/Item/ItemLayout';
 import { IItem, ItemType } from '@/types/item';
 import ToiletService from '@/services/toilet.service';
+import { useNotificationStore } from '@/stores/notification.store';
 
 
 const ToiletSlugPage: React.FC = () => {
     const [items, setItems] = useState<IItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<IItem | null>(null);
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
 
     const firstItem = items?.[0];
 
@@ -26,10 +30,10 @@ const ToiletSlugPage: React.FC = () => {
             title: <a href="/">Home</a>,
         },
         {
-            title: <a href="/table">Table</a>,
+            title: <a href="/toilet">Toilet</a>,
         },
         {
-            title: <a href={`/table?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
+            title: <a href={`/toilet?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
         },
         {
             title: firstItem?.location?.room.room_name || "",
@@ -39,11 +43,18 @@ const ToiletSlugPage: React.FC = () => {
     const doSearchMultipleItems = async () => {
         if (!roomId) return;
 
-        const data = await ToiletService.findByRoomId(roomId);
-
-        if (!data) return;
-
-        setItems(data);
+        try {
+            const data = await ToiletService.findByRoomId(roomId);
+            if (!data) return;
+            setItems(data);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
     const doSelectItem = (item: IItem | null) => {

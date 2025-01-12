@@ -8,13 +8,22 @@ import NotFoundPage from '../NotFoundPage';
 import TableOverview from '@/components/Shared/Item/overview/ItemOverview';
 import ItemLayout from '@/components/Shared/Item/ItemLayout';
 import { IItem, ItemType } from '@/types/item';
+import { useNotificationStore } from '@/stores/notification.store';
 import TableService from '@/services/table.service';
+
 
 const TableSlugPage: React.FC = () => {
     const [items, setItems] = useState<IItem[]>([]);
-    const [item, setItem] = useState<IItem | null>(null);
+    const [selectedItem, setSelectedItem] = useState<IItem | null>(null);
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
+
+    const firstItem = items?.[0];
 
     const params = useParams();
+
+    const roomId = params?.slug;
 
     const breadcrumbItems = [
         {
@@ -24,55 +33,59 @@ const TableSlugPage: React.FC = () => {
             title: <a href="/table">Table</a>,
         },
         {
-            title: <a href={`/table?buildingId=${item?.location.building.building_id}`}>Rooms</a>,
+            title: <a href={`/table?buildingId=${firstItem?.location.building.building_id}`}>Rooms</a>,
         },
         {
-            title: item?.name || "",
+            title: firstItem?.location?.room.room_name || "",
         },
     ];
 
-    const doSearchItem = async () => {
-        // Search using ItemType.Toilet
-        if (!params?.slug) return;
-
-        const data = await TableService.findById(params?.slug);
-
-        if (!data) return;
-
-        setItem(data);
-    }
-
     const doSearchMultipleItems = async () => {
-        if (!item) return;
+        if (!roomId) return;
 
-        const roomId = item.location.room.room_id;
-
-        const data = await TableService.findByRoomId(roomId);
-
-        if (!data) return;
-
-        setItems(data);
+        try {
+            const data = await TableService.findByRoomId(roomId);
+            if (!data) return;
+            setItems(data);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
-    useEffect(() => {
-        doSearchItem();
-    }, [params]);
+    const doSelectItem = (item: IItem | null) => {
+        if (item === null && selectedItem !== null) {
+            setSelectedItem(null);
+            return;
+        }
+
+        if (item === selectedItem) {
+            setSelectedItem(null);
+            return;
+        }
+
+        setSelectedItem(item);
+    }
 
     useEffect(() => {
         doSearchMultipleItems();
-    }, [item]);
+    }, [roomId]);
 
-    if (!params?.slug || !item) {
+    if (!params?.slug || !items) {
         return <NotFoundPage />
     }
 
     return (
-        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100' >
             <XBreadcrumb items={breadcrumbItems} />
 
-            <ItemLayout itemName={ItemType.TABLE} items={items} />
+            <ItemLayout itemName={ItemType.TABLE} items={items} selectedItem={selectedItem} onSelectItem={doSelectItem} />
 
-            <TableOverview item={item} itemName={ItemType.TABLE} />
+            <TableOverview item={selectedItem} itemName={ItemType.TABLE} roomId={roomId} />
         </Flex>
     );
 };
