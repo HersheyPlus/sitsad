@@ -6,6 +6,7 @@ import {
     UserOutlined,
     SettingOutlined,
     InboxOutlined,
+    VideoCameraOutlined,
 } from '@ant-design/icons';
 import { ChartArea, Table, TableIcon as Toilet } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -55,6 +56,11 @@ const Sidebar: React.FC = () => {
                     key: 'location',
                     icon: <EnvironmentOutlined />,
                     label: <Link to="/dashboard/location">Location Management</Link>,
+                },
+                {
+                    key: 'device',
+                    icon: <VideoCameraOutlined />,
+                    label: <Link to="/dashboard/device">Device Management</Link>,
                 },
                 {
                     key: 'table',

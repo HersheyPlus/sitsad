@@ -62,7 +62,7 @@ const RoomModal: React.FC<LocationModalProps> = ({
 
     return (
         <Modal
-            title={editingRoom ? "Edit Location" : "Add Location"}
+            title={editingRoom ? "Edit Room" : "Add Room"}
             visible={visible}
             onOk={doSubmit}
             onCancel={onCancel}
