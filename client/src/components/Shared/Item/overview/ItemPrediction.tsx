@@ -14,6 +14,7 @@ const conicColors: ProgressProps['strokeColor'] = {
 interface IProps {
     history: IItemHistory[]
 }
+
 const ItemPrediction = ({ history }: IProps) => {
 
     const predictAvailableSlots = () => {
@@ -26,8 +27,8 @@ const ItemPrediction = ({ history }: IProps) => {
             slotEnd.setHours(slotStart.getHours() + 2)
 
             const isOccupied = history.some(h => {
-                const reservationTime = new Date(h.reservationTime)
-                const leaveTime = new Date(h.leaveTime)
+                const reservationTime = new Date(h.started_booking_time)
+                const leaveTime = new Date(h.ended_booking_time)
                 return (slotStart >= reservationTime && slotStart < leaveTime) ||
                     (slotEnd > reservationTime && slotEnd <= leaveTime)
             })
@@ -49,7 +50,7 @@ const ItemPrediction = ({ history }: IProps) => {
 
         // Count how many times this slot was available in the past
         const availableCount = history.filter(h => {
-            const historyDate = new Date(h.reservationTime)
+            const historyDate = new Date(h.started_booking_time)
             return historyDate.getDay() === dayOfWeek && historyDate.getHours() === hourOfDay
         }).length
 

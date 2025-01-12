@@ -28,7 +28,12 @@ const ItemInfo = ({ data, itemName }: IProps) => {
                     <br />
                     <Text>
                         <EnvironmentOutlined className="mr-2" />
-                        Location: {data?.location?.title}
+                        Building: {data.location.building.building_name}
+                    </Text>
+                    <br />
+                    <Text>
+                        <EnvironmentOutlined className="mr-2" />
+                        Room: {data.location.room.room_name}
                     </Text>
                     <br />
                     <Text>

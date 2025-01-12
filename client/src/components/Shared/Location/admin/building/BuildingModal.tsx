@@ -1,30 +1,30 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Upload, Button, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { ILocation } from "@/types/location";
+import { IBuilding } from "@/types/location";
 
-interface LocationModalProps {
+interface IProps {
     visible: boolean;
-    editingLocation: ILocation | null;
+    editingBuilding: IBuilding | null;
     onCancel: () => void;
-    onSave: (values: ILocation) => void;
+    onSave: (values: IBuilding) => void;
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({
+const BuildingModal: React.FC<IProps> = ({
     visible,
-    editingLocation,
+    editingBuilding,
     onCancel,
     onSave,
 }) => {
     const [form] = Form.useForm();
 
     useEffect(() => {
-        if (editingLocation) {
-            form.setFieldsValue(editingLocation);
+        if (editingBuilding) {
+            form.setFieldsValue(editingBuilding);
         } else {
             form.resetFields();
         }
-    }, [editingLocation, form]);
+    }, [editingBuilding, form]);
 
     const uploadProps = {
         beforeUpload: (file: File) => {
@@ -60,15 +60,15 @@ const LocationModal: React.FC<LocationModalProps> = ({
 
     return (
         <Modal
-            title={editingLocation ? "Edit Location" : "Add Location"}
+            title={editingBuilding ? "Edit Location" : "Add Location"}
             visible={visible}
             onOk={doSubmit}
             onCancel={onCancel}
         >
             <Form form={form} layout="vertical">
                 <Form.Item
-                    name="title"
-                    label="Title"
+                    name="building_name"
+                    label="Building Name"
                     rules={[{ required: true, message: "Please enter the title" }]}
                 >
                     <Input placeholder="Enter title" />
@@ -83,7 +83,6 @@ const LocationModal: React.FC<LocationModalProps> = ({
                 <Form.Item
                     name="image"
                     label="Image"
-                    rules={[{ required: true, message: "Please upload an image" }]}
                 >
                     <Upload {...uploadProps} listType="picture">
                         <Button icon={<UploadOutlined />}>Click to Upload</Button>
@@ -94,4 +93,4 @@ const LocationModal: React.FC<LocationModalProps> = ({
     );
 };
 
-export default LocationModal;
+export default BuildingModal;

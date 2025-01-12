@@ -1,18 +1,25 @@
 import { IItemHistory } from "@/types/item"
 import { Card, Table, Typography } from "antd"
+import { ColumnsType } from "antd/es/table"
 
 const { Title } = Typography
 
-const historyColumns = [
+const historyColumns: ColumnsType<IItemHistory> = [
+    {
+        title: 'ID',
+        dataIndex: 'id',
+        key: 'id',
+        sorter: (a, b) => a.id.localeCompare(b.id),
+    },
     {
         title: 'Reservation Time',
-        dataIndex: 'reservationTime',
+        dataIndex: 'started_booking_time',
         key: 'reservationTime',
         render: (text: string) => new Date(text).toLocaleString(),
     },
     {
         title: 'Leave Time',
-        dataIndex: 'leaveTime',
+        dataIndex: 'ended_booking_time',
         key: 'leaveTime',
         render: (text: string) => new Date(text).toLocaleString(),
     },

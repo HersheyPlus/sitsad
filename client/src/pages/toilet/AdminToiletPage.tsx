@@ -1,14 +1,20 @@
-import { useState } from 'react';
-
-import ItemLayout from '@/components/Pages/Item/admin/AdminItemLayout';
-import ItemHistory from '@/components/Pages/Item/admin/AdminItemHistory';
-import ItemCrud from '@/components/Pages/Item/admin/AdminItemCrud';
+import { useEffect, useState } from 'react';
 
 import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/XBreadcrumb';
-import { ILocation } from '@/types/location';
+import { IBuilding, IRoom } from '@/types/location';
 import { IItem, IItemHistory, ItemType } from '@/types/item';
+
+import BuildingService from '@/services/building.service';
+import RoomService from '@/services/room.service';
+import AdminItemLayout from '@/components/Shared/Item/admin/AdminItemLayout';
+import AdminItemCrud from '@/components/Shared/Item/admin/AdminItemCrud';
+import AdminSelector from '@/components/Shared/Item/admin/AdminSelector';
+import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
+import HistoryService from '@/services/history.service';
+import ToiletService from '@/services/toilet.service';
+import { useNotificationStore } from '@/stores/notification.store';
 
 const breadcrumbItems = [
     {
@@ -18,92 +24,143 @@ const breadcrumbItems = [
         title: <a href="/dashboard">Dashboard</a>,
     },
     {
-        title: "Table",
+        title: "Toilet",
     },
 ];
-
-const history: IItemHistory[] = [
-    {
-        id: 1,
-        itemId: 101,
-        reservationTime: "2025-01-09 10:00 AM",
-        leaveTime: "2025-01-09 12:00 PM",
-        phoneNo: "1234567890",
-    },
-    {
-        id: 2,
-        itemId: 102,
-        reservationTime: "2025-01-09 01:00 PM",
-        leaveTime: "2025-01-09 03:00 PM",
-        phoneNo: undefined,
-    },
-];
-
-const table: IItem[] = [
-    {
-        id: 101,
-        x: 0,
-        y: 0,
-        available: true,
-        name: "Toilet 1",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 102,
-        x: 100,
-        y: 0,
-        available: true,
-        name: "Toilet 2",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 103,
-        x: 200,
-        y: 0,
-        available: false,
-        name: "Toilet 3",
-        width: 100,
-        height: 100,
-    },
-    {
-        id: 104,
-        x: 300,
-        y: 0,
-        available: false,
-        name: "Toilet 4",
-        width: 100,
-        height: 100,
-    },
-]
-
-const locations: ILocation[] = [
-    {
-        id: "1",
-        title: "Location 1",
-        description: "Location 1 description",
-        image: "/placeholder.svg?height=96&width=96",
-        current: 7,
-        total: 10,
-    }
-]
-
 
 const AdminToiletPage = () => {
-    const [items, setItems] = useState<IItem[]>(table);
+    const [items, setItems] = useState<IItem[]>([]);
+    const [history, setHistory] = useState<IItemHistory[]>([]);
+    const [buildings, setBuildings] = useState<IBuilding[]>([]);
+    const [rooms, setRooms] = useState<IRoom[]>([]);
 
-    // TODO: fetch data from API
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
+    const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
+    useEffect(() => {
+        doSearchBuildings()
+    }, [])
+
+    useEffect(() => {
+        if (selectedBuilding) {
+            doSearchRooms(selectedBuilding.building_id)
+            setSelectedRoom(undefined)
+        }
+    }, [selectedBuilding])
+
+    useEffect(() => {
+        if (selectedRoom) {
+            doSearchItems(selectedRoom.room_id)
+            doSearchHistory(selectedRoom.room_id)
+        } else {
+            setItems([]);
+            setHistory([]);
+        }
+    }, [selectedBuilding, selectedRoom])
+
+
+    const doSearchItems = async (roomId: string) => {
+        try {
+            const data = await ToiletService.findByRoomId(roomId);
+            setItems(data);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
+
+    const doSearchHistory = async (roomId: string) => {
+        try {
+            const data = await HistoryService.findByRoomId(roomId);
+            setHistory(data);
+        }
+        catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
+    }
+
+    const doSearchBuildings = async () => {
+        try {
+            const data = await BuildingService.findAll();
+            setBuildings(data);
+        }
+        catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
+    }
+
+    const doSearchRooms = async (buildingId: string) => {
+        try {
+            const data = await RoomService.findByBuildingId(buildingId);
+            setRooms(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
+    }
+
+    const doAddItem = async (item: IItem) => {
+        try {
+            const newItem = await ToiletService.create(item);
+            setItems((prevItems) => [...prevItems, newItem]);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
 
     return (
-        <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
+        <Flex vertical gap={4} className='p-4'>
             <XBreadcrumb items={breadcrumbItems} />
 
-            <ItemLayout data={items} doUpdateItem={setItems} />
+            <AdminSelector
+                buildings={buildings}
+                rooms={rooms}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+                onBuildingSelect={setSelectedBuilding}
+                onRoomSelect={setSelectedRoom}
+            />
 
-            <ItemCrud data={items} locations={locations} />
+            <AdminItemLayout
+                data={items}
+                doUpdateItem={setItems}
+                doAddItem={doAddItem}
+                itemType={ItemType.TOILET}
+                selectedBuilding={selectedBuilding}
+                selectedRoom={selectedRoom}
+            />
 
-            <ItemHistory data={history} itemName={ItemType.TOILET} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} />
+
+            <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>
     );
 };
