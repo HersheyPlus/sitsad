@@ -22,6 +22,7 @@ const items = [
     { label: 'Home', href: "/" },
     { label: 'Table', href: "/table" },
     { label: 'Toilet', href: "/toilet" },
+    { label: 'Dashboard', href: "/dashboard" },
 ];
 
 const Header: React.FC = () => {

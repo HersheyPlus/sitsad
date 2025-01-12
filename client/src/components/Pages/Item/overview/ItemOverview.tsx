@@ -1,51 +1,52 @@
 "use client"
 
-import { ITable, ITableHistory } from "@/types/table"
+import { IItem, IItemHistory } from "@/types/item"
 import { useEffect, useState } from "react"
-import TableInfo from "./TableInfo"
-import TablePrediction from "./TablePrediction"
-import TableUsageHistory from "./TableUsageHistory"
 
+import ItemInfo from "./ItemInfo"
+import ItemPrediction from "./ItemPrediction"
+import ItemUsageHistory from "./ItemUsageHistory"
 
 interface IProps {
-    table: ITable
+    item: IItem
+    itemName: string
 }
 
-const data: ITableHistory[] = [
+const mockupHistory: IItemHistory[] = [
     {
         id: 1,
-        tableId: 101,
+        itemId: 101,
         reservationTime: "2025-01-09 10:00 AM",
         leaveTime: "2025-01-09 12:00 PM",
     },
     {
         id: 2,
-        tableId: 102,
+        itemId: 102,
         reservationTime: "2025-01-09 01:00 PM",
         leaveTime: "2025-01-09 03:00 PM",
     },
 ]
 
-const TableOverview: React.FC<IProps> = ({ table }) => {
-    const [tableHistory, setTableHistory] = useState<ITableHistory[]>(data)
+const ItemOverview = ({ item, itemName }: IProps) => {
+    const [history, setHistory] = useState<IItemHistory[]>(mockupHistory)
 
     useEffect(() => {
         doGetHistory()
-    }, [table])
+    }, [item])
 
     const doGetHistory = () => {
         // fetch history by table id
-        setTableHistory([
+        setHistory([
             {
                 id: 1,
-                tableId: 101,
+                itemId: 101,
                 reservationTime: "2025-01-09 10:00 AM",
                 leaveTime: "2025-01-09 12:00 PM",
                 phoneNo: "1234567890",
             },
             {
                 id: 2,
-                tableId: 102,
+                itemId: 102,
                 reservationTime: "2025-01-09 01:00 PM",
                 leaveTime: "2025-01-09 03:00 PM",
                 phoneNo: undefined,
@@ -53,7 +54,7 @@ const TableOverview: React.FC<IProps> = ({ table }) => {
 
             {
                 id: 3,
-                tableId: 1031,
+                itemId: 103,
                 reservationTime: "2025-01-09 10:00 AM",
                 leaveTime: "2025-01-09 12:00 PM",
                 phoneNo: "1234567890",
@@ -63,15 +64,14 @@ const TableOverview: React.FC<IProps> = ({ table }) => {
 
     return (
         <div className="space-y-6">
+            <ItemInfo data={item} itemName={itemName} />
 
-            <TableInfo table={table} />
+            <ItemPrediction history={history} />
 
-            <TablePrediction tableHistory={tableHistory} />
-
-            <TableUsageHistory tableHistory={tableHistory} />
+            <ItemUsageHistory history={history} />
         </div>
     )
 }
 
-export default TableOverview
+export default ItemOverview
 

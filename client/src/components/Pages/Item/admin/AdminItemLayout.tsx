@@ -1,18 +1,19 @@
 import { Rnd } from 'react-rnd';
-import Table from '../Table';
+import Item from '../Item';
 import { Button } from 'antd';
-import { ITable } from '@/types/table';
 import { useState } from 'react';
+import { IItem } from '@/types/item';
 
 const GRID_SIZE = 100;
 
 interface IProps {
-    data: ITable[]
-    doAddTable?: () => void
-    doUpdateTable: React.Dispatch<React.SetStateAction<ITable[]>>
+    data: IItem[]
+    doAddItem?: () => void
+    doUpdateItem: React.Dispatch<React.SetStateAction<IItem[]>>
 }
-const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
-    const [tables, setTables] = useState<ITable[]>(data);
+
+const AdminItemLayout = ({ data, doUpdateItem }: IProps) => {
+    const [items, setItems] = useState<IItem[]>(data);
 
     const doSnapToGrid = (x: number, y: number) => {
         const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
@@ -21,13 +22,13 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
     };
 
     const doCheckOverlap = (id: number, x: number, y: number, width: number, height: number) => {
-        return tables.some((table) => {
-            if (table.id === id) return false; // Don't compare with itself
+        return items.some((item) => {
+            if (item.id === id) return false; // Don't compare with itself
             return (
-                x < table.x + table.width &&
-                x + width > table.x &&
-                y < table.y + table.height &&
-                y + height > table.y
+                x < item.x + item.width &&
+                x + width > item.x &&
+                y < item.y + item.height &&
+                y + height > item.y
             );
         });
     };
@@ -36,16 +37,16 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
         const { x: snappedX, y: snappedY } = doSnapToGrid(data.x, data.y);
 
         // Check for overlap before allowing the move
-        if (!doCheckOverlap(id, snappedX, snappedY, tables.find(t => t.id === id)?.width || 100, tables.find(t => t.id === id)?.height || 100)) {
-            setTables((prevTable) =>
-                prevTable.map((table) =>
-                    table.id === id ? { ...table, x: snappedX, y: snappedY } : table
+        if (!doCheckOverlap(id, snappedX, snappedY, items.find(t => t.id === id)?.width || 100, items.find(t => t.id === id)?.height || 100)) {
+            setItems((prevItem) =>
+                prevItem.map((item) =>
+                    item.id === id ? { ...item, x: snappedX, y: snappedY } : item
                 )
             );
 
-            doUpdateTable((prevTable) =>
-                prevTable.map((table) =>
-                    table.id === id ? { ...table, x: snappedX, y: snappedY } : table
+            doUpdateItem((prevTable) =>
+                prevTable.map((item) =>
+                    item.id === id ? { ...item, x: snappedX, y: snappedY } : item
                 )
             )
         }
@@ -56,27 +57,27 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
         const snappedHeight = Math.round(height / GRID_SIZE) * GRID_SIZE;
 
         // Check for overlap before allowing the resize
-        const { x, y } = tables.find(t => t.id === id) || { x: 0, y: 0 };
+        const { x, y } = items.find(t => t.id === id) || { x: 0, y: 0 };
         if (!doCheckOverlap(id, x, y, snappedWidth, snappedHeight)) {
-            setTables((prevTable) =>
-                prevTable.map((table) =>
-                    table.id === id ? { ...table, width: snappedWidth, height: snappedHeight } : table
+            setItems((prevItem) =>
+                prevItem.map((item) =>
+                    item.id === id ? { ...item, width: snappedWidth, height: snappedHeight } : item
                 )
             );
 
-            doUpdateTable((prevTable) =>
-                prevTable.map((table) =>
-                    table.id === id ? { ...table, width: snappedWidth, height: snappedHeight } : table
+            doUpdateItem((prevItem) =>
+                prevItem.map((item) =>
+                    item.id === id ? { ...item, width: snappedWidth, height: snappedHeight } : item
                 )
             )
         }
     };
 
-    // Add new table
-    const doAddTable = () => {
-        const newTable: ITable = {
+    // Add new item
+    const doAddItem = () => {
+        const newItem: IItem = {
             id: Date.now(),
-            name: 'New Table',
+            name: 'New Item',
             description: '',
             available: false,
             x: Math.floor(Math.random() * 5) * GRID_SIZE,
@@ -85,32 +86,32 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
             height: GRID_SIZE,
         };
 
-        const newId = tables.length + 1;
-        setTables([...tables, { ...newTable, id: newId }]);
+        const newId = items.length + 1;
+        setItems([...items, { ...newItem, id: newId }]);
     };
 
     return (
         <div className="relative w-full h-[600px] bg-white border-2 border-gray-300 rounded-lg overflow-hidden">
-            <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize Tables</h2>
+            <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize Item</h2>
             <Button
-                onClick={doAddTable}
+                onClick={doAddItem}
                 className="absolute px-8 py-4 font-bold text-white bg-blue-500 top-2 right-2 rounded-md hover:bg-blue-700 z-[1000]">
-                Add Table
+                Add Item
             </Button>
             <div className="absolute top-0 left-0 w-full h-full p-2">
-                {tables.map((table) => (
+                {items.map((item) => (
                     <Rnd
-                        key={table.id}
-                        position={{ x: table.x, y: table.y }} // Use `position` for Rnd to control the position directly
-                        size={{ width: table.width, height: table.height }} // Use `size` for Rnd to control the size directly
+                        key={item.id}
+                        position={{ x: item.x, y: item.y }} // Use `position` for Rnd to control the position directly
+                        size={{ width: item.width, height: item.height }} // Use `size` for Rnd to control the size directly
                         bounds="parent"
                         minWidth={GRID_SIZE}
                         minHeight={GRID_SIZE}
                         maxWidth={600}
                         maxHeight={600}
-                        onDragStop={(_, data) => doDrag(table.id, data)}
+                        onDragStop={(_, data) => doDrag(item.id, data)}
                         onResizeStop={(_, __, ref) => {
-                            doResize(table.id, ref.offsetWidth, ref.offsetHeight);
+                            doResize(item.id, ref.offsetWidth, ref.offsetHeight);
                         }}
                         enableResizing={{
                             top: true,
@@ -120,7 +121,7 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
                             bottomRight: true,
                         }}
                     >
-                        <Table data={table} />
+                        <Item data={item} />
                     </Rnd>
                 ))}
             </div>
@@ -128,4 +129,4 @@ const AdminTableLayout = ({ data, doUpdateTable }: IProps) => {
     );
 };
 
-export default AdminTableLayout;
+export default AdminItemLayout;

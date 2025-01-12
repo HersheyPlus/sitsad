@@ -1,4 +1,4 @@
-import { ITableHistory } from "@/types/table";
+import { IItemHistory } from "@/types/item";
 import { CalendarOutlined } from "@ant-design/icons";
 import { Card, Progress, ProgressProps, Tag, Typography } from "antd"
 import { TrendingUpDown } from "lucide-react";
@@ -12,9 +12,9 @@ const conicColors: ProgressProps['strokeColor'] = {
 };
 
 interface IProps {
-    tableHistory: ITableHistory[]
+    history: IItemHistory[]
 }
-const TablePrediction = ({ tableHistory }: IProps) => {
+const ItemPrediction = ({ history }: IProps) => {
 
     const predictAvailableSlots = () => {
         const currentDate = new Date()
@@ -25,9 +25,9 @@ const TablePrediction = ({ tableHistory }: IProps) => {
             const slotEnd = new Date(slotStart)
             slotEnd.setHours(slotStart.getHours() + 2)
 
-            const isOccupied = tableHistory.some(history => {
-                const reservationTime = new Date(history.reservationTime)
-                const leaveTime = new Date(history.leaveTime)
+            const isOccupied = history.some(h => {
+                const reservationTime = new Date(h.reservationTime)
+                const leaveTime = new Date(h.leaveTime)
                 return (slotStart >= reservationTime && slotStart < leaveTime) ||
                     (slotEnd > reservationTime && slotEnd <= leaveTime)
             })
@@ -48,15 +48,15 @@ const TablePrediction = ({ tableHistory }: IProps) => {
         const hourOfDay = slotStart.getHours()
 
         // Count how many times this slot was available in the past
-        const availableCount = tableHistory.filter(history => {
-            const historyDate = new Date(history.reservationTime)
+        const availableCount = history.filter(h => {
+            const historyDate = new Date(h.reservationTime)
             return historyDate.getDay() === dayOfWeek && historyDate.getHours() === hourOfDay
         }).length
 
 
         console.log("Day of week: ", dayOfWeek)
         // Calculate availability percentage
-        const totalSlots = tableHistory.length
+        const totalSlots = history.length
         const availabilityPercentage = totalSlots > 0 ? (availableCount / totalSlots) * 100 : 100
 
         return Math.round(availabilityPercentage)
@@ -113,4 +113,4 @@ const TablePrediction = ({ tableHistory }: IProps) => {
     )
 }
 
-export default TablePrediction
+export default ItemPrediction

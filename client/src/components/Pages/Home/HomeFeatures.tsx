@@ -15,6 +15,7 @@ const features = [
         title: 'ระบบตรวจห้องน้ำว่าง',
         description: 'ตรวจสอบสถานะห้องน้ำว่างได้แบบเรียลไทม์',
         icon: <BankOutlined className="text-4xl text-blue-600" />,
+        href: '/toilet'
     },
     {
         title: 'ระบบตรวจจับรถยนต์จอดผิด',

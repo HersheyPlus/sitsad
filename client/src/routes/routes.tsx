@@ -18,6 +18,9 @@ import AdminTablePage from "@/pages/table/AdminTablePage";
 import TableSlugPage from "@/pages/table/TableSlugPage";
 import LocationPage from "@/pages/LocationPage";
 import DashboardPage from "@/pages/DashboardPage";
+import ToiletListPage from "@/pages/toilet/ToiletListPage";
+import ToiletSlugPage from "@/pages/toilet/ToiletSlugPage";
+import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 
 export const routes = [
@@ -37,6 +40,14 @@ export const routes = [
         ]
     },
     {
+        path: "/toilet",
+        element: <MainLayout />,
+        children: [
+            { path: "", element: <ToiletListPage /> },
+            { path: ":slug", element: <ToiletSlugPage /> },
+        ]
+    },
+    {
         path: "/login",
         element: <LoginPage />,
     },
@@ -51,6 +62,7 @@ export const routes = [
         children: [
             { path: "", element: <DashboardPage /> },
             { path: "table", element: <AdminTablePage /> },
+            { path: "toilet", element: <AdminToiletPage /> },
             { path: "location", element: <LocationPage /> },
         ],
     },

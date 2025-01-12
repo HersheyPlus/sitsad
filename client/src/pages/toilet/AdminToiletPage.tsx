@@ -1,14 +1,14 @@
 import { useState } from 'react';
 
-import TableLayout from '@/components/Pages/Item/admin/AdminItemLayout';
-import TableHistory from '@/components/Pages/Item/admin/AdminItemHistory';
-import TableCrud from '@/components/Pages/Item/admin/AdminItemCrud';
+import ItemLayout from '@/components/Pages/Item/admin/AdminItemLayout';
+import ItemHistory from '@/components/Pages/Item/admin/AdminItemHistory';
+import ItemCrud from '@/components/Pages/Item/admin/AdminItemCrud';
 
-import { IItem, IItemHistory, ItemType } from '@/types/item';
 import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/XBreadcrumb';
 import { ILocation } from '@/types/location';
+import { IItem, IItemHistory, ItemType } from '@/types/item';
 
 const breadcrumbItems = [
     {
@@ -45,7 +45,7 @@ const table: IItem[] = [
         x: 0,
         y: 0,
         available: true,
-        name: "Table 1",
+        name: "Toilet 1",
         width: 100,
         height: 100,
     },
@@ -54,7 +54,7 @@ const table: IItem[] = [
         x: 100,
         y: 0,
         available: true,
-        name: "Table 2",
+        name: "Toilet 2",
         width: 100,
         height: 100,
     },
@@ -63,7 +63,7 @@ const table: IItem[] = [
         x: 200,
         y: 0,
         available: false,
-        name: "Table 3",
+        name: "Toilet 3",
         width: 100,
         height: 100,
     },
@@ -72,7 +72,7 @@ const table: IItem[] = [
         x: 300,
         y: 0,
         available: false,
-        name: "Table 4",
+        name: "Toilet 4",
         width: 100,
         height: 100,
     },
@@ -90,8 +90,8 @@ const locations: ILocation[] = [
 ]
 
 
-const AdminTablePage = () => {
-    const [tables, setTables] = useState<IItem[]>(table);
+const AdminToiletPage = () => {
+    const [items, setItems] = useState<IItem[]>(table);
 
     // TODO: fetch data from API
 
@@ -99,13 +99,13 @@ const AdminTablePage = () => {
         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100'>
             <XBreadcrumb items={breadcrumbItems} />
 
-            <TableLayout data={tables} doUpdateItem={setTables} />
+            <ItemLayout data={items} doUpdateItem={setItems} />
 
-            <TableCrud data={tables} locations={locations} />
+            <ItemCrud data={items} locations={locations} />
 
-            <TableHistory data={history} itemName={ItemType.TOILET} />
+            <ItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>
     );
 };
 
-export default AdminTablePage;
+export default AdminToiletPage;

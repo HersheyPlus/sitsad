@@ -3,12 +3,6 @@ import { List, Typography, Progress, ProgressProps } from 'antd';
 
 const { Title, Paragraph } = Typography;
 
-
-
-interface IProps {
-    items: ILocation[];
-}
-
 // const conicColors: ProgressProps['strokeColor'] = {
 //     '0%': '#87d068',
 //     '50%': '#ffe58f',
@@ -20,10 +14,14 @@ const twoColors: ProgressProps['strokeColor'] = {
     '100%': '#108ee9',
 };
 
-const TableItem = ({ item }: { item: ILocation }) => {
+interface IItemEachProps {
+    item: ILocation
+    itemType: string
+}
+const ItemEach = ({ item, itemType }: IItemEachProps) => {
     return (
         <List.Item className="mb-4 transition-all duration-300 bg-white shadow-sm rounded-xl hover:cursor-pointer hover:shadow-lg">
-            <a className="flex items-center w-full p-4" href={`/table/${item.id}`}>
+            <a className="flex items-center w-full p-4" href={`/${itemType.toLowerCase()}/${item.id}`}>
                 <div className="flex-shrink-0 mr-4">
                     <img
                         src={item.image}
@@ -57,17 +55,22 @@ const TableItem = ({ item }: { item: ILocation }) => {
     )
 }
 
-const TableList = ({ items }: IProps) => {
+interface IProps {
+    items: ILocation[];
+    itemType: string;
+}
+
+const ItemList = ({ items, itemType }: IProps) => {
     return (
         <List
             itemLayout="horizontal"
             dataSource={items}
             renderItem={(item) => (
-                <TableItem item={item} />
+                <ItemEach item={item} itemType={itemType} />
             )}
         />
     );
 };
 
-export default TableList;
+export default ItemList;
 
