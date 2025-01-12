@@ -1,7 +1,7 @@
 
 import { Table, Card, Space } from "antd";
 import { IItemHistory } from "@/types/item";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "dayjs";
 
@@ -18,13 +18,17 @@ interface IProps {
 
 dayjs.extend(isBetween);
 
-const AdminTableHistory = ({ data }: IProps) => {
+const AdminItemHistory = ({ data }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItemHistory[]>(data);
 
     const [query, setQuery] = useState<{
         date?: [Dayjs, Dayjs] | null;
         phoneNo?: string;
     }>({});
+
+    useEffect(() => {
+        setFilteredData(data);
+    }, [data]);
 
     // Update the query state
     const doChangeQuery = (key: string, value: [Dayjs, Dayjs] | string | null) => {
@@ -41,7 +45,7 @@ const AdminTableHistory = ({ data }: IProps) => {
         const filtered = data.filter((item) => {
             const matchesDate =
                 date && date[0] && date[1]
-                    ? dayjs(item.reservationTime).isBetween(date[0], date[1], "day", "[]")
+                    ? dayjs(item.started_booking_time).isBetween(date[0], date[1], "day", "[]")
                     : true;
 
             const matchesPhone = phoneNo
@@ -56,31 +60,25 @@ const AdminTableHistory = ({ data }: IProps) => {
 
     const columns: ColumnsType<IItemHistory> = [
         {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-            sorter: (a, b) => a.id - b.id,
-        },
-        {
             title: "Item ID",
             dataIndex: "id",
             key: "id",
-            sorter: (a, b) => a.itemId - b.itemId,
+            sorter: (a, b) => a.id.localeCompare(b.id),
         },
         {
             title: "Reservation Time",
-            dataIndex: "reservationTime",
-            key: "reservationTime",
+            dataIndex: "started_booking_time",
+            key: "started_booking_time",
             sorter: (a, b) =>
-                new Date(a.reservationTime).getTime() -
-                new Date(b.reservationTime).getTime(),
+                new Date(a.started_booking_time).getTime() -
+                new Date(b.started_booking_time).getTime(),
         },
         {
             title: "Leave Time",
-            dataIndex: "leaveTime",
-            key: "leaveTime",
+            dataIndex: "ended_booking_time",
+            key: "ended_booking_time",
             sorter: (a, b) =>
-                new Date(a.leaveTime).getTime() - new Date(b.leaveTime).getTime(),
+                new Date(a.ended_booking_time).getTime() - new Date(b.ended_booking_time).getTime(),
         },
         {
             title: 'Phone Number',
@@ -118,4 +116,4 @@ const AdminTableHistory = ({ data }: IProps) => {
     );
 };
 
-export default AdminTableHistory;
+export default AdminItemHistory;

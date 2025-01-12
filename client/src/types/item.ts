@@ -1,29 +1,45 @@
-import { ILocation } from "./location";
+import { IBuilding, IRoom } from "./location";
 
 export interface IItem {
-    id: number;
-    x: number;
-    y: number;
+    item_id: string;
+    type: ItemType;
+    building_id?: string;
     available: boolean;
-    name: string;
-    description?: string;
+    position_x: number;
+    position_y: number;
     width: number;
     height: number;
-    location?: ILocation
+    floor?: number;
+    name: string;
+    description?: string;
+    location: {
+        building: IBuilding;
+        room: IRoom
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Add this line
+    // [key: string]: any; // Add this line
+}
+
+export enum ItemType {
+    TABLE = 'table',
+    TOILET = 'toilet',
+}
+
+export enum Gender {
+    Female = 'female',
+    Male = 'Male'
 }
 
 export interface IItemHistory {
-    id: number;
-    itemId: number;
-    reservationTime: string;
-    leaveTime: string;
+    id: string;
+    item_id: string;
+    room_id: string;
+    started_booking_time: string;
+    ended_booking_time: string;
     phoneNo?: string;
 }
 
-export const ItemType = {
-    TABLE: 'Table',
-    TOILET: 'Toilet',
-}
+// export const ItemType = {
+//     TABLE: 'Table',
+//     TOILET: 'Toilet',
+// }
