@@ -118,3 +118,4 @@ func (h *Hub) BroadcastNewItem(item interface{}, itemType string) {
 
     h.broadcast <- message
 }
+

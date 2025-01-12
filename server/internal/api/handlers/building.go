@@ -8,15 +8,46 @@ import (
 	"gorm.io/gorm"
 )
 
-func (h *Handler) GetListBuildings(c *fiber.Ctx) error {
-	var buildings []models.Building
-	if err := h.db.Find(&buildings).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.GetSuccess(c, "List of buildings", buildings)
+// Find All Buildings
+func (h *Handler) FindAllBuildingByItemType(c *fiber.Ctx) error {
+    itemType := c.Query("itemType")
+    keyword := c.Query("keyword")
+    
+    var buildings []models.Building
+    query := h.db.Distinct().Table("buildings").Select("buildings.*")
+
+    // Base join for all cases since all items are now connected through rooms
+    query = query.
+        Joins("INNER JOIN rooms ON buildings.building_id = rooms.building_id").
+        Joins("INNER JOIN items ON rooms.room_id = items.room_id")
+
+    // Handle item type filtering
+    switch itemType {
+    case "": // No itemType specified - return all buildings with any type of items
+        // No additional type filter needed
+
+    case "table", "toilet":
+        query = query.Where("items.type = ?", itemType)
+
+    default:
+        return res.BadRequest(c, "invalid itemType. Must be 'table' or 'toilet'")
+    }
+
+    // Add keyword search if provided
+    if keyword != "" {
+        query = query.Where("(buildings.building_name LIKE ? OR buildings.description LIKE ?)", 
+            "%"+keyword+"%", "%"+keyword+"%")
+    }
+
+    if err := query.Find(&buildings).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.GetSuccess(c, "Buildings retrieved", buildings)
 }
 
-func (h *Handler) GetBuilding(c *fiber.Ctx) error {
+// Find Building By ID
+func (h *Handler) FindBuildingById(c *fiber.Ctx) error {
     id := c.Params("id")
     var building models.Building
     
@@ -31,6 +62,8 @@ func (h *Handler) GetBuilding(c *fiber.Ctx) error {
     return res.GetSuccess(c, "Building found", building)
 }
 
+
+// Create
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
     var req CreateBuildingRequest
     if err := c.BodyParser(&req); err != nil {
@@ -66,6 +99,7 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
     return res.CreatedSuccess(c, building)
 }
 
+// Update
 func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
     id := c.Params("id")
     var building models.Building
@@ -109,6 +143,8 @@ func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
     }
     return res.UpdatedSuccess(c, building)
 }
+
+// Delete
 func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
     id := c.Params("id")
     var building models.Building
@@ -159,7 +195,7 @@ func (h *Handler) DeleteBuilding(c *fiber.Ctx) error {
     return res.DeleteSuccess(c)
 }
 
-
+// Existing Building
 func (h *Handler) ExistingBuilding(tx *gorm.DB, c *fiber.Ctx, buildingId string) error {
     var building models.Building
     if err := tx.Where("building_id = ?", buildingId).First(&building).Error; err != nil {
@@ -169,3 +205,4 @@ func (h *Handler) ExistingBuilding(tx *gorm.DB, c *fiber.Ctx, buildingId string)
     }
     return nil
 }
+

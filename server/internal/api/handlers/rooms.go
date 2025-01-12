@@ -8,15 +8,50 @@ import (
 	"time"
 )
 
-func (h *Handler) GetListRooms(c *fiber.Ctx) error {
-	var rooms []models.Room
-	if err := h.db.Find(&rooms).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.GetSuccess(c, "List of rooms", rooms)
-}
+// Find all rooms
+func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
+    keyword := c.Query("keyword")
+    itemType := c.Query("itemType")
+    buildingId := c.Query("buildingId")
 
-func (h *Handler) GetRoom(c *fiber.Ctx) error {
+    if buildingId == "" {
+        return res.BadRequest(c, "buildingId is required")
+    }
+    if itemType == "" {
+        return res.BadRequest(c, "itemType is required")
+    }
+
+    var rooms []models.Room
+    
+    query := h.db.
+        Debug(). // To see the SQL query being generated
+        Table("rooms").
+        Select("rooms.*").
+        Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
+        Joins("JOIN items ON items.room_id = rooms.room_id").
+        Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
+
+    if keyword != "" {
+        query = query.Where("(rooms.room_id LIKE ? OR rooms.room_name LIKE ?)",
+            "%"+keyword+"%", "%"+keyword+"%")
+    }
+
+    // Execute query with preloads
+    if err := query.
+        Preload("Building").
+        Preload("Items", "type = ?", itemType).
+        Find(&rooms).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    if rooms == nil {
+        rooms = make([]models.Room, 0)
+    }
+
+    return res.GetSuccess(c, "Rooms retrieved", rooms)
+}
+// Find rooms by id
+func (h *Handler) FindRoomById(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var room models.Room
 	result := h.db.Where("room_id = ?", id).First(&room)
@@ -28,6 +63,8 @@ func (h *Handler) GetRoom(c *fiber.Ctx) error {
 	return res.GetSuccess(c, "Room found", room)
 }
 
+
+// Create a new room
 func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     var req CreateRoomRequest
     if err := c.BodyParser(&req); err != nil {
@@ -74,6 +111,7 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     return res.CreatedSuccess(c, room)
 }
 
+// Update room
 func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
     id := c.Params("id")
     var room models.Room
@@ -158,7 +196,8 @@ func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
     return res.UpdatedSuccess(c, updatedRoom)
 }
 
- func (h *Handler) DeleteRoom(c *fiber.Ctx) error {
+// Delete room
+func (h *Handler) DeleteRoom(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var room models.Room
  
@@ -202,7 +241,8 @@ func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
 	return res.DeleteSuccess(c)
  }
 
- func (h *Handler) ExistingRoom(tx *gorm.DB, c *fiber.Ctx, roomId string) error {
+// ExistingRoom checks if a room exists
+func (h *Handler) ExistingRoom(tx *gorm.DB, c *fiber.Ctx, roomId string) error {
     var room models.Room
     if err := tx.Where("room_id = ?", roomId).First(&room).Error; err != nil {
         if err == gorm.ErrRecordNotFound {

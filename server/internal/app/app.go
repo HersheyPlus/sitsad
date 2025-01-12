@@ -7,7 +7,6 @@ import (
 	"server/internal/models"
 	"server/internal/ws"
 	"strings"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -82,35 +81,42 @@ func (a *App) setupRoutes() {
 	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
 
 	// Buildings Routes
-	buildings := api.Group("/buildings")
-	buildings.Get("/", a.handlers.GetListBuildings)
-	buildings.Get("/:id", a.handlers.GetBuilding)
-	buildings.Post("/", a.handlers.CreateBuilding)
-	buildings.Put("/:id", a.handlers.UpdateBuilding)
-	buildings.Delete("/:id", a.handlers.DeleteBuilding)
+	buildings := api.Group("/buildings") 
+	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
+	buildings.Get("/:id", a.handlers.FindBuildingById) // get by id ✅
+	buildings.Post("/", a.handlers.CreateBuilding) // create ✅
+	buildings.Put("/:id", a.handlers.UpdateBuilding) // update ✅
+	buildings.Delete("/:id", a.handlers.DeleteBuilding) // delete ✅
 
 	// Rooms Routes
 	rooms := api.Group("/rooms")
-	rooms.Get("/", a.handlers.GetListRooms)
-	rooms.Get("/:id", a.handlers.GetRoom)
-	rooms.Post("/", a.handlers.CreateRoom)
-	rooms.Put("/:id", a.handlers.UpdateRoom)
-	rooms.Delete("/:id", a.handlers.DeleteRoom)
+	rooms.Get("/search", a.handlers.FindRoomsBySearchParams) // get all ✅
+	rooms.Get("/:id", a.handlers.FindRoomById) // get by id ✅
+	rooms.Post("/", a.handlers.CreateRoom) // create ✅
+	rooms.Put("/:id", a.handlers.UpdateRoom) // update ✅
+	rooms.Delete("/:id", a.handlers.DeleteRoom) // delete ✅
 
 	// Item Routes
 	items := api.Group("/items")
-	items.Get("/", a.handlers.GetListItems)
-	items.Post("/table", a.handlers.CreateTable)
-	items.Post("/toilet", a.handlers.CreateToilet)
-	items.Put("/available/:id", a.handlers.UpdateItemAvailable)
-	items.Delete("/:id", a.handlers.DeleteItem)
-	items.Put("/table/:id", a.handlers.UpdateTable)
-	items.Put("/toilet/:id", a.handlers.UpdateToilet)
+	items.Put("/:id", a.handlers.UpdateItemAvailable) // update item available ✅
+	items.Delete("/:id", a.handlers.DeleteItem) // update item available ✅
 
-	// Booking Time Period Routes
-	bookingTimePeriods := api.Group("/booking-time-periods")
-	bookingTimePeriods.Get("/", a.handlers.GetBookingTimePeriods)
-	bookingTimePeriods.Get("/items", a.handlers.GetBookingTimePeriodsByItemType)
+	// Table Routes
+	tables := api.Group("/tables")
+	tables.Get("/", a.handlers.FindAllTables)
+	tables.Get("/room/:roomId", a.handlers.FindTablesByRoomId)
+	tables.Get("/:id", a.handlers.FindTableByID)
+
+	tables.Post("/", a.handlers.CreateTable) // create table
+	tables.Put("/:id", a.handlers.UpdateTable) // update table
+
+	// Toilets Routes
+	toilets := api.Group("/toilets")
+	toilets.Get("/", a.handlers.FindAllToilets) // get all toilets
+	toilets.Get("/room/:roomId", a.handlers.FindToiletsByRoomId)
+	toilets.Get("/:id", a.handlers.FindToiletByID) // get table by idkeyword
+	toilets.Post("/", a.handlers.CreateToilet) // create toilet
+	toilets.Put("/:id", a.handlers.UpdateToilet) // update toilet
 
 	// Filter Routes
 	filter := api.Group("/filter")
