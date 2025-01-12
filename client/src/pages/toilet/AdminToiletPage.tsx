@@ -15,6 +15,8 @@ import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
 import HistoryService from '@/services/history.service';
 import ToiletService from '@/services/toilet.service';
 import { useNotificationStore } from '@/stores/notification.store';
+import DeviceService from '@/services/device.service';
+import { IDevice } from '@/types/device';
 
 const breadcrumbItems = [
     {
@@ -33,6 +35,7 @@ const AdminToiletPage = () => {
     const [history, setHistory] = useState<IItemHistory[]>([]);
     const [buildings, setBuildings] = useState<IBuilding[]>([]);
     const [rooms, setRooms] = useState<IRoom[]>([]);
+    const [devices, setDevices] = useState<IDevice[]>([]);
 
     const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
     const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
@@ -40,6 +43,7 @@ const AdminToiletPage = () => {
         (state) => state.openNotification
     )
     useEffect(() => {
+        doSearchDevices()
         doSearchBuildings()
     }, [])
 
@@ -88,7 +92,6 @@ const AdminToiletPage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchBuildings = async () => {
@@ -104,7 +107,6 @@ const AdminToiletPage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchRooms = async (buildingId: string) => {
@@ -119,7 +121,20 @@ const AdminToiletPage = () => {
                 description: (error as any).message
             })
         }
+    }
 
+    const doSearchDevices = async () => {
+        try {
+            const data = await DeviceService.findAll();
+            setDevices(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
     const doAddItem = async (item: IItem) => {
@@ -158,7 +173,7 @@ const AdminToiletPage = () => {
                 selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} service={ToiletService} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} devices={devices} itemType={ItemType.TOILET} service={ToiletService} />
 
             <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>

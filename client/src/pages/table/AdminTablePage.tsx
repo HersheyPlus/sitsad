@@ -15,6 +15,8 @@ import AdminItemHistory from '@/components/Shared/Item/admin/AdminItemHistory';
 import HistoryService from '@/services/history.service';
 import TableService from '@/services/table.service';
 import { useNotificationStore } from '@/stores/notification.store';
+import { IDevice } from '@/types/device';
+import DeviceService from '@/services/device.service';
 
 const breadcrumbItems = [
     {
@@ -33,6 +35,7 @@ const AdminTablePage = () => {
     const [history, setHistory] = useState<IItemHistory[]>([]);
     const [buildings, setBuildings] = useState<IBuilding[]>([]);
     const [rooms, setRooms] = useState<IRoom[]>([]);
+    const [devices, setDevices] = useState<IDevice[]>([]);
 
     const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
     const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
@@ -41,6 +44,7 @@ const AdminTablePage = () => {
     )
 
     useEffect(() => {
+        doSearchDevices()
         doSearchBuildings()
     }, [])
 
@@ -75,7 +79,6 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchHistory = async (roomId: string) => {
@@ -91,7 +94,6 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchBuildings = async () => {
@@ -106,7 +108,20 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
+    }
 
+    const doSearchDevices = async () => {
+        try {
+            const data = await DeviceService.findAll();
+            setDevices(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     }
 
     const doSearchRooms = async (buildingId: string) => {
@@ -166,7 +181,7 @@ const AdminTablePage = () => {
                 selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} service={TableService} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} devices={devices} itemType={ItemType.TABLE} service={TableService} />
 
             <AdminItemHistory data={history} itemName={ItemType.TABLE} />
         </Flex>

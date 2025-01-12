@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { IBuilding, IRoom } from "@/types/location";
 import { useNotificationStore } from "@/stores/notification.store";
+import { IDevice } from "@/types/device";
 
 dayjs.extend(isBetween);
 
@@ -16,11 +17,12 @@ interface IProps {
     data: IItem[];
     buildings: IBuilding[];
     rooms: IRoom[];
+    devices: IDevice[]
     itemType: string;
     service: any;
 }
 
-const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) => {
+const AdminItemCrud = ({ data, buildings, rooms, devices, itemType, service }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -45,7 +47,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
     };
 
     // Handle table data edit
-    const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | undefined, column: string) => {
+    const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | IDevice | undefined, column: string) => {
         const newData = [...filteredData];
         const index = newData.findIndex((item) => key === item.item_id);
         if (index > -1) {
@@ -176,6 +178,31 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
                     {rooms.map((loc) => (
                         <Select.Option key={loc.room_id} value={loc.room_id}>
                             {loc.room_name}
+                        </Select.Option>
+                    ))}
+                </Select>
+            ),
+        },
+        {
+            title: "Camera",
+            dataIndex: "device",
+            key: "device",
+            render: (device: IDevice, record) => (
+                <Select
+                    style={{ width: "100%" }}
+                    value={device?.name}
+                    onChange={(value) => {
+                        const selectedDevice = devices.find((d) => d.id === value);
+                        if (selectedDevice) {
+                            doEdit(record.item_id, selectedDevice, "device");
+                        }
+                    }}
+                    disabled={editingKey !== record.item_id.toString()}
+                >
+                    {/* Camera if record.type is toilet otherwise sender */}
+                    {devices.filter((d) => d.type === (record.type === "table" ? "Camera" : "Sensor")).map((d) => (
+                        <Select.Option key={d.id} value={d.id}>
+                            {d.name}
                         </Select.Option>
                     ))}
                 </Select>
