@@ -15,13 +15,14 @@ type Database struct {
 }
 
 func NewDatabase(cfg *models.AppConfig) (*Database, error) {
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-        cfg.DatabaseConfig.User,
-        cfg.DatabaseConfig.Password,
-        cfg.DatabaseConfig.Host,
-        cfg.DatabaseConfig.Port,
-        cfg.DatabaseConfig.Name,
-    )
+
+    dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true&multiStatements=true&tls=false&timeout=30s",
+    cfg.DatabaseConfig.User,
+    cfg.DatabaseConfig.Password,
+    cfg.DatabaseConfig.Host,
+    cfg.DatabaseConfig.Port,
+    cfg.DatabaseConfig.Name,
+)
 
     // Configure GORM logger
     gormLogger := logger.Default.LogMode(logger.Info)
@@ -37,10 +38,16 @@ func NewDatabase(cfg *models.AppConfig) (*Database, error) {
     var db *gorm.DB
     var err error
     
-    // Retry connection with backoff
     maxRetries := 5
     for i := 0; i < maxRetries; i++ {
-        db, err = gorm.Open(mysql.Open(dsn), gormConfig)
+        db, err = gorm.Open(mysql.New(mysql.Config{
+            DSN: dsn,
+            DefaultStringSize: 256,
+            DisableDatetimePrecision: true,
+            DontSupportRenameIndex: true,
+            DontSupportRenameColumn: true,
+        }), gormConfig)
+        
         if err == nil {
             break
         }

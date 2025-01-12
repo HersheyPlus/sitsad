@@ -63,10 +63,10 @@ func InitializeConfig() (*models.AppConfig, error) {
 }
 
 func setDefaults(v *viper.Viper) {
-	v.SetDefault("database.host", "mysql")
+	v.SetDefault("database.host", "goapp-mysql")
 	v.SetDefault("database.port", 3306)
 	v.SetDefault("database.user", "root")
-	v.SetDefault("database.password", "1234")
+	v.SetDefault("database.password", "Rsv18221")
 	v.SetDefault("database.name", "hackathon2025")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.max_connections", 100)

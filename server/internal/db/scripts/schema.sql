@@ -1,8 +1,6 @@
-CREATE DATABASE IF NOT EXISTS hackathon2025;
-USE hackathon2025;
 
 -- Create Tables with corrected data types
-CREATE TABLE buildings (
+CREATE TABLE IF NOT EXISTS buildings (
     building_id VARCHAR(30) NOT NULL PRIMARY KEY,
     building_name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
@@ -11,7 +9,7 @@ CREATE TABLE buildings (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE rooms (
+CREATE TABLE IF NOT EXISTS rooms (
     room_id VARCHAR(30) NOT NULL PRIMARY KEY,
     building_id VARCHAR(30) NOT NULL,
     room_name VARCHAR(100) NOT NULL,
@@ -23,7 +21,7 @@ CREATE TABLE rooms (
     FOREIGN KEY (building_id) REFERENCES buildings(building_id)
 );
 
-CREATE TABLE items (
+CREATE TABLE IF NOT EXISTS items (
     item_id VARCHAR(30) PRIMARY KEY,
     building_id VARCHAR(30),
     type VARCHAR(10) NOT NULL,
@@ -44,7 +42,7 @@ CREATE TABLE items (
 
 
 
-CREATE TABLE booking_time_periods (
+CREATE TABLE IF NOT EXISTS booking_time_periods (
     booking_time_period_id VARCHAR(100) NOT NULL PRIMARY KEY,
     item_id VARCHAR(30),
     phone_number VARCHAR(20) NOT NULL,

@@ -2,21 +2,29 @@ services:
   mysql:
     image: mysql:8.0
     container_name: goapp-mysql
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: Rsv18221
       MYSQL_DATABASE: hackathon2025
+      MYSQL_ROOT_HOST: '%'
+      TZ: UTC
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRsv18221", "--silent"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - goapp_network
+      start_period: 30s  # Give more time for initial startup
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./internal/db/scripts:/docker-entrypoint-initdb.d
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - goapp_network
+    restart: unless-stopped
 
   app:
     build:
@@ -29,19 +37,15 @@ services:
       HACKATHON_2025_DATABASE_HOST: goapp-mysql
       HACKATHON_2025_DATABASE_PORT: 3306
       HACKATHON_2025_DATABASE_USER: root
-      HACKATHON_2025_DATABASE_PASSWORD: 1234
+      HACKATHON_2025_DATABASE_PASSWORD: Rsv18221
       HACKATHON_2025_DATABASE_NAME: hackathon2025
-      DB_HOST: goapp-mysql
-      DB_PORT: 3306
-      DB_USER: root
-      DB_PASS: 1234
-      DB_NAME: hackathon2025
+      HACKATHON_2025_DATABASE_MAX_CONNECTIONS: 100
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - goapp_network
-    command: air
+    restart: unless-stopped  # Add restart policy
 
 networks:
   goapp_network:

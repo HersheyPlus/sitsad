@@ -1,32 +1,29 @@
-# Update to Go 1.22
 FROM golang:1.22-alpine
 
-# Install git and build dependencies
 RUN apk update && \
     apk add --no-cache \
     git \
     build-base \
     make \
     mysql-client \
+    ncurses \
     && rm -rf /var/cache/apk/*
 
-# Install air version 1.40.4
 RUN go install github.com/cosmtrek/air@v1.40.4
 
-# Set the working directory
 WORKDIR /app
 
-# Copy go.mod and go.sum files
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
-# Copy the rest of the Go application
+# Copy wait-for script first and make it executable
+COPY wait-for-mysql.sh /app/wait-for-mysql.sh
+RUN chmod +x /app/wait-for-mysql.sh
+
+# Copy the rest of the application
 COPY . .
 
-# Expose the port for the Go backend
 EXPOSE 8080
 
-# Run the application using air for live-reloading
-CMD sh -c "make db-start && air"
+# Update the path to the wait script
+CMD ["sh", "-c", "./wait-for-mysql.sh && make db-start && air"]
