@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Box, Building2, DoorClosed } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 const ReservationPage = () => {
+
     const { tableId } = useParams<{ tableId: string }>();
 
 
@@ -10,32 +11,32 @@ const ReservationPage = () => {
         // Call API to reserve the item
     }
     // Mock data for demonstration
-    // const [reservationStatus] = useState({
-    //     success: true,
-    //     item: {
-    //         item_id: "item123",
-    //         type: "EQUIPMENT",
-    //         available: true,
-    //         position_x: 100,
-    //         position_y: 200,
-    //         width: 50,
-    //         height: 50,
-    //         name: "Projector XD-1000",
-    //         description: "4K Projector for presentations",
-    //         location: {
-    //             building: {
-    //                 building_id: "bld1",
-    //                 building_name: "Engineering Building"
-    //             },
-    //             room: {
-    //                 room_id: "rm101",
-    //                 room_name: "Conference Room A",
-    //                 description: "Main conference room",
-    //                 floor: 1
-    //             }
-    //         }
-    //     }
-    // });
+    const [reservationStatus] = useState({
+        success: true,
+        item: {
+            item_id: "item123",
+            type: "EQUIPMENT",
+            available: true,
+            position_x: 100,
+            position_y: 200,
+            width: 50,
+            height: 50,
+            name: "Projector XD-1000",
+            description: "4K Projector for presentations",
+            location: {
+                building: {
+                    building_id: "bld1",
+                    building_name: "Engineering Building"
+                },
+                room: {
+                    room_id: "rm101",
+                    room_name: "Conference Room A",
+                    description: "Main conference room",
+                    floor: 1
+                }
+            }
+        }
+    });
 
     return (
         <div className="min-h-screen p-8 bg-gray-50">
