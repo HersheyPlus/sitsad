@@ -25,7 +25,11 @@ const breadcrumbItems = [
     }
 ];
 
-const TableRoomList = () => {
+export interface IBuildingIdProps {
+    buildingId: string
+}
+
+const TableRoomList = ({ buildingId }: IBuildingIdProps) => {
     const [query, setQuery] = useState("")
     const [rooms, setRooms] = useState<IRoom[]>([])
 
@@ -41,7 +45,7 @@ const TableRoomList = () => {
         // Search using ItemType.Toilet
 
         try {
-            const data = await RoomService.findByKeywordAndItemType(query, ItemType.TABLE)
+            const data = await RoomService.findByKeywordAndItemType(query, buildingId, ItemType.TABLE)
             setRooms(data)
         } catch (error) {
             openNotification({

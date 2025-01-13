@@ -6,11 +6,11 @@ import { useSearchParams } from 'react-router-dom';
 const ToiletPage = () => {
     const [searchParams] = useSearchParams();
 
-    const hasRoomId = searchParams.has("buildingId");
+    const buildingId = searchParams.get("buildingId");
 
-    if (hasRoomId) {
+    if (buildingId) {
         return (
-            <ToiletRoomList />
+            <ToiletRoomList buildingId={buildingId} />
         )
     }
 

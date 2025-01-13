@@ -4,7 +4,7 @@ import { IBuilding, IRoom } from "./location";
 export interface IItem {
     item_id: string;
     type: ItemType;
-    building_id?: string;
+    building_id: string;
     available: boolean;
     position_x: number;
     position_y: number;

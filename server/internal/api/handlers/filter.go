@@ -61,8 +61,8 @@ func (h *Handler) FindBuildingByItemType(c *fiber.Ctx) error {
 
     return res.GetSuccess(c, fmt.Sprintf("List of %ss in building id %s", itemType, buildingID), items)
 }
-// find all rooms by building id
 
+// find all rooms by building id
 func (h *Handler) FindRoomsByBuildingID(c *fiber.Ctx) error {
     buildingID := c.Query("building_id")
     

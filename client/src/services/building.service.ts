@@ -1,68 +1,91 @@
+// src/services/BuildingService.ts
 import { IBuilding } from "@/types/location";
-
-export const mockupBuildings: IBuilding[] = [{
-    building_id: "1",
-    building_name: "LX Building",
-    description: "Kmutt Building LX built in 2023",
-    imageURL: "https://www.lib.kmutt.ac.th/wp-content/uploads/2023/03/Pic-main-1.jpg"
-}, {
-    building_id: "2",
-    building_name: "SIT Building",
-    description: "Kmutt Building SIT built in 2023",
-    imageURL: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg"
-}, {
-    building_id: "3",
-    building_name: "CB 2 Building",
-    description: "Kmutt Building CB 2 built in 2023",
-}]
+import apiClient from './axios';
 
 const BuildingService = {
-
-    async findAll() {
-        return mockupBuildings;
-    },
-
-    async findById(id: string) {
-        return mockupBuildings.find(building => building.building_id === id);
-    },
-
-    async findByName(name: string) {
-        return mockupBuildings.find(building => building.building_name === name);
-    },
-
-    async findByItemType(itemType: string) {
-        return mockupBuildings
-    },
-
-    async findByKeyword(keyword: string) {
-        if (!keyword) return mockupBuildings;
-
-        return mockupBuildings.filter(building => building.building_name.toLowerCase().includes(keyword.toLowerCase()));
-    },
-
-    async findByKeywordAndItemType(keyword: string, itemType: string) {
-        if (!keyword) return mockupBuildings;
-
-        return mockupBuildings.filter(building => building.building_name.includes(keyword));
-    },
-
-    async create(building: IBuilding) {
-        mockupBuildings.push(building);
-    },
-
-    async update(building: IBuilding) {
-        const index = mockupBuildings.findIndex(b => b.building_id === building.building_id);
-        if (index !== -1) {
-            mockupBuildings[index] = building;
+    async findAll(): Promise<IBuilding[]> {
+        try {
+            const response = await apiClient.get('/buildings');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching buildings:', error);
+            throw error;
         }
     },
 
-    async delete(id: string) {
-        const index = mockupBuildings.findIndex(b => b.building_id === id);
-        if (index !== -1) {
-            mockupBuildings.splice(index, 1);
+    async findById(id: string): Promise<IBuilding | undefined> {
+        try {
+            const response = await apiClient.get(`/buildings/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching building ${id}:`, error);
+            throw error;
+        }
+    },
+
+    async findByName(name: string): Promise<IBuilding | undefined> {
+        try {
+            const response = await apiClient.get(`/buildings/name/${name}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching building by name ${name}:`, error);
+            throw error;
+        }
+    },
+
+    async findByKeywordAndItemType(keyword: string, itemType: string): Promise<IBuilding[]> {
+        try {
+            const response = await apiClient.get('/buildings/search', {
+                params: {
+                    keyword: keyword || undefined,
+                    itemType: itemType || undefined
+                }
+            });
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error searching buildings:`, error);
+            throw error;
+        }
+    },
+
+    async findByKeyword(keyword: string): Promise<IBuilding[]> {
+        try {
+            const response = await apiClient.get('/buildings/search', {
+                params: { keyword }
+            });
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error searching buildings with keyword ${keyword}:`, error);
+            throw error;
+        }
+    },
+
+    async create(building: IBuilding): Promise<void> {
+        try {
+            await apiClient.post('/buildings', building);
+        } catch (error) {
+            console.error('Error creating building:', error);
+            throw error;
+        }
+    },
+
+    async update(buildingId: string, building: IBuilding): Promise<void> {
+        try {
+            await apiClient.put(`/buildings/${buildingId}`, building);
+        } catch (error) {
+            console.error(`Error updating building ${buildingId}:`, error);
+            throw error;
+        }
+    },
+
+    async delete(id: string): Promise<void> {
+        try {
+            await apiClient.delete(`/buildings/${id}`);
+        } catch (error) {
+            console.error(`Error deleting building ${id}:`, error);
+            throw error;
         }
     }
-}
+};
 
-export default BuildingService
+export default BuildingService;

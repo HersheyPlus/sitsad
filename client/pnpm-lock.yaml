@@ -35,6 +35,9 @@ dependencies:
   react-icons:
     specifier: ^5.4.0
     version: 5.4.0(react@18.3.1)
+  react-multi-carousel:
+    specifier: ^2.8.5
+    version: 2.8.5
   react-rnd:
     specifier: ^10.4.14
     version: 10.4.14(react-dom@18.3.1)(react@18.3.1)
@@ -2889,6 +2892,11 @@ packages:
 
   /react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+    dev: false
+
+  /react-multi-carousel@2.8.5:
+    resolution: {integrity: sha512-C5DAvJkfzR2JK9YixZ3oyF9x6R4LW6nzTpIXrl9Oujxi4uqP9SzVVCjl+JLM3tSdqdjAx/oWZK3dTVBSR73Q+w==}
+    engines: {node: '>=8'}
     dev: false
 
   /react-refresh@0.14.2:

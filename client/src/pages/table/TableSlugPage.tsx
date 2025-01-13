@@ -40,6 +40,8 @@ const TableSlugPage: React.FC = () => {
         },
     ];
 
+    
+
     const doSearchMultipleItems = async () => {
         if (!roomId) return;
 

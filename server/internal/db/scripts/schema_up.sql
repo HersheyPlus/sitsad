@@ -23,9 +23,8 @@ CREATE TABLE IF NOT EXISTS rooms (
 
 CREATE TABLE IF NOT EXISTS items (
     item_id VARCHAR(30) PRIMARY KEY,
-    building_id VARCHAR(30),
     type VARCHAR(10) NOT NULL,
-    room_id VARCHAR(30),
+    room_id VARCHAR(30) NOT NULL,
     name VARCHAR(100) NOT NULL,
     available BOOLEAN DEFAULT true,
     position_x FLOAT,
@@ -36,7 +35,6 @@ CREATE TABLE IF NOT EXISTS items (
     gender VARCHAR(10),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (building_id) REFERENCES buildings(building_id),
     FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
 
