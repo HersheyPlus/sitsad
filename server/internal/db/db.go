@@ -4,48 +4,96 @@ import (
 	"fmt"
 	"log"
 	"time"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
-	"server/internal/model"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"server/internal/models"
 )
 
 type Database struct {
-	*sqlx.DB
+	DB *gorm.DB
 }
 
-func NewDatabase(cfg *model.AppConfig) (*Database, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&multiStatements=true",
-		cfg.DatabaseConfig.User,
-		cfg.DatabaseConfig.Password,
-		cfg.DatabaseConfig.Host,
-		cfg.DatabaseConfig.Port,
-		cfg.DatabaseConfig.Name,
-	)
+func NewDatabase(cfg *models.AppConfig) (*Database, error) {
 
+    dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true&multiStatements=true&tls=false&timeout=30s",
+    cfg.DatabaseConfig.User,
+    cfg.DatabaseConfig.Password,
+    cfg.DatabaseConfig.Host,
+    cfg.DatabaseConfig.Port,
+    cfg.DatabaseConfig.Name,
+)
 
-	db, err := sqlx.Connect("mysql", dsn)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to database: %w. Use `make db-up` to create the database", err,)
-	}
+    // Configure GORM logger
+    gormLogger := logger.Default.LogMode(logger.Info)
 
-	db.SetMaxOpenConns(cfg.DatabaseConfig.MaxConnections)
-	db.SetMaxIdleConns(cfg.DatabaseConfig.MaxConnections / 2)
-	db.SetConnMaxLifetime(time.Hour)
+    // GORM configuration
+    gormConfig := &gorm.Config{
+        Logger: gormLogger,
+        NowFunc: func() time.Time {
+            return time.Now().UTC()
+        },
+    }
 
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("error pinging database: %w", err)
-	}
+    var db *gorm.DB
+    var err error
+    
+    maxRetries := 5
+    for i := 0; i < maxRetries; i++ {
+        db, err = gorm.Open(mysql.New(mysql.Config{
+            DSN: dsn,
+            DefaultStringSize: 256,
+            DisableDatetimePrecision: true,
+            DontSupportRenameIndex: true,
+            DontSupportRenameColumn: true,
+        }), gormConfig)
+        
+        if err == nil {
+            break
+        }
+        log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxRetries, err)
+        time.Sleep(time.Second * time.Duration(i+1))
+    }
+    
+    if err != nil {
+        return nil, fmt.Errorf("error connecting to database after %d attempts: %w", maxRetries, err)
+    }
 
-	log.Printf("Successfully connected to database: %s", cfg.DatabaseConfig.Name)
+    // Configure connection pool
+    sqlDB, err := db.DB()
+    if err != nil {
+        return nil, fmt.Errorf("error getting underlying SQL DB: %w", err)
+    }
 
-	return &Database{
-		DB: db,
-	}, nil
+    sqlDB.SetMaxOpenConns(cfg.DatabaseConfig.MaxConnections)
+    sqlDB.SetMaxIdleConns(cfg.DatabaseConfig.MaxConnections / 2)
+    sqlDB.SetConnMaxLifetime(time.Hour)
+
+    // Test connection
+    if err := sqlDB.Ping(); err != nil {
+        return nil, fmt.Errorf("error pinging database: %w", err)
+    }
+
+    log.Printf("Successfully connected to database: %s", cfg.DatabaseConfig.Name)
+
+    return &Database{
+        DB: db,
+    }, nil
 }
-
+// Close the database connection
 func (d *Database) Close() error {
-	if err := d.DB.Close(); err != nil {
+	sqlDB, err := d.DB.DB()
+	if err != nil {
+		return fmt.Errorf("error getting underlying SQL DB: %w", err)
+	}
+	
+	if err := sqlDB.Close(); err != nil {
 		return fmt.Errorf("error closing database connection: %w", err)
 	}
 	return nil
+}
+
+// GORM instance
+func (d *Database) GetDB() *gorm.DB {
+	return d.DB
 }

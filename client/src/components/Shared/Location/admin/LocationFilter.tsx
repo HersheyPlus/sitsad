@@ -1,5 +1,5 @@
 
-import XCollapse from "@/components/XCollapse";
+import XCollapse from "@/components/Shared/XCollapse";
 import { Space, Input, Row, Col, Button } from "antd";
 
 

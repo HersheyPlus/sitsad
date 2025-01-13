@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
-	"server/internal/model"
+	"server/internal/models"
 	"strings"
 )
 
-func InitializeConfig() (*model.AppConfig, error) {
+func InitializeConfig() (*models.AppConfig, error) {
 
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using system environment variables")
@@ -34,7 +34,7 @@ func InitializeConfig() (*model.AppConfig, error) {
 		}
 	}
 
-	var config model.AppConfig
+	var config models.AppConfig
 	if err := v.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("unable to decode config into struct: %w", err)
 	}
@@ -65,20 +65,30 @@ func InitializeConfig() (*model.AppConfig, error) {
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.host", "localhost")
 	v.SetDefault("database.port", 3306)
-	v.SetDefault("database.user", "mysql")
-	v.SetDefault("database.password", "password")
-	v.SetDefault("database.name", "postgres")
+	v.SetDefault("database.user", "root")
+	v.SetDefault("database.password", "Rsv18221")
+	v.SetDefault("database.name", "hackathon2025")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.max_connections", 100)
 
 	v.SetDefault("server.port", 8080)
-	v.SetDefault("server.host", "localhost")
+	v.SetDefault("server.host", "0.0.0.0")
 	v.SetDefault("server.timeout", "30s")
 	v.SetDefault("server.read_timeout", "15s")
 	v.SetDefault("server.write_timeout", "15s")
+	v.SetDefault("server.allow_origins", []string{
+        "http://localhost:3000",
+        "http://localhost:5173",
+    })
+
+	v.SetDefault("mqtt.host", "localhost")
+	v.SetDefault("mqtt.port", "1883")
+	v.SetDefault("mqtt.username", "test")
+	v.SetDefault("mqtt.password", "1234")
+	v.SetDefault("mqtt.client_id", "mqttx_0ee90f12")
 }
 
-func validateConfig(config *model.AppConfig) error {
+func validateConfig(config *models.AppConfig) error {
 	if config.DatabaseConfig.Port < 0 || config.DatabaseConfig.Port > 65535 {
 		return fmt.Errorf("invalid database port: %d", config.DatabaseConfig.Port)
 	}
@@ -87,3 +97,5 @@ func validateConfig(config *model.AppConfig) error {
 	}
 	return nil
 }
+
+

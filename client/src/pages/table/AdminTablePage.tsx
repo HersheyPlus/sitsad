@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Flex } from 'antd';
 
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { IBuilding, IRoom } from '@/types/location';
 import { IItem, IItemHistory, ItemType } from '@/types/item';
 

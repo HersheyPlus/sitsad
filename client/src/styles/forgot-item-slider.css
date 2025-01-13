@@ -1,0 +1,29 @@
+.carousel-item {
+    transition: all 500ms ease-in-out;
+    /* opacity: 0.7; */
+    transform: scale(0.9);
+  }
+  
+  .carousel-item.next-slide {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+  .react-multi-carousel-item--active {
+    z-index: 1;
+  }
+  
+  .carousel-container {
+    padding: 20px 0;
+  }
+  
+  .custom-dot-list-style button {
+    border: none;
+    background: #d1d5db;
+  }
+  
+  .custom-dot-list-style .react-multi-carousel-dot--active button {
+    background: #3b82f6;
+  }
+  
+  

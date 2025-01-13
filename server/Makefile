@@ -5,34 +5,55 @@ include .env
 BINARY_NAME=server
 
 # Database parameters
+DB_HOST ?= goapp-mysql
 DB_USER ?= root
-DB_PASS ?= $(DATABASE_PASSWORD)
+DB_PASS ?= 1234
 DB_NAME ?= hackathon2025
+DB_PORT ?= 3306
+DOCKER_COMPOSE ?= docker compose
+MQTT_PATH ?= mqtt_server/mqtt
 
 # Colors for output
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 RESET  := $(shell tput -Txterm sgr0)
 
-.PHONY: all run clean db-up db-down db-mockup help
+.PHONY: all run clean db-up db-create db-down db-mockup help
 
 ## Database:
+db-create: ## Create database
+	@echo "Creating database..."
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 -e "CREATE DATABASE IF NOT EXISTS $(DB_NAME);"
+
 db-up: ## Run up migration script
-	@echo "${GREEN}Running database up script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_up.sql
+	@echo "Running database up script..."
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/schema_up.sql
 
 db-down: ## Run down migration script
-	@echo "${YELLOW}Running database down script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/init_schema_down.sql
+	@echo "Running database down script..."
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/schema_down.sql
 
 db-mockup: ## Mock up data, insert into database
-	@echo "${GREEN}Running database mock up data script...${RESET}"
-	mysql -u$(DB_USER) -p$(DB_PASS) < internal/db/scripts/mock_data.sql
+	@echo "Running database mock up data script..."
+	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) --ssl=0 $(DB_NAME) < internal/db/scripts/mock_data.sql
 
 db-start: ## Start database
-	@echo "${GREEN}Starting database...${RESET}"
+	@echo "Starting database..."
+	make db-create
 	make db-up
 	make db-mockup
+
+mqtt-up: ## Start MQTT broker docker container
+	@echo "${GREEN}Starting MQTT broker...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) up -d
+
+mqtt-down: ## Stop MQTT broker docker container
+	@echo "${YELLOW}Stopping MQTT broker...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) down
+
+mqtt-logs: ## Show MQTT broker logs
+	@echo "${GREEN}Showing MQTT broker logs...${RESET}"
+	cd $(MQTT_PATH) && $(DOCKER_COMPOSE) logs
 
 ## Development:
 run: ## Run the application

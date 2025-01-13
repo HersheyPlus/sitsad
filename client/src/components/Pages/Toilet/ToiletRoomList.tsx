@@ -1,15 +1,15 @@
 
-
 import ItemFilter from '@/components/Shared/Item/ItemFilter';
 
 import RoomList from '@/components/Shared/Location/RoomList';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import RoomService from '@/services/room.service';
 import { useNotificationStore } from '@/stores/notification.store';
 import { ItemType } from '@/types/item';
 import { IRoom } from '@/types/location';
 import { Flex, Typography } from 'antd';
 import { useEffect, useState } from 'react';
+import { IBuildingIdProps } from '../Table/TableRoomList';
 
 const { Title } = Typography;
 
@@ -26,7 +26,7 @@ const breadcrumbItems = [
 ];
 
 
-const ToiletRoomList = () => {
+const ToiletRoomList = ({ buildingId }: IBuildingIdProps) => {
     const [query, setQuery] = useState("")
     const [rooms, setRooms] = useState<IRoom[]>([])
     const openNotification = useNotificationStore(
@@ -39,7 +39,7 @@ const ToiletRoomList = () => {
     const doSearch = async () => {
         // Search using ItemType.Toilet
         try {
-            const data = await RoomService.findByKeywordAndItemType(query, ItemType.TOILET)
+            const data = await RoomService.findByKeywordAndItemType(query, buildingId, ItemType.TOILET)
             setRooms(data)
         } catch (error) {
             openNotification({

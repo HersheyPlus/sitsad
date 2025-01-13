@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import XCollapse from "@/components/XCollapse";
+import XCollapse from "@/components/Shared/XCollapse";
 import { Space, Row, Col, Button, DatePicker } from "antd";
 
 const { RangePicker } = DatePicker;

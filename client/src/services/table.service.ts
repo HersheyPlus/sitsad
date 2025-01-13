@@ -1,95 +1,47 @@
-import { IItem, ItemType } from "@/types/item";
-import { mockupBuildings } from "./building.service";
-import { mockupRooms } from "./room.service";
-
-
-const mockupTable: IItem[] = [{
-    item_id: "1",
-    type: ItemType.TABLE,
-    building_id: "1",
-    available: true,
-    position_x: 0,
-    position_y: 0,
-    width: 100,
-    height: 100,
-    name: "LX Table 1",
-    location: {
-        building: mockupBuildings[0],
-        room: mockupRooms[0]
-    }
-},
-{
-    item_id: "2",
-    type: ItemType.TABLE,
-    building_id: "1",
-    available: true,
-    position_x: 0,
-    position_y: 0,
-    width: 100,
-    height: 100,
-    name: "LX Table 2",
-    location: {
-        building: mockupBuildings[0],
-        room: mockupRooms[1]
-    }
-},
-{
-    item_id: "3",
-    type: ItemType.TABLE,
-    building_id: "1",
-    available: true,
-    position_x: 0,
-    position_y: 0,
-    width: 100,
-    height: 100,
-    name: "SIT Table 3",
-    location: {
-        building: mockupBuildings[1],
-        room: mockupRooms[2]
-    }
-}]
+// src/services/TableService.ts
+import { IItem } from "@/types/item";
+import apiClient from './axios';
 
 const TableService = {
+    // async findAll(): Promise<IItem[]> {
+    //     const response = await apiClient.get('/tables');
+    //     return response.data;
+    // },
 
-    async findAll() {
-        return mockupTable;
+    // async findById(id: string): Promise<IItem | undefined> {
+    //     const response = await apiClient.get(`/tables/${id}`);
+    //     return response.data;
+    // },
+
+    async findByRoomId(roomId: string): Promise<IItem[]> {
+        const response = await apiClient.get(`/tables/room/${roomId}`);
+        return response.data.data;
     },
 
-    async findById(id: string) {
-        return mockupTable.find(table => `${table.item_id}` === id);
+    async findByKeyword(keyword: string): Promise<IItem[]> {
+        const response = await apiClient.get('/tables/search', {
+            params: { keyword }
+        });
+        return response.data;
     },
 
-    async findByRoomId(roomId: string) {
-        return mockupTable.filter(table => table.location.room.room_id === roomId);
+    async findByName(name: string): Promise<IItem | undefined> {
+        const response = await apiClient.get(`/tables/name/${name}`);
+        return response.data;
     },
 
-    async findByKeyword(keyword: string) {
-        return mockupTable.filter(table => table.name.toLowerCase().includes(keyword.toLowerCase()));
+    async create(table: IItem): Promise<IItem> {
+        const response = await apiClient.post('/tables', table);
+        return response.data;
     },
 
-    async findByName(name: string) {
-        return mockupTable.find(table => table.name === name);
+    async update(table: IItem): Promise<void> {
+        await apiClient.put(`/tables/${table.item_id}`, table);
     },
 
-    async create(table: IItem) {
-        mockupTable.push(table);
-
-        return table;
-    },
-
-    async update(table: IItem) {
-        const index = mockupTable.findIndex(t => t.item_id === table.item_id);
-        if (index !== -1) {
-            mockupTable[index] = table;
-        }
-    },
-
-    async delete(id: string) {
-        const index = mockupTable.findIndex(t => t.item_id === id);
-        if (index !== -1) {
-            mockupTable.splice(index, 1);
-        }
+    async delete(id: string): Promise<void> {
+        await apiClient.delete(`/items/${id}`);
     }
-}
+};
 
-export default TableService
+export default TableService;

@@ -3,7 +3,7 @@
 import ItemFilter from '@/components/Shared/Item/ItemFilter';
 
 import RoomList from '@/components/Shared/Location/RoomList';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import RoomService from '@/services/room.service';
 import { useNotificationStore } from '@/stores/notification.store';
 import { ItemType } from '@/types/item';
@@ -25,7 +25,11 @@ const breadcrumbItems = [
     }
 ];
 
-const TableRoomList = () => {
+export interface IBuildingIdProps {
+    buildingId: string
+}
+
+const TableRoomList = ({ buildingId }: IBuildingIdProps) => {
     const [query, setQuery] = useState("")
     const [rooms, setRooms] = useState<IRoom[]>([])
 
@@ -41,7 +45,7 @@ const TableRoomList = () => {
         // Search using ItemType.Toilet
 
         try {
-            const data = await RoomService.findByKeywordAndItemType(query, ItemType.TABLE)
+            const data = await RoomService.findByKeywordAndItemType(query, buildingId, ItemType.TABLE)
             setRooms(data)
         } catch (error) {
             openNotification({

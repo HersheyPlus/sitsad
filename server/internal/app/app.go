@@ -3,23 +3,27 @@ package app
 
 import (
 	"fmt"
+	"server/internal/api/handlers"
+	"server/internal/models"
+	"server/internal/ws"
+	"strings"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/jmoiron/sqlx"
-	"server/internal/api/handler"
-	"server/internal/model"
+	"github.com/gofiber/websocket/v2"
+	"gorm.io/gorm"
 )
 
 type App struct {
-	db     *sqlx.DB
-	app    *fiber.App
-	config *model.AppConfig
-	handler *handler.Handler
+	db       *gorm.DB
+	app      *fiber.App
+	config   *models.AppConfig
+	handlers *handlers.Handler
+	wsHub    *ws.Hub
 }
 
-func NewApp(db *sqlx.DB, cfg *model.AppConfig) *App {
+func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	app := fiber.New(
 		fiber.Config{
 			ReadTimeout:  cfg.ServerConfig.ReadTimeout,
@@ -29,64 +33,96 @@ func NewApp(db *sqlx.DB, cfg *model.AppConfig) *App {
 	)
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		ExposeHeaders:    "Content-Length",
+		AllowCredentials: false,
+		MaxAge:           300,
 	}))
+
 	app.Use(logger.New())
 	app.Use(recover.New())
 
-	handler := handler.NewHandler(db)
+	wsHub := ws.NewHub()
+	go wsHub.Run()
+	handlers := handlers.NewHandler(db, wsHub)
 
 	return &App{
-		app:     app,
-		db:      db,
-		config:  cfg,
-		handler: handler,
+		app:      app,
+		db:       db,
+		config:   cfg,
+		handlers: handlers,
+		wsHub:    wsHub,
 	}
 }
 
 func (a *App) setupRoutes() {
 	api := a.app.Group("/api")
-	buildings := api.Group("/buildings")
-	parking_warning := api.Group("/carparks")
+
+	api.Use("/ws", func(c *fiber.Ctx) error {
+		origin := c.Get("Origin")
+		allowed := false
+		for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
+			if origin == allowedOrigin {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return fiber.ErrForbidden
+		}
+
+		if websocket.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
+
+	// Buildings Routes
+	buildings := api.Group("/buildings") 
+	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
+	buildings.Get("/:id", a.handlers.FindBuildingById) // get by id ✅
+	buildings.Post("/", a.handlers.CreateBuilding) // create ✅
+	buildings.Put("/:id", a.handlers.UpdateBuilding) // update ✅
+	buildings.Delete("/:id", a.handlers.DeleteBuilding) // delete ✅
+
+	// Rooms Routes
 	rooms := api.Group("/rooms")
+	rooms.Get("/search", a.handlers.FindRoomsBySearchParams) // get all ✅
+	rooms.Get("/:id", a.handlers.FindRoomById) // get by id ✅
+	rooms.Post("/", a.handlers.CreateRoom) // create ✅
+	rooms.Put("/:id", a.handlers.UpdateRoom) // update ✅
+	rooms.Delete("/:id", a.handlers.DeleteRoom) // delete ✅
+
+	// Item Routes
+	items := api.Group("/items")
+	items.Put("/:id", a.handlers.UpdateItemAvailable) // update item available ✅
+	items.Delete("/:id", a.handlers.DeleteItem) // update item available ✅
+
+	// Table Routes
 	tables := api.Group("/tables")
+	tables.Get("/", a.handlers.FindAllTables)
+	tables.Get("/room/:roomId", a.handlers.FindTablesByRoomId)
+	tables.Get("/:id", a.handlers.FindTableByID)
+
+	tables.Post("/", a.handlers.CreateTable) // create table
+	tables.Put("/:id", a.handlers.UpdateTable) // update table
+
+	// Toilets Routes
 	toilets := api.Group("/toilets")
+	toilets.Get("/", a.handlers.FindAllToilets) // get all toilets
+	toilets.Get("/room/:roomId", a.handlers.FindToiletsByRoomId)
+	toilets.Get("/:id", a.handlers.FindToiletByID) // get table by idkeyword
+	toilets.Post("/", a.handlers.CreateToilet) // create toilet
+	toilets.Put("/:id", a.handlers.UpdateToilet) // update toilet
 
-	// Get All Data Methods
-	buildings.Get("/", a.handler.HandleGetBuildings)
-	parking_warning.Get("/", a.handler.HandleGetParkingWarningLicensePlates)
-	rooms.Get("/", a.handler.HandleGetRooms)
-	tables.Get("/", a.handler.HandleGetTables)
-	toilets.Get("/", a.handler.HandleGetToilets)
+	// Filter Routes
+	filter := api.Group("/filter")
+	filter.Get("/items", a.handlers.FindBuildingByItemType)
+	filter.Get("/rooms", a.handlers.FindRoomsByBuildingID)
 
-	// Get Specific Data Methods
-	buildings.Get("/:id", a.handler.HandleGetBuildingByID)
-	parking_warning.Get("/:license_plate", a.handler.HandleGetParkingWarningByLicensePlate)
-	rooms.Get("/:id", a.handler.HandleGetRoomByID)
-	tables.Get("/:id", a.handler.HandleGetTableByID)
-	toilets.Get("/:id", a.handler.HandleGetToiletByID)
-
-	// Post Methods
-	buildings.Post("/", a.handler.HandleCreateBuilding)
-	rooms.Post("/", a.handler.HandleCreateRoom)
-	tables.Post("/", a.handler.HandleCreateTable)
-	toilets.Post("/", a.handler.HandleCreateToilet)
-	parking_warning.Post("/", a.handler.HandleCreateParkingWarningLicensePlate)
-
-	// Put Methods
-	buildings.Put("/:id", a.handler.HandleUpdateBuilding)
-	rooms.Put("/:id", a.handler.HandleUpdateRoom)
-	tables.Put("/:id", a.handler.HandleUpdateIsFreeTable)
-	tables.Put("/position/:id", a.handler.HandleUpdatePositionTable)
-	parking_warning.Put("/:license_plate", a.handler.HandleUpdateAmountOfWarnings)
-
-	// Delete Methods
-	buildings.Delete("/:id", a.handler.HandleDeleteBuilding)
-	rooms.Delete("/:id", a.handler.HandleDeleteRoom)
-	tables.Delete("/:id", a.handler.HandleDeleteTable)
-	toilets.Delete("/:id", a.handler.HandlerDeleteToilet)
-	parking_warning.Delete("/:license_plate", a.handler.HandleDeleteLicensePlate)
 }
 
 func (a *App) Start() error {

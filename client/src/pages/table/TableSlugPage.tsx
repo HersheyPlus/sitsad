@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Flex } from 'antd';
 
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { useParams } from 'react-router-dom';
 import NotFoundPage from '../NotFoundPage';
 import TableOverview from '@/components/Shared/Item/overview/ItemOverview';
@@ -39,6 +39,8 @@ const TableSlugPage: React.FC = () => {
             title: firstItem?.location?.room.room_name || "",
         },
     ];
+
+
 
     const doSearchMultipleItems = async () => {
         if (!roomId) return;

@@ -59,7 +59,7 @@ const BuildingWrapper = () => {
             );
 
             try {
-                await BuildingService.update(editingBuilding)
+                await BuildingService.update(editingBuilding.building_id, payload)
 
                 openNotification({
                     type: 'success',

@@ -1,5 +1,5 @@
 import { IItem } from '@/types/item';
-
+import { useState, useEffect } from 'react';
 import Item from './Item';
 
 interface IProps {
@@ -10,12 +10,20 @@ interface IProps {
 }
 
 const ItemLayout = ({ itemName, items, selectedItem, onSelectItem }: IProps) => {
+    const [localItems, setLocalItems] = useState(items);
+
+    useEffect(() => {
+        setLocalItems(items);
+    }, [items]);
+
+
     return (
         <div className="relative w-full h-[600px] bg-white border-2 border-gray-300 rounded-lg overflow-hidden p-2">
             <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize {itemName}</h2>
             <div className="absolute top-0 left-0 w-full h-full p-2">
-                {items.map((item) => (
+                {localItems.map((item) => (
                     <div
+                        key={item.item_id}
                         onClick={() => onSelectItem && onSelectItem(item)}
                         className='hover:cursor-pointer'
                         style={{

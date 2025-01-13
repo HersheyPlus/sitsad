@@ -25,6 +25,7 @@ import LocationPage from "@/pages/LocationPage";
 import AdminTablePage from "@/pages/table/AdminTablePage";
 import ForgotItemPage from "@/pages/forgot-item/ForgotItemPage";
 import DevicePage from "@/pages/DevicePage";
+import ReservationPage from "@/pages/ReservationPage";
 // import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
@@ -81,6 +82,13 @@ export const routes = [
                 path: "*", element: <NotFoundPage />
             }
         ],
+    },
+    {
+        path: "/reserve",
+        children: [
+            { path: "", element: <NotFoundPage /> },
+            { path: ":tableId", element: <ReservationPage /> },
+        ]
     },
     {
         path: "*",

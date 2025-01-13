@@ -1,6 +1,6 @@
 
 import LocationWrapper from '@/components/Shared/Location/admin/LocationWrapper';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { Flex } from 'antd'
 
 const breadcrumbItems = [

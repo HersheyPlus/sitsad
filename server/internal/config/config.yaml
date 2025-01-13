@@ -2,7 +2,7 @@ database:
   host: localhost
   port: 3306
   user: root
-  password: 1234
+  password: Rsv18221
   name: hackathon2025
   sslmode: disable
   max_connections: 100
@@ -13,3 +13,13 @@ server:
   timeout: 30s
   read_timeout: 15s
   write_timeout: 15s
+  allow_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+
+mqtt:
+  host: 10.4.41.187
+  port: 1883
+  username: test
+  password: 1234
+  client_id: mqttx_0ee90f12

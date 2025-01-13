@@ -1,6 +1,6 @@
 
 import DeviceWrapper from '@/components/Shared/Device/DeviceWrapper';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { Flex } from 'antd'
 
 const breadcrumbItems = [

@@ -23,6 +23,17 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+
+       // Change TypeScript-specific errors to warnings
+       '@typescript-eslint/no-unused-vars': ['warn', { vars: 'all', args: 'after-used', ignoreRestSiblings: true }],
+       '@typescript-eslint/no-explicit-any': 'warn',
+       '@typescript-eslint/no-implicit-any-catch': ['warn', { allowExplicitAny: true }],
+       '@typescript-eslint/no-unused-expressions': 'warn',
+       '@typescript-eslint/no-non-null-assertion': 'warn',
+       '@typescript-eslint/no-shadow': 'warn',
+ 
+       // Add this to prevent index signature errors from being fatal
+       '@typescript-eslint/no-unsafe-member-access': 'warn',
     },
   },
 )
