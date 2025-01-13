@@ -10,25 +10,57 @@ import isBetween from "dayjs/plugin/isBetween";
 import { IBuilding, IRoom } from "@/types/location";
 import { useNotificationStore } from "@/stores/notification.store";
 import AdminItemCreateModal from "./AdminItemCreateModal";
+import RoomService from "@/services/room.service";
 
 dayjs.extend(isBetween);
 
 interface IProps {
     data: IItem[];
     buildings: IBuilding[];
-    rooms: IRoom[];
     itemType: string;
     onSaveItem: (data: IItem | IItemPayload, create: boolean) => void;
     onRemoveItem: (id: string) => void;
 }
 
-const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveItem }: IProps) => {
+const AdminItemCrud = ({ data, buildings, itemType, onSaveItem, onRemoveItem }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
-    const openNotification = useNotificationStore((state) => state.openNotification);
+    const [rooms, setRooms] = useState<IRoom[]>([]);
+
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
+    const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
+
+    useEffect(() => {
+        if (editingKey && rooms.length >= 0) {
+            setSelectedRoom(rooms?.[0])
+        }
+    }, [selectedBuilding, rooms])
+
+    useEffect(() => {
+        if (selectedBuilding) {
+            setRooms([])
+            doSearchRooms(selectedBuilding.building_id)
+        }
+
+        setSelectedRoom(undefined)
+    }, [selectedBuilding])
+
+    useEffect(() => {
+        if (editingKey) {
+            const item = filteredData.find((item) => item.item_id === editingKey);
+            if (item) {
+                setSelectedBuilding(item.location.building);
+                setSelectedRoom(item.location.room);
+            }
+        }
+    }, [editingKey])
 
     useEffect(() => {
         setFilteredData(data);
@@ -44,8 +76,26 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
         setFilteredData(filtered);
     };
 
+    const doSearchRooms = async (buildingId: string) => {
+        try {
+            const data = await RoomService.findByKeywordAndItemType("", buildingId, itemType);
+            setRooms(() => data);
+
+            return data
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
+
     const enterEditMode = (key: string) => {
         setEditingKey(key);
+        setSelectedBuilding(filteredData.find((item) => item.item_id === key)?.location.building);
+        setSelectedRoom(filteredData.find((item) => item.item_id === key)?.location.room);
     };
 
     const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | undefined, column: string) => {
@@ -88,6 +138,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
             })
             console.error(error);
         }
+
     };
 
     const idTitle = itemType.charAt(0).toUpperCase() + itemType.slice(1);
@@ -120,7 +171,8 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
             render: (building: IBuilding, record) => (
                 <Select
                     style={{ width: "100%" }}
-                    value={building.building_id}
+                    // value={building.building_id}
+                    value={record.item_id === editingKey ? selectedBuilding?.building_name : building.building_name}
                     onChange={(value) => {
                         const selectedBuilding = buildings.find((loc) => loc.building_id === value);
                         if (selectedBuilding) {
@@ -128,17 +180,22 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
                                 ...record.location,
                                 building: selectedBuilding,
                             };
+
                             doEdit(record.item_id, newLocation, "location");
                         }
+
+                        setSelectedBuilding(selectedBuilding);
                     }}
                     disabled={editingKey !== record.item_id.toString()}
                 >
-                    {buildings.map((loc) => (
-                        <Select.Option key={loc.building_id} value={loc.building_id}>
-                            {loc.building_name}
-                        </Select.Option>
-                    ))}
-                </Select>
+                    {
+                        buildings.map((loc) => (
+                            <Select.Option key={loc.building_id} value={loc.building_id}>
+                                {loc.building_name}
+                            </Select.Option>
+                        ))
+                    }
+                </Select >
             ),
         },
         {
@@ -148,7 +205,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
             render: (room: IRoom, record) => (
                 <Select
                     style={{ width: "100%" }}
-                    value={room.room_id}
+                    value={record.item_id === editingKey ? selectedRoom?.room_name : room.room_name}
                     onChange={(value) => {
                         const selectedRoom = rooms.find((loc) => loc.room_id === value);
                         if (selectedRoom) {
@@ -157,6 +214,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveI
                                 room: selectedRoom,
                             };
                             doEdit(record.item_id, newLocation, "location");
+                            setSelectedRoom(selectedRoom);
                         }
                     }}
                     disabled={editingKey !== record.item_id.toString()}

@@ -57,6 +57,13 @@ const DeviceTable = ({
             title: "Web URL",
             dataIndex: "webUrl",
             key: "webUrl",
+            render: (webUrl: string, record: IDevice) => {
+                if (record.type.toLocaleLowerCase() === "camera") {
+                    return webUrl;
+                } else {
+                    return "N/A";
+                }
+            },
         },
         {
             title: "Type",

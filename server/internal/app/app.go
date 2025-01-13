@@ -109,7 +109,7 @@ func (a *App) setupRoutes() {
 	rooms.Post("/", a.handlers.CreateRoom)                   // create ✅
 	rooms.Put("/:id", a.handlers.UpdateRoom)                 // update ✅
 	rooms.Delete("/:id", a.handlers.DeleteRoom)              // delete ✅
-	// rooms.Get("/", a.handlers.FindAllRooms)
+	rooms.Get("/", a.handlers.FindAllRooms)
 	rooms.Get("/building/:buildingId", a.handlers.FindAllRoomByBuildingId)
 
 	// Item Routes

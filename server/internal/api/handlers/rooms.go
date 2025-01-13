@@ -3,11 +3,41 @@ package handlers
 import (
 	"server/internal/models"
 	res "server/internal/utils"
+	"server/internal/utils/uuid"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
-	"server/internal/utils/uuid"
 )
+
+// Find all rooms
+func (h *Handler) FindAllRooms(c *fiber.Ctx) error {
+	var rooms []models.Room
+	if err := h.db.
+		Preload("Building").
+		Find(&rooms).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+			Floor:       room.Floor,
+		}
+		response = append(response, resp)
+	}
+
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
+
+	return res.GetSuccess(c, "Rooms retrieved", response)
+}
 
 // Find all rooms
 func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
@@ -22,15 +52,15 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
 		return res.BadRequest(c, "itemType is required")
 	}
 
-    var rooms []models.Room
-    
-    query := h.db.
-        Debug().
-        Table("rooms").
-        Select("DISTINCT rooms.*"). // Added DISTINCT to prevent duplicates
-        Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
-        Joins("JOIN items ON items.room_id = rooms.room_id").
-        Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
+	var rooms []models.Room
+
+	query := h.db.
+		Debug().
+		Table("rooms").
+		Select("DISTINCT rooms.*"). // Added DISTINCT to prevent duplicates
+		Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
+		Joins("JOIN items ON items.room_id = rooms.room_id").
+		Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
 
 	if keyword != "" {
 		query = query.Where("(rooms.room_id LIKE ? OR rooms.room_name LIKE ?)",
@@ -46,25 +76,25 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
 		return res.InternalServerError(c, err)
 	}
 
-    // Convert to response format
-    var response []RoomResponse
-    for _, room := range rooms {
-        resp := RoomResponse{
-            RoomID:      room.RoomID,
-            BuildingID:  room.BuildingID,
-            RoomName:    room.RoomName,
-            Description: room.Description,
-            ImageURL:    room.ImageURL,
-            Floor:       room.Floor,
-        }
-        response = append(response, resp)
-    }
+	// Convert to response format
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+			Floor:       room.Floor,
+		}
+		response = append(response, resp)
+	}
 
-    if response == nil {
-        response = make([]RoomResponse, 0)
-    }
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
 
-    return res.GetSuccess(c, "Rooms retrieved", response)
+	return res.GetSuccess(c, "Rooms retrieved", response)
 }
 
 // Find rooms by id
@@ -87,10 +117,10 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
 		return res.BadRequest(c, err.Error())
 	}
 
-    // Manual validation
-    if req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
-        return res.BadRequest(c, "room_name, floor, building_id, image_url are required")
-    }
+	// Manual validation
+	if req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
+		return res.BadRequest(c, "room_name, floor, building_id, image_url are required")
+	}
 
 	// Create room model from request
 	// Start transaction
@@ -269,35 +299,35 @@ func (h *Handler) ExistingRoom(tx *gorm.DB, c *fiber.Ctx, roomId string) error {
 }
 
 func (h *Handler) FindAllRoomByBuildingId(c *fiber.Ctx) error {
-    buildingId := c.Params("buildingId")
-    if buildingId == "" {
-        return res.BadRequest(c, "buildingId is required")
-    }
+	buildingId := c.Params("buildingId")
+	if buildingId == "" {
+		return res.BadRequest(c, "buildingId is required")
+	}
 
-    var rooms []models.Room
-    if err := h.db.
-        Preload("Building").
-        Where("building_id = ?", buildingId).
-        Find(&rooms).Error; err != nil {
-        return res.InternalServerError(c, err)
-    }
+	var rooms []models.Room
+	if err := h.db.
+		Preload("Building").
+		Where("building_id = ?", buildingId).
+		Find(&rooms).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
 
-    var response []RoomResponse
-    for _, room := range rooms {
-        resp := RoomResponse{
-            RoomID:      room.RoomID,
-            BuildingID:  room.BuildingID,
-            RoomName:    room.RoomName,
-            Description: room.Description,
-            ImageURL:    room.ImageURL,
-            Floor:       room.Floor,
-        }
-        response = append(response, resp)
-    }
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+			Floor:       room.Floor,
+		}
+		response = append(response, resp)
+	}
 
-    if response == nil {
-        response = make([]RoomResponse, 0)
-    }
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
 
-    return res.GetSuccess(c, "Rooms retrieved successfully", response)
+	return res.GetSuccess(c, "Rooms retrieved successfully", response)
 }
