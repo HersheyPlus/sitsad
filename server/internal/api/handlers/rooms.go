@@ -9,6 +9,14 @@ import (
 	"gorm.io/gorm"
 )
 
+func (h *Handler) FindAllRooms(c *fiber.Ctx) error {
+	var rooms []models.Room
+	if err := h.db.Find(&rooms).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+	return res.GetSuccess(c, "Rooms retrieved", rooms)
+}
+
 // Find all rooms
 func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
 	keyword := c.Query("keyword")

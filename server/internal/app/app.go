@@ -27,9 +27,9 @@ type App struct {
 
 func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	app := fiber.New(fiber.Config{
-		ReadTimeout:           cfg.ServerConfig.ReadTimeout,
-		WriteTimeout:          cfg.ServerConfig.WriteTimeout,
-		IdleTimeout:           cfg.ServerConfig.Timeout,
+		ReadTimeout:  cfg.ServerConfig.ReadTimeout,
+		WriteTimeout: cfg.ServerConfig.WriteTimeout,
+		IdleTimeout:  cfg.ServerConfig.Timeout,
 	})
 
 	app.Use(recover.New(recover.Config{
@@ -100,6 +100,7 @@ func (a *App) setupRoutes() {
 
 	// Buildings Routes
 	buildings := api.Group("/buildings")
+	buildings.Get("/", a.handlers.FindAllBuildings)                // get all
 	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
 	buildings.Get("/:id", a.handlers.FindBuildingById)             // get by id ✅
 	buildings.Post("/", a.handlers.CreateBuilding)                 // create ✅
@@ -108,6 +109,7 @@ func (a *App) setupRoutes() {
 
 	// Rooms Routes
 	rooms := api.Group("/rooms")
+	rooms.Get("/", a.handlers.FindAllRooms)
 	rooms.Get("/search", a.handlers.FindRoomsBySearchParams) // get all ✅
 	rooms.Get("/:id", a.handlers.FindRoomById)               // get by id ✅
 	rooms.Post("/", a.handlers.CreateRoom)                   // create ✅
@@ -128,40 +130,40 @@ func (a *App) setupRoutes() {
 	tables.Put("/:id", a.handlers.UpdateTable)                 // update table
 
 	// Toilets Routes
-	toilets := api.Group("/toilets")            // ✅
-	toilets.Get("/", a.handlers.FindAllToilets) // get all toilets ✅
+	toilets := api.Group("/toilets")                             // ✅
+	toilets.Get("/", a.handlers.FindAllToilets)                  // get all toilets ✅
 	toilets.Get("/room/:roomId", a.handlers.FindToiletsByRoomId) // ✅
-	toilets.Get("/:id", a.handlers.FindToiletByID) // get table by idkeyword ✅
-	toilets.Post("/", a.handlers.CreateToilet)     // create toilet ✅
-	toilets.Put("/:id", a.handlers.UpdateToilet)   // update toilet ✅
+	toilets.Get("/:id", a.handlers.FindToiletByID)               // get table by idkeyword ✅
+	toilets.Post("/", a.handlers.CreateToilet)                   // create toilet ✅
+	toilets.Put("/:id", a.handlers.UpdateToilet)                 // update toilet ✅
 
 	// History Routes
-	histories := api.Group("/histories") // ✅
+	histories := api.Group("/histories")                             // ✅
 	histories.Get("/:roomId", a.handlers.FindAllHistoryItemByRoomId) // ✅
-	histories.Get("/id/:id", a.handlers.FindHistoryById) // ✅
-	histories.Get("/item/:itemId", a.handlers.FindHistoryByItemId) // ✅
-	histories.Post("/", a.handlers.CreateHistory) // ✅
-	histories.Put("/:id", a.handlers.UpdateHistory) // ✅
-	histories.Delete("/:id", a.handlers.DeleteHistory) // ✅
+	histories.Get("/id/:id", a.handlers.FindHistoryById)             // ✅
+	histories.Get("/item/:itemId", a.handlers.FindHistoryByItemId)   // ✅
+	histories.Post("/", a.handlers.CreateHistory)                    // ✅
+	histories.Put("/:id", a.handlers.UpdateHistory)                  // ✅
+	histories.Delete("/:id", a.handlers.DeleteHistory)               // ✅
 
 	// Device Routes
-	devices := api.Group("/devices") // ✅
-	devices.Get("/", a.handlers.FindAllDevices) // ✅
-	devices.Get("/search", a.handlers.FindDevicesByKeyword) // ✅
+	devices := api.Group("/devices")                           // ✅
+	devices.Get("/", a.handlers.FindAllDevices)                // ✅
+	devices.Get("/search", a.handlers.FindDevicesByKeyword)    // ✅
 	devices.Get("/topic/:topic", a.handlers.FindDeviceByTopic) // ✅
-	devices.Get("/:id", a.handlers.FindDeviceById) // ✅
-	devices.Post("/", a.handlers.CreateDevice) // ✅
-	devices.Put("/:id", a.handlers.UpdateDevice) // ✅
-	devices.Delete("/:id", a.handlers.DeleteDevice) // ✅
+	devices.Get("/:id", a.handlers.FindDeviceById)             // ✅
+	devices.Post("/", a.handlers.CreateDevice)                 // ✅
+	devices.Put("/:id", a.handlers.UpdateDevice)               // ✅
+	devices.Delete("/:id", a.handlers.DeleteDevice)            // ✅
 
 	// Forgot Items Routes
-	forgotItems := api.Group("/forgot-items") // ✅
-	forgotItems.Get("/", a.handlers.FindAllForgotItems) // ✅
+	forgotItems := api.Group("/forgot-items")                             // ✅
+	forgotItems.Get("/", a.handlers.FindAllForgotItems)                   // ✅
 	forgotItems.Get("/date-range", a.handlers.FindForgotItemsByDateRange) // ✅
-	forgotItems.Get("/:id", a.handlers.FindForgotItemById) // ✅
-	forgotItems.Post("/", a.handlers.CreateForgotItem) // ✅
-	forgotItems.Put("/:id", a.handlers.UpdateForgotItem) // ✅
-	forgotItems.Delete("/:id", a.handlers.DeleteForgotItem) // ✅
+	forgotItems.Get("/:id", a.handlers.FindForgotItemById)                // ✅
+	forgotItems.Post("/", a.handlers.CreateForgotItem)                    // ✅
+	forgotItems.Put("/:id", a.handlers.UpdateForgotItem)                  // ✅
+	forgotItems.Delete("/:id", a.handlers.DeleteForgotItem)               // ✅
 
 }
 

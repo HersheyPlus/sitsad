@@ -5,9 +5,9 @@ include .env
 BINARY_NAME=server
 
 # Database parameters
-DB_HOST ?= localhost
+DB_HOST ?= goapp-mysql
 DB_USER ?= root
-DB_PASS ?= Rsv18221
+DB_PASS ?= 1234
 DB_NAME ?= hackathon2025
 DB_PORT ?= 3306
 DOCKER_COMPOSE ?= docker compose
@@ -41,7 +41,7 @@ db-start: ## Start database
 	@echo "Starting database..."
 	make db-create
 	make db-up
-	make db-mockup
+	# make db-mockup
 
 mqtt-up: ## Start MQTT broker docker container
 	@echo "${GREEN}Starting MQTT broker...${RESET}"
