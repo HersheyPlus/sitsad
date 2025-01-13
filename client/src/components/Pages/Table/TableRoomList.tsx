@@ -3,7 +3,7 @@
 import ItemFilter from '@/components/Shared/Item/ItemFilter';
 
 import RoomList from '@/components/Shared/Location/RoomList';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import RoomService from '@/services/room.service';
 import { useNotificationStore } from '@/stores/notification.store';
 import { ItemType } from '@/types/item';

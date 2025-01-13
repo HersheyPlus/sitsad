@@ -1,5 +1,5 @@
 
-import LocationWrapper from '@/components/Shared/Location/admin/LocationWrapper';
+import DeviceWrapper from '@/components/Shared/Device/DeviceWrapper';
 import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { Flex } from 'antd'
 
@@ -11,18 +11,18 @@ const breadcrumbItems = [
         title: <a href="/dashboard">Dashboard</a>,
     },
     {
-        title: 'Location',
+        title: 'Device',
     },
 ];
 
-const LocationPage = () => {
+const DevicePage = () => {
     return (
         <Flex className="p-4" vertical gap={4}>
             <XBreadcrumb items={breadcrumbItems} />
 
-            <LocationWrapper />
+            <DeviceWrapper />
         </Flex>
     )
 }
 
-export default LocationPage
+export default DevicePage

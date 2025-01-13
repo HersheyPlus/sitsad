@@ -23,6 +23,9 @@ import TablePage from "@/pages/table/TablePage";
 import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 import LocationPage from "@/pages/LocationPage";
 import AdminTablePage from "@/pages/table/AdminTablePage";
+import ForgotItemPage from "@/pages/forgot-item/ForgotItemPage";
+import DevicePage from "@/pages/DevicePage";
+import ReservationPage from "@/pages/ReservationPage";
 // import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
@@ -32,6 +35,13 @@ export const routes = [
         children: [
             { path: "", element: <HomePage /> },
         ],
+    },
+    {
+        path: "/forgot-item",
+        element: <MainLayout />,
+        children: [
+            { path: "", element: <ForgotItemPage /> },
+        ]
     },
     {
         path: "/table",
@@ -66,10 +76,19 @@ export const routes = [
             { path: "table", element: <AdminTablePage /> },
             { path: "toilet", element: <AdminToiletPage /> },
             { path: "location", element: <LocationPage /> },
+            { path: "forgot-item", element: <ForgotItemPage /> },
+            { path: "device", element: <DevicePage /> },
             {
                 path: "*", element: <NotFoundPage />
             }
         ],
+    },
+    {
+        path: "/reserve",
+        children: [
+            { path: "", element: <NotFoundPage /> },
+            { path: ":tableId", element: <ReservationPage /> },
+        ]
     },
     {
         path: "*",

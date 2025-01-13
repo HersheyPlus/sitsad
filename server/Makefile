@@ -41,7 +41,7 @@ db-start: ## Start database
 	@echo "Starting database..."
 	make db-create
 	make db-up
-	make db-mockup
+	# make db-mockup
 
 mqtt-up: ## Start MQTT broker docker container
 	@echo "${GREEN}Starting MQTT broker...${RESET}"

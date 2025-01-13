@@ -8,6 +8,7 @@ import (
 	"server/internal/models"
 	"server/internal/ws"
 	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -129,7 +130,7 @@ func (a *App) setupRoutes() {
 	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
 
 	// Buildings Routes
-	buildings := api.Group("/buildings")
+	buildings := api.Group("/buildings") 
 	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
 	buildings.Get("/:id", a.handlers.FindBuildingById)             // get by id ✅
 	buildings.Post("/", a.handlers.CreateBuilding)                 // create ✅

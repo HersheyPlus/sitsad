@@ -8,9 +8,9 @@ interface IProps {
   doSearch: () => void;
 }
 
-const ItemFilter = ({ doChangeQuery, doSearch }: IProps) => {
+const DeviceFilter = ({ doChangeQuery, doSearch }: IProps) => {
   return (
-    <XCollapse title="Search for item...">
+    <XCollapse title="Search for table">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={6}>
@@ -33,4 +33,4 @@ const ItemFilter = ({ doChangeQuery, doSearch }: IProps) => {
   )
 }
 
-export default ItemFilter
+export default DeviceFilter

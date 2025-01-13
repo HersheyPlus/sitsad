@@ -3,7 +3,7 @@
 import ItemFilter from '@/components/Shared/Item/ItemFilter';
 import BuildingList from '@/components/Shared/Location/BuildingList';
 
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import BuildingService from '@/services/building.service';
 import { ItemType } from '@/types/item';
 import { IBuilding } from '@/types/location';

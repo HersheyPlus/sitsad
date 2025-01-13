@@ -3,10 +3,10 @@ import { IRoom } from "@/types/location";
 import apiClient from './axios';
 
 const RoomService = {
-    // async findAll(): Promise<IRoom[]> {
-    //     const response = await apiClient.get('/rooms');
-    //     return response.data;
-    // },
+    async findAll(): Promise<IRoom[]> {
+        const response = await apiClient.get('/rooms');
+        return response.data;
+    },
 
     // async findById(id: string): Promise<IRoom | undefined> {
     //     const response = await apiClient.get(`/rooms/${id}`);

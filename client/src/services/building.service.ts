@@ -6,7 +6,7 @@ const BuildingService = {
     async findAll(): Promise<IBuilding[]> {
         try {
             const response = await apiClient.get('/buildings');
-            return response.data;
+            return response.data.data;
         } catch (error) {
             console.error('Error fetching buildings:', error);
             throw error;
@@ -36,7 +36,7 @@ const BuildingService = {
     async findByKeywordAndItemType(keyword: string, itemType: string): Promise<IBuilding[]> {
         try {
             const response = await apiClient.get('/buildings/search', {
-                params: { 
+                params: {
                     keyword: keyword || undefined,
                     itemType: itemType || undefined
                 }
@@ -53,7 +53,7 @@ const BuildingService = {
             const response = await apiClient.get('/buildings/search', {
                 params: { keyword }
             });
-            return response.data.data; 
+            return response.data.data;
         } catch (error) {
             console.error(`Error searching buildings with keyword ${keyword}:`, error);
             throw error;

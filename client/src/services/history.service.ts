@@ -40,6 +40,13 @@ const HistoryService = {
         mockupHistory.push(history);
     },
 
+    async update(history: IItemHistory) {
+        const index = mockupHistory.findIndex(h => h.id === history.id);
+        if (index !== -1) {
+            mockupHistory[index] = history;
+        }
+    },
+
     async delete(id: string) {
         const index = mockupHistory.findIndex(h => h.id === id);
         if (index !== -1) {

@@ -18,7 +18,7 @@ const ItemLayout = ({ itemName, items, selectedItem, onSelectItem }: IProps) => 
 
 
     return (
-        <div className="relative w-full h-[600px] bg-white border-2 border-gray-300 rounded-lg overflow-hidden">
+        <div className="relative w-full h-[600px] bg-white border-2 border-gray-300 rounded-lg overflow-hidden p-2">
             <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize {itemName}</h2>
             <div className="absolute top-0 left-0 w-full h-full p-2">
                 {localItems.map((item) => (

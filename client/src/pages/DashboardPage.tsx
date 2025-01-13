@@ -1,5 +1,5 @@
 import Dashboard from '@/components/Pages/Dashboard/Dashboard';
-import XBreadcrumb from '@/components/XBreadcrumb';
+import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { Flex } from 'antd';
 
 const breadcrumbItems = [

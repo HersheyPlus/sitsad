@@ -1,7 +1,7 @@
 import { Layout } from "antd";
 import { Outlet } from "react-router-dom";
 import Header from "../Shared/Header";
-import XLoader from "../XLoader";
+import XLoader from "../Shared/XLoader";
 import NotificationProvider from "../Shared/Provider/NotificationProvider";
 
 const { Content, Footer } = Layout;
@@ -9,7 +9,7 @@ const { Content, Footer } = Layout;
 const MainLayout = () => (
     <Layout className="min-h-screen bg-gray">
         <XLoader />
-        
+
         <NotificationProvider />
 
         <Header />

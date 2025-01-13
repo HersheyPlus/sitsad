@@ -1,3 +1,4 @@
+import { IDevice } from "./device";
 import { IBuilding, IRoom } from "./location";
 
 export interface IItem {
@@ -11,6 +12,7 @@ export interface IItem {
     height: number;
     floor?: number;
     name: string;
+    device?: IDevice
     description?: string;
     location: {
         building: IBuilding;
