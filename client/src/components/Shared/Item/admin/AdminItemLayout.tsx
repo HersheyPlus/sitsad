@@ -1,10 +1,7 @@
 import { Rnd } from 'react-rnd';
 import Item from '../Item';
-import { Button } from 'antd';
 import { useEffect, useState } from 'react';
-import { IItem, ItemType } from '@/types/item';
-import { IBuilding, IRoom } from '@/types/location';
-import { useNotificationStore } from '@/stores/notification.store';
+import { IItem } from '@/types/item';
 
 const GRID_SIZE = 100;
 
@@ -12,14 +9,10 @@ interface IProps {
     data: IItem[]
     doSaveItem: (data: IItem, create: boolean) => void
     doUpdateItem: React.Dispatch<React.SetStateAction<IItem[]>>
-    itemType: ItemType
-    selectedBuilding: IBuilding | undefined
-    selectedRoom: IRoom | undefined
 }
 
-const AdminItemLayout = ({ data, doUpdateItem, doSaveItem, itemType, selectedBuilding, selectedRoom }: IProps) => {
+const AdminItemLayout = ({ data, doUpdateItem, doSaveItem }: IProps) => {
     const [items, setItems] = useState<IItem[]>(data);
-    const openNotification = useNotificationStore(state => state.openNotification);
 
     useEffect(() => {
         setItems(data)
@@ -105,49 +98,44 @@ const AdminItemLayout = ({ data, doUpdateItem, doSaveItem, itemType, selectedBui
     };
 
     // Add new item
-    const handleAddItems = () => {
-        if (!selectedBuilding || !selectedRoom) {
-            openNotification({
-                type: 'error',
-                message: 'Error',
-                description: 'Please select a building and room first'
-            })
+    // const handleAddItems = () => {
+    //     if (!selectedBuilding || !selectedRoom) {
+    //         openNotification({
+    //             type: 'error',
+    //             message: 'Error',
+    //             description: 'Please select a building and room first'
+    //         })
 
-            return
-        }
+    //         return
+    //     }
 
-        // TODO: Notify alert
+    //     // TODO: Notify alert
 
-        const newItem: IItem = {
-            item_id: `${new Date().getTime()}`,
-            name: 'New Item',
-            description: '',
-            available: true,
-            building_id: selectedBuilding.building_id,
-            position_x: Math.floor(Math.random() * 5) * GRID_SIZE,
-            position_y: Math.floor(Math.random() * 5) * GRID_SIZE,
-            width: GRID_SIZE,
-            height: GRID_SIZE,
-            type: itemType,
-            location: {
-                building: selectedBuilding,
-                room: selectedRoom
-            }
-        };
+    //     const newItem: IItem = {
+    //         item_id: `${new Date().getTime()}`,
+    //         name: 'New Item',
+    //         description: '',
+    //         available: true,
+    //         building_id: selectedBuilding.building_id,
+    //         position_x: Math.floor(Math.random() * 5) * GRID_SIZE,
+    //         position_y: Math.floor(Math.random() * 5) * GRID_SIZE,
+    //         width: GRID_SIZE,
+    //         height: GRID_SIZE,
+    //         type: itemType,
+    //         location: {
+    //             building: selectedBuilding,
+    //             room: selectedRoom
+    //         }
+    //     };
 
-        setItems((prevItem) => [...prevItem, newItem]);
-        doUpdateItem((prevItem) => [...prevItem, newItem]);
-        doSaveItem(newItem, true);
-    };
+    //     setItems((prevItem) => [...prevItem, newItem]);
+    //     doUpdateItem((prevItem) => [...prevItem, newItem]);
+    //     doSaveItem(newItem, true);
+    // };
 
     return (
         <div className="relative w-full h-[600px] bg-white border-2 border-gray-300 rounded-lg overflow-hidden">
             <h2 className="mb-4 text-2xl font-bold text-center">Admin View - Drag and Resize Item</h2>
-            <Button
-                onClick={handleAddItems}
-                className="absolute px-8 py-4 font-bold text-white bg-blue-500 top-2 right-2 rounded-md hover:bg-blue-700 z-[1000]">
-                Add Item
-            </Button>
             <div className="absolute top-0 left-0 w-full h-full p-2">
                 {items.map((item, idx) => (
                     <Rnd

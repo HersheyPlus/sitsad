@@ -4,7 +4,7 @@ import { Flex } from 'antd';
 
 import XBreadcrumb from '@/components/Shared/XBreadcrumb';
 import { IBuilding, IRoom } from '@/types/location';
-import { IItem, IItemHistory, ItemType } from '@/types/item';
+import { IItem, IItemHistory, IItemPayload, ItemType } from '@/types/item';
 
 import BuildingService from '@/services/building.service';
 import RoomService from '@/services/room.service';
@@ -45,6 +45,7 @@ const AdminToiletPage = () => {
 
     useEffect(() => {
         if (selectedBuilding) {
+            setRooms([])
             doSearchRooms(selectedBuilding.building_id)
             setSelectedRoom(undefined)
         }
@@ -122,24 +123,42 @@ const AdminToiletPage = () => {
 
     }
 
-    const doSaveItem = async (item: IItem, create: boolean) => {
+    const doSaveItem = async (item: IItem | IItemPayload, create: boolean) => {
         try {
             if (create) {
                 await ToiletService.create(item);
                 openNotification({
                     type: 'success',
                     message: 'Success',
-                    description: 'Item created successfully'
+                    description: 'Toilet created successfully'
                 })
             } else {
-                await ToiletService.update(item);
+                await ToiletService.update(item as IItem);
                 openNotification({
                     type: 'success',
                     message: 'Success',
-                    description: 'Item updated successfully'
+                    description: 'Toilet updated successfully'
                 })
             }
-            setItems((prevItems) => [...prevItems, item]);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
+
+    const doRemoveItem = async (id: string) => {
+        try {
+            await ToiletService.delete(id);
+            setItems((prevItems) => prevItems.filter((item) => item.item_id !== id));
+            openNotification({
+                type: 'success',
+                message: 'Success',
+                description: 'Toilet removed successfully'
+            })
         } catch (error) {
             openNotification({
                 type: 'error',
@@ -167,12 +186,9 @@ const AdminToiletPage = () => {
                 data={items}
                 doUpdateItem={setItems}
                 doSaveItem={doSaveItem}
-                itemType={ItemType.TOILET}
-                selectedBuilding={selectedBuilding}
-                selectedRoom={selectedRoom}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} service={ToiletService} />
+            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
 
             <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>
