@@ -33,7 +33,7 @@ export enum Gender {
 }
 
 export interface IItemHistory {
-    id: string;
+    booking_time_period_id: string;
     item_id: string;
     room_id: string;
     started_booking_time: string;

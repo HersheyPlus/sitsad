@@ -30,7 +30,6 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
         ReadTimeout:  cfg.ServerConfig.ReadTimeout,
         WriteTimeout: cfg.ServerConfig.WriteTimeout,
         IdleTimeout:  cfg.ServerConfig.Timeout,
-        // Add these Fiber-specific settings
         DisableStartupMessage: false,
         EnablePrintRoutes: true,
         ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -45,13 +44,6 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
         },
     })
 
-	app.Use(logger.New(logger.Config{
-        Format:     "${time} ${status} ${latency} ${method} ${path}\n",
-        TimeFormat: "2006-01-02 15:04:05",
-        TimeZone:   "Local",
-    }))
-
-    // Add recovery with more detailed logging
     app.Use(recover.New(recover.Config{
         EnableStackTrace: true,
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
@@ -59,16 +51,6 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 			debug.PrintStack()
 		},
     }))
-
-	app.Use(func(c *fiber.Ctx) error {
-        fmt.Printf("Incoming request: %s %s\n", c.Method(), c.Path())
-        err := c.Next()
-        if err != nil {
-            fmt.Printf("Request error: %v\n", err)
-        }
-        fmt.Printf("Response status: %d\n", c.Response().StatusCode())
-        return err
-    })
 
 
 	app.Use(cors.New(cors.Config{
@@ -151,26 +133,28 @@ func (a *App) setupRoutes() {
 	items.Delete("/:id", a.handlers.DeleteItem)       // update item available ✅
 
 	// Table Routes
-	tables := api.Group("/tables")
-	tables.Get("/", a.handlers.FindAllTables)
-	tables.Get("/room/:roomId", a.handlers.FindTablesByRoomId)
-	tables.Get("/:id", a.handlers.FindTableByID)
-
+	tables := api.Group("/tables") 
+	tables.Get("/", a.handlers.FindAllTables) // ✅
+	tables.Get("/room/:roomId", a.handlers.FindTablesByRoomId) // ✅
+	tables.Get("/:id", a.handlers.FindTableByID) // ✅
 	tables.Post("/", a.handlers.CreateTable)   // create table
 	tables.Put("/:id", a.handlers.UpdateTable) // update table
 
 	// Toilets Routes
-	toilets := api.Group("/toilets")
+	toilets := api.Group("/toilets") // ✅
 	toilets.Get("/", a.handlers.FindAllToilets) // get all toilets
 	toilets.Get("/room/:roomId", a.handlers.FindToiletsByRoomId)
 	toilets.Get("/:id", a.handlers.FindToiletByID) // get table by idkeyword
 	toilets.Post("/", a.handlers.CreateToilet)     // create toilet
 	toilets.Put("/:id", a.handlers.UpdateToilet)   // update toilet
 
-	// Filter Routes
-	filter := api.Group("/filter")
-	filter.Get("/items", a.handlers.FindBuildingByItemType)
-	filter.Get("/rooms", a.handlers.FindRoomsByBuildingID)
+	histories := api.Group("/histories")
+	histories.Get("/:roomId", a.handlers.FindAllHistoryItemByRoomId)
+	histories.Get("/id/:id", a.handlers.FindHistoryById)
+	histories.Get("/item/:itemId", a.handlers.FindHistoryByItemId)
+	histories.Post("/", a.handlers.CreateHistory)
+	histories.Put("/:id", a.handlers.UpdateHistory)
+	histories.Delete("/:id", a.handlers.DeleteHistory)
 
 }
 
