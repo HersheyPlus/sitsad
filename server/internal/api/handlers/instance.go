@@ -122,8 +122,8 @@ type RoomResponse struct {
 
 
 func NewHandler(db *gorm.DB, wsHub *ws.Hub) *Handler {
-	return &Handler{
-		db:    db,
-		wsHub: wsHub,
-	}
+    return &Handler{
+        db:    db,
+        wsHub: wsHub,
+    }
 }

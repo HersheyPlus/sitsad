@@ -21,4 +21,4 @@ mqtt:
   port: 1883
   username: test
   password: 1234
-  client_id: mqttx_0ee90f12
+  client_id: go-mqtt-subscriber
