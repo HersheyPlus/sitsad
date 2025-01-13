@@ -135,7 +135,7 @@ func (i *Item) IsToilet() bool {
 }
 func NewBuilding(buildingId, name, description, imageURL string) *Building {
 	return &Building{
-		BuildingID:   buildingId,
+		BuildingID:buildingId,
 		BuildingName: name,
 		Description:  description,
 		ImageURL:     imageURL,
@@ -153,8 +153,9 @@ func NewRoom(roomId string, buildingID string, roomName, description, imageURL s
 	}
 }
 
-func NewTable(roomID string, posX, posY, width, height float64, name string) *Item {
+func NewTable(itemId, roomID string, posX, posY, width, height float64, name string) *Item {
 	return &Item{
+		ItemID:   itemId,
 		Type:      ItemTypeTable,
 		RoomID:    &roomID,
 		Available: true,
@@ -166,8 +167,9 @@ func NewTable(roomID string, posX, posY, width, height float64, name string) *It
 	}
 }
 
-func NewToilet(floor int, roomID *string, gender, name string, posX, posY, width, height float64) *Item {
+func NewToilet(itemId string, floor int, roomID *string, gender, name string, posX, posY, width, height float64) *Item {
     return &Item{
+		ItemID:   itemId,
         Type:      ItemTypeToilet,
         RoomID:    roomID,
         Floor:     &floor,

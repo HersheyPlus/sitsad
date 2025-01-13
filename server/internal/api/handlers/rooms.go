@@ -5,7 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
-	"time"
+	"server/internal/utils/uuid"
+    "time"
 )
 
 // Find all rooms
@@ -86,8 +87,8 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     }
 
     // Manual validation
-    if req.RoomID == "" ||req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
-        return res.BadRequest(c, "room_id, room_name, floor, building_id, image_url are required")
+    if req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
+        return res.BadRequest(c, "room_name, floor, building_id, image_url are required")
     }
 
     // Create room model from request
@@ -106,7 +107,7 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     }
 	
 	room := models.NewRoom(
-		req.RoomID,
+		uuid.GenerateUUID(),
 		req.BuildingID,
 		req.RoomName,
 		req.Description,

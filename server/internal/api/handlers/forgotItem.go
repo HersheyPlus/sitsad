@@ -5,6 +5,8 @@ import (
 	res "server/internal/utils"
 	"time"
 	"github.com/gofiber/fiber/v2"
+	"server/internal/utils/uuid"
+	"gorm.io/gorm"
 )
 
 // FindAllForgotItems retrieves all forgot items
@@ -51,18 +53,60 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 
 // CreateForgotItem creates a new forgot item
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
-	item := new(models.ForgotItem)
-	
-	if err := c.BodyParser(item); err != nil {
-		return res.BadRequest(c, "Invalid request body")
-	}
-	
-	if result := h.db.Create(item); result.Error != nil {
-		return res.InternalServerError(c, result.Error)
-	}
-	return res.CreatedSuccess(c, item)
-}
+    var req CreateForgotItemRequest
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
 
+    // Validate required fields
+	if req.ImageURL == "" || req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
+        return res.BadRequest(c, "image_url, table_id, building_name, room_name are required")
+    }
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Check if table exists
+    var table models.Item
+    if err := tx.Where("item_id = ? AND type = ?", req.TableID, models.ItemTypeTable).First(&table).Error; err != nil {
+        tx.Rollback()
+        if err == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Table", err)
+        }
+        return res.InternalServerError(c, err)
+    }
+
+    forgotItem := models.NewForgotItem(
+        uuid.GenerateUUID(),
+        req.ImageURL,
+        req.Date,
+        req.TableID,
+        req.BuildingName,
+        req.RoomName,
+    )
+
+    if err := tx.Create(forgotItem).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    // Fetch the created item with relationships
+    if err := tx.Preload("Table").First(forgotItem).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.CreatedSuccess(c, forgotItem)
+}
 // UpdateForgotItem updates an existing forgot item
 func (h *Handler) UpdateForgotItem(c *fiber.Ctx) error {
 	id := c.Params("id")

@@ -1,7 +1,7 @@
 
 -- Create Tables with corrected data types
 CREATE TABLE IF NOT EXISTS buildings (
-    building_id VARCHAR(30) NOT NULL PRIMARY KEY,
+    building_id VARCHAR(100) NOT NULL PRIMARY KEY,
     building_name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS buildings (
 );
 
 CREATE TABLE IF NOT EXISTS rooms (
-    room_id VARCHAR(30) NOT NULL PRIMARY KEY,
-    building_id VARCHAR(30) NOT NULL,
+    room_id VARCHAR(100) NOT NULL PRIMARY KEY,
+    building_id VARCHAR(100) NOT NULL,
     room_name VARCHAR(100) NOT NULL,
     description TEXT,
     floor INTEGER NOT NULL,
@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS rooms (
 );
 
 CREATE TABLE IF NOT EXISTS items (
-    item_id VARCHAR(30) PRIMARY KEY,
+    item_id VARCHAR(100) PRIMARY KEY,
     type VARCHAR(10) NOT NULL,
-    room_id VARCHAR(30),
+    room_id VARCHAR(100),
     name VARCHAR(100) NOT NULL,
     available BOOLEAN DEFAULT true,
     position_x FLOAT,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS items (
 
 CREATE TABLE IF NOT EXISTS booking_time_periods (
     booking_time_period_id VARCHAR(100) NOT NULL PRIMARY KEY,
-    item_id VARCHAR(30),
+    item_id VARCHAR(100),
     phone_number VARCHAR(20) NOT NULL,
     started_booking_time TIMESTAMP NOT NULL,
     ended_booking_time TIMESTAMP,
@@ -50,10 +50,10 @@ CREATE TABLE IF NOT EXISTS booking_time_periods (
 );
 
 CREATE TABLE IF NOT EXISTS forgot_items (
-    forgot_item_id VARCHAR(30) PRIMARY KEY,
+    forgot_item_id VARCHAR(100) PRIMARY KEY,
     image_url TEXT,
     date TIMESTAMP NOT NULL,
-    table_id VARCHAR(30) NOT NULL,
+    table_id VARCHAR(100) NOT NULL,
     building_name VARCHAR(100),
     room_name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,11 +62,11 @@ CREATE TABLE IF NOT EXISTS forgot_items (
 );
 
 CREATE TABLE IF NOT EXISTS devices (
-    device_id VARCHAR(30) PRIMARY KEY,
+    device_id VARCHAR(100) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     topic VARCHAR(100) NOT NULL,
-    building_id VARCHAR(30) NOT NULL,
-    room_id VARCHAR(30) NOT NULL,
+    building_id VARCHAR(100) NOT NULL,
+    room_id VARCHAR(100) NOT NULL,
     type VARCHAR(20) NOT NULL,
     web_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

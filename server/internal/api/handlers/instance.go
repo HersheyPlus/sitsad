@@ -4,6 +4,7 @@ import (
 	"server/internal/ws"
 	"server/internal/models"
 	"gorm.io/gorm"
+    "time"
 )
 
 type Handler struct {
@@ -18,6 +19,23 @@ type CreateTableRequest struct {
 	PositionY float64 `json:"position_y" validate:"required"`
 	Width     float64 `json:"width" validate:"required"`
 	Height    float64 `json:"height" validate:"required"`
+}
+
+type CreateDeviceRequest struct {
+    Name       string         `json:"name" validate:"required"`
+    Topic      string         `json:"topic" validate:"required"`
+    BuildingID string         `json:"building_id" validate:"required"`
+    RoomID     string         `json:"room_id" validate:"required"`
+    Type       models.DeviceType `json:"type" validate:"required"`
+    WebURL     string         `json:"web_url" validate:"required"`
+}
+
+type CreateForgotItemRequest struct {
+    ImageURL     string    `json:"image_url" validate:"required"`
+    Date         time.Time `json:"date" validate:"required"`
+    TableID      string    `json:"table_id" validate:"required"`
+    BuildingName string    `json:"building_name" validate:"required"`
+    RoomName     string    `json:"room_name" validate:"required"`
 }
 
 type UpdateTableRequest struct {
@@ -52,7 +70,6 @@ type UpdateToiletRequest struct {
 }
 
 type CreateBuildingRequest struct {
-	BuildingID   string `json:"building_id" validate:"required"`
 	BuildingName string `json:"building_name" validate:"required"`
 	Description  string `json:"description" validate:"required"`
 	ImageURL     string `json:"image_url" validate:"required"`

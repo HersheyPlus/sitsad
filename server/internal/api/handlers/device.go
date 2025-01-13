@@ -4,6 +4,7 @@ import (
 	"server/internal/models"
 	res "server/internal/utils"
 	"github.com/gofiber/fiber/v2"
+	"server/internal/utils/uuid"
 )
 
 // FindAllDevices retrieves all devices
@@ -55,16 +56,67 @@ func (h *Handler) FindDeviceByTopic(c *fiber.Ctx) error {
 
 // CreateDevice creates a new device
 func (h *Handler) CreateDevice(c *fiber.Ctx) error {
-	device := new(models.Device)
-	
-	if err := c.BodyParser(device); err != nil {
-		return res.BadRequest(c, "Invalid request body")
-	}
-	
-	if result := h.db.Create(device); result.Error != nil {
-		return res.InternalServerError(c, result.Error)
-	}
-	return res.CreatedSuccess(c, device)
+    var req CreateDeviceRequest
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
+
+    // Validate required fields
+    if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.WebURL == "" {
+        return res.BadRequest(c, "name, topic, building_id, room_id, web_url are required")
+    }
+
+    // Validate device type
+    if req.Type != models.DeviceTypeCamera {
+        return res.BadRequest(c, "Invalid device type")
+    }
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Check if building exists
+    if err := h.ExistingBuilding(tx, c, req.BuildingID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Building", err)
+    }
+
+    // Check if room exists
+    if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Room", err)
+    }
+
+    device := models.NewDevice(
+        uuid.GenerateUUID(),
+        req.Name,
+        req.Topic,
+        req.BuildingID,
+        req.RoomID,
+        req.Type,
+        req.WebURL,
+    )
+
+    if err := tx.Create(device).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    // Fetch the created device with relationships
+    if err := tx.Preload("Building").Preload("Room").First(device).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.CreatedSuccess(c, device)
 }
 
 // UpdateDevice updates an existing device

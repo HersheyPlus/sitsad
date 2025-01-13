@@ -5,6 +5,7 @@ import (
 	res "server/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+	"server/internal/utils/uuid"
 )
 
 // Find All Buildings
@@ -79,8 +80,8 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return res.BadRequest(c, err.Error())
 	}
-	if req.BuildingName == "" || req.ImageURL == "" || req.Description == "" || req.BuildingID == "" {
-		return res.BadRequest(c, "building_id, building_name, image_url, description are required")
+	if req.BuildingName == "" || req.ImageURL == "" || req.Description == "" {
+		return res.BadRequest(c, "building_name, image_url, description are required")
 	}
 
 	// Start transaction
@@ -90,13 +91,13 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
 			tx.Rollback()
 		}
 	}()
-
 	building := models.NewBuilding(
-		req.BuildingID,
+		uuid.GenerateUUID(),
 		req.BuildingName,
 		req.Description,
 		req.ImageURL,
 	)
+
 
 	if err := tx.Create(&building).Error; err != nil {
 		tx.Rollback()

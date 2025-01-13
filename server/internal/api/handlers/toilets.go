@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	res "server/internal/utils"
     "strings"
+    "server/internal/utils/uuid"
 )
 
 // Find all toilets
@@ -156,6 +157,7 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     }
 
     toilet := models.NewToilet(
+        uuid.GenerateUUID(),
         req.Floor,
         &req.RoomID,
         req.Gender,
@@ -171,7 +173,9 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    if err := tx.Preload("Building").Preload("Room").First(toilet, toilet.ItemID).Error; err != nil {
+    if err := tx.Preload("Room").
+        Preload("Room.Building").
+        First(toilet, toilet.ItemID).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }

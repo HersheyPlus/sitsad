@@ -5,6 +5,7 @@ import (
 	res "server/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+    "server/internal/utils/uuid"
 )
 
 // Find all tables
@@ -118,6 +119,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
     }
 
     table := models.NewTable(
+        uuid.GenerateUUID(),
         req.RoomID,
         req.PositionX,
         req.PositionY,
@@ -131,7 +133,9 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    if err := tx.Preload("Room").First(table, table.ItemID).Error; err != nil {
+    if err := tx.Preload("Room").
+        Preload("Room.Building").
+        First(table, table.ItemID).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
@@ -139,6 +143,8 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
     if err := tx.Commit().Error; err != nil {
         return res.InternalServerError(c, err)
     }
+
+    h.wsHub.BroadcastNewItem(table, "table")
     return res.CreatedSuccess(c, table)
 }
 
