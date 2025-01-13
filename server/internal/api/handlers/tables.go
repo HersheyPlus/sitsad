@@ -215,14 +215,14 @@ func (h *Handler) UpdateTable(c *fiber.Ctx) error {
 
     if req.Width != nil {
         if *req.Width <= 0 {
-            return res.BadRequest(c, "width must be positive")
+            return res.BadRequest(c, "width must be greater than 0")
         }
         updates["width"] = *req.Width
     }
 
     if req.Height != nil {
         if *req.Height <= 0 {
-            return res.BadRequest(c, "height must be positive")
+            return res.BadRequest(c, "height must be greater than 0")
         }
         updates["height"] = *req.Height
     }

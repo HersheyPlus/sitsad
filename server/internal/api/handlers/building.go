@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"strings"
 )
 
 // Find All Buildings
@@ -80,34 +81,49 @@ func (h *Handler) FindBuildingById(c *fiber.Ctx) error {
 
 // Create
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
-    // Get form fields from multipart form
-    buildingName := c.FormValue("building_name")
-    description := c.FormValue("description")
+    contentType := c.Get("Content-Type")
+    var buildingName, description string
+    var filename string
+
+    if strings.Contains(contentType, "multipart/form-data") {
+        // Handle multipart form data
+        buildingName = c.FormValue("building_name")
+        description = c.FormValue("description")
+
+        // Handle file upload
+        file, err := c.FormFile("image")
+        if err != nil {
+            return res.BadRequest(c, "Image file is required")
+        }
+
+        // Generate unique filename
+        ext := filepath.Ext(file.Filename)
+        filename = fmt.Sprintf("buildings/%s%s", time.Now().Format("20060102150405"), ext)
+        uploadPath := fmt.Sprintf("uploads/%s", filename)
+
+        // Create uploads/buildings directory if it doesn't exist
+        if err := os.MkdirAll("uploads/buildings", 0755); err != nil {
+            return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+        }
+
+        // Save the file
+        if err := c.SaveFile(file, uploadPath); err != nil {
+            return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        }
+    } else {
+        // Handle JSON request
+        var req CreateBuildingRequest
+        if err := c.BodyParser(&req); err != nil {
+            return res.BadRequest(c, "Invalid request body")
+        }
+        buildingName = req.BuildingName
+        description = req.Description
+        filename = req.ImageURL // Use provided image URL
+    }
 
     // Validate required fields
     if buildingName == "" || description == "" {
         return res.BadRequest(c, "building_name and description are required")
-    }
-
-    // Handle file upload
-    file, err := c.FormFile("image")
-    if err != nil {
-        return res.BadRequest(c, "Image file is required")
-    }
-
-    // Generate unique filename
-    ext := filepath.Ext(file.Filename)
-    filename := fmt.Sprintf("buildings/%s%s", time.Now().Format("20060102150405"), ext)
-    uploadPath := fmt.Sprintf("uploads/%s", filename)
-
-    // Create uploads/buildings directory if it doesn't exist
-    if err := os.MkdirAll("uploads/buildings", 0755); err != nil {
-        return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
-    }
-
-    // Save the file
-    if err := c.SaveFile(file, uploadPath); err != nil {
-        return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
     }
 
     // Start transaction
@@ -115,8 +131,10 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
     defer func() {
         if r := recover(); r != nil {
             tx.Rollback()
-            // Clean up uploaded file if transaction fails
-            os.Remove(uploadPath)
+            // Clean up uploaded file if transaction fails and we're handling multipart
+            if strings.Contains(contentType, "multipart/form-data") {
+                os.Remove(fmt.Sprintf("uploads/%s", filename))
+            }
         }
     }()
 
@@ -124,26 +142,34 @@ func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
         uuid.GenerateUUID(),
         buildingName,
         description,
-        filename, // Store relative path in database
+        filename,
     )
 
     if err := tx.Create(&building).Error; err != nil {
         tx.Rollback()
-        // Clean up uploaded file
-        os.Remove(uploadPath)
+        // Clean up uploaded file if we're handling multipart
+        if strings.Contains(contentType, "multipart/form-data") {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         return res.InternalServerError(c, err)
     }
 
     if err := tx.Commit().Error; err != nil {
-        // Clean up uploaded file
-        os.Remove(uploadPath)
+        // Clean up uploaded file if we're handling multipart
+        if strings.Contains(contentType, "multipart/form-data") {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         return res.InternalServerError(c, err)
     }
 
-    // Add full URL to response
-    building.ImageURL = fmt.Sprintf("/uploads/%s", building.ImageURL)
+    // Add full URL to response if it's a local file
+    if strings.Contains(contentType, "multipart/form-data") {
+        building.ImageURL = fmt.Sprintf("/uploads/%s", building.ImageURL)
+    }
+
     return res.CreatedSuccess(c, building)
 }
+
 // Update
 func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")

@@ -1,16 +1,19 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"server/internal/models"
 	res "server/internal/utils"
 	"server/internal/utils/uuid"
+	"strings"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
-	"log"
-	"os"
-	"path/filepath"
-	"fmt"
 )
 
 // Find all rooms
@@ -115,11 +118,46 @@ func (h *Handler) FindRoomById(c *fiber.Ctx) error {
 func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     log.Printf("Received room creation request")
     
-    // Get form fields
-    buildingID := c.FormValue("building_id")
-    roomName := c.FormValue("room_name")
-    description := c.FormValue("description")
-    
+    contentType := c.Get("Content-Type")
+    var buildingID, roomName, description string
+    var filename string
+    var file *multipart.FileHeader
+
+    if strings.Contains(contentType, "multipart/form-data") {
+        form, err := c.MultipartForm()
+        if err != nil {
+            log.Printf("Error parsing multipart form: %v", err)
+            return res.BadRequest(c, "Invalid form data")
+        }
+
+        // Get form fields
+        if buildingIDValues := form.Value["building_id"]; len(buildingIDValues) > 0 {
+            buildingID = buildingIDValues[0]
+        }
+        if roomNameValues := form.Value["room_name"]; len(roomNameValues) > 0 {
+            roomName = roomNameValues[0]
+        }
+        if descriptionValues := form.Value["description"]; len(descriptionValues) > 0 {
+            description = descriptionValues[0]
+        }
+
+        // Get file if provided
+        if files := form.File["image.file"]; len(files) > 0 {
+            file = files[0]
+        } else if files := form.File["image"]; len(files) > 0 {
+            file = files[0]
+        }
+    } else {
+        // Handle JSON request
+        var req CreateRoomRequest
+        if err := c.BodyParser(&req); err != nil {
+            return res.BadRequest(c, "Invalid request body")
+        }
+        buildingID = req.BuildingID
+        roomName = req.RoomName
+        description = req.Description
+    }
+
     log.Printf("Form values - Building ID: %s, Room Name: %s", buildingID, roomName)
 
     // Validate required fields
@@ -128,40 +166,40 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
         return res.BadRequest(c, "building_id and room_name are required")
     }
 
-    // Handle file upload
-    file, err := c.FormFile("image")
-    if err != nil {
-        log.Printf("Error getting form file: %v", err)
-        return res.BadRequest(c, "Image file is required")
-    }
-    log.Printf("Received file: %s, Size: %d", file.Filename, file.Size)
+    // Handle file upload if provided
+    if file != nil {
+        log.Printf("Received file: %s, Size: %d", file.Filename, file.Size)
 
-    // Generate unique filename
-    ext := filepath.Ext(file.Filename)
-    filename := fmt.Sprintf("rooms/%s%s", time.Now().Format("20060102150405"), ext)
-    uploadPath := fmt.Sprintf("uploads/%s", filename)
-    
-    log.Printf("Generated upload path: %s", uploadPath)
+        // Generate unique filename
+        ext := filepath.Ext(file.Filename)
+        filename = fmt.Sprintf("rooms/%s%s", time.Now().Format("20060102150405"), ext)
+        uploadPath := fmt.Sprintf("uploads/%s", filename)
+        
+        log.Printf("Generated upload path: %s", uploadPath)
 
-    // Create uploads/rooms directory if it doesn't exist
-    if err := os.MkdirAll("uploads/rooms", 0755); err != nil {
-        log.Printf("Error creating directory: %v", err)
-        return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
-    }
+        // Create uploads/rooms directory if it doesn't exist
+        if err := os.MkdirAll("uploads/rooms", 0755); err != nil {
+            log.Printf("Error creating directory: %v", err)
+            return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+        }
 
-    // Save the file
-    if err := c.SaveFile(file, uploadPath); err != nil {
-        log.Printf("Error saving file: %v", err)
-        return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        // Save the file
+        if err := c.SaveFile(file, uploadPath); err != nil {
+            log.Printf("Error saving file: %v", err)
+            return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        }
+        log.Printf("File saved successfully to: %s", uploadPath)
     }
-    log.Printf("File saved successfully to: %s", uploadPath)
 
     // Start transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
             tx.Rollback()
-            os.Remove(uploadPath)
+            // Only remove file if it was uploaded
+            if filename != "" {
+                os.Remove(fmt.Sprintf("uploads/%s", filename))
+            }
             log.Printf("Transaction rolled back due to panic: %v", r)
         }
     }()
@@ -169,7 +207,9 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
     // Check if building exists within transaction
     if err := h.ExistingBuilding(tx, c, buildingID); err != nil {
         tx.Rollback()
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         log.Printf("Building not found: %v", err)
         return res.NotFound(c, "Building", err)
     }
@@ -179,26 +219,32 @@ func (h *Handler) CreateRoom(c *fiber.Ctx) error {
         buildingID,
         roomName,
         description,
-        filename, // Store relative path
+        filename, // Will be empty string if no file was uploaded
     )
 
     if err := tx.Create(&room).Error; err != nil {
         tx.Rollback()
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         log.Printf("Error creating room record: %v", err)
         return res.InternalServerError(c, err)
     }
 
     if err := tx.Commit().Error; err != nil {
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         log.Printf("Error committing transaction: %v", err)
         return res.InternalServerError(c, err)
     }
 
     log.Printf("Room created successfully with ID: %s", room.RoomID)
     
-    // Add full URL to response
-    room.ImageURL = fmt.Sprintf("/uploads/%s", room.ImageURL)
+    // Add full URL to response if image was uploaded
+    if filename != "" {
+        room.ImageURL = fmt.Sprintf("/uploads/%s", room.ImageURL)
+    }
     return res.CreatedSuccess(c, room)
 }
 

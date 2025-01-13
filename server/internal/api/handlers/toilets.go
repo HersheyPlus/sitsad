@@ -5,7 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
-    "strings"
     "server/internal/utils/uuid"
 )
 
@@ -132,12 +131,6 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.BadRequest(c, "name, position_x, position_y, width, height are required and must be valid")
     }
 
-    // Normalize and validate gender
-    req.Gender = strings.ToLower(req.Gender)
-    if req.Gender != "male" && req.Gender != "female" && req.Gender != "unisex" {
-        return res.BadRequest(c, "gender must be 'male', 'female', or 'unisex'")
-    }
-
     // Start transaction
     tx := h.db.Begin()
     defer func() {
@@ -157,7 +150,6 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     toilet := models.NewToilet(
         uuid.GenerateUUID(),
         &req.RoomID,
-        req.Gender,
         req.Name,
         req.PositionX,
         req.PositionY,
@@ -165,14 +157,18 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         req.Height,
     )
 
+    // Create the toilet first
     if err := tx.Create(toilet).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    if err := tx.Preload("Room").
+    // Fetch the created toilet with relationships
+    var resultToilet models.Item
+    if err := tx.Where("item_id = ?", toilet.ItemID).
+        Preload("Room").
         Preload("Room.Building").
-        First(toilet, toilet.ItemID).Error; err != nil {
+        First(&resultToilet).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
@@ -181,8 +177,8 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    h.wsHub.BroadcastNewItem(toilet, "toilet")
-    return res.CreatedSuccess(c, toilet)
+    h.wsHub.BroadcastNewItem(&resultToilet, "toilet")
+    return res.CreatedSuccess(c, resultToilet)
 }
 
 // Update toilet
@@ -216,20 +212,26 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
     // Build updates map with validations
     updates := make(map[string]interface{})
     
+    // Add room_id validation and update
+    if req.RoomID != nil {
+        if *req.RoomID == "" {
+            return res.BadRequest(c, "room_id cannot be empty")
+        }
+        // Verify new room exists
+        if err := h.ExistingRoom(tx, c, *req.RoomID); err != nil {
+            tx.Rollback()
+            return res.NotFound(c, "Room", err)
+        }
+        // Fixed: Store the pointer value directly since RoomID is *string in the model
+        updates["room_id"] = req.RoomID
+    }
+
+    // Rest of the validations remain the same
     if req.Name != nil {
         if *req.Name == "" {
             return res.BadRequest(c, "name cannot be empty")
         }
         updates["name"] = *req.Name
-    }
-
-
-    if req.Gender != nil {
-        gender := strings.ToLower(*req.Gender)
-        if gender != "male" && gender != "female" && gender != "unisex" {
-            return res.BadRequest(c, "gender must be 'male', 'female', or 'unisex'")
-        }
-        updates["gender"] = gender
     }
 
     if req.PositionX != nil {

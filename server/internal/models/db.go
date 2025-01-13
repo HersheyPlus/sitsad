@@ -163,13 +163,12 @@ func NewTable(itemId, roomID string, posX, posY, width, height float64, name str
 	}
 }
 
-func NewToilet(itemId string, roomID *string, gender, name string, posX, posY, width, height float64) *Item {
+func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64) *Item {
     return &Item{
 		ItemID:   itemId,
         Type:      ItemTypeToilet,
         RoomID:    roomID,
         Name:      name,
-        Gender:    &gender,
         PositionX: &posX,
         PositionY: &posY,
         Width:     &width,

@@ -92,13 +92,8 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
         return res.NotFound(c, "Room", err)
     }
 
-    deviceID := req.DeviceID
-    if deviceID == "" {
-        deviceID = uuid.GenerateUUID()
-    }
-
     device := models.NewDevice(
-        deviceID,
+        uuid.GenerateUUID(),
         req.Name,
         req.Topic,
         req.BuildingID,
