@@ -21,6 +21,11 @@ const DeviceTable = ({
 }: IProps) => {
     const columns = [
         {
+            title: "ID",
+            dataIndex: "device_id",
+            key: "device_id",
+        },
+        {
             title: "Device Name",
             dataIndex: "name",
             key: "name",
@@ -66,7 +71,7 @@ const DeviceTable = ({
                     <Button type="link" onClick={() => onEdit(record)}>
                         Edit
                     </Button>
-                    <Button type="link" danger onClick={() => onDelete(record.id)}>
+                    <Button type="link" danger onClick={() => onDelete(record.device_id)}>
                         Delete
                     </Button>
                 </div>

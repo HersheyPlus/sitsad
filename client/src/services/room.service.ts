@@ -5,7 +5,7 @@ import apiClient from './axios';
 const RoomService = {
     async findAll(): Promise<IRoom[]> {
         const response = await apiClient.get('/rooms');
-        return response.data;
+        return response.data.data;
     },
 
     // async findById(id: string): Promise<IRoom | undefined> {
@@ -24,10 +24,15 @@ const RoomService = {
     },
 
     async findByKeyword(keyword: string): Promise<IRoom[]> {
-        const response = await apiClient.get('/rooms/search', {
-            params: { keyword }
+        if (!keyword) return this.findAll();
+
+        const data = await this.findAll();
+
+        // TOFIX: Implement a better search algorithm in server
+        return data.filter((room) => {
+            return room.room_name.toLowerCase().includes(keyword.toLowerCase());
         });
-        return response.data;
+
     },
 
     async findByKeywordAndItemType(keyword: string, buildingId: string, itemType: string): Promise<IRoom[]> {

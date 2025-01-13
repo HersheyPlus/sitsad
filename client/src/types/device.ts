@@ -4,7 +4,7 @@ export enum DeviceType {
 }
 
 interface IDeviceBase {
-    id: string;
+    device_id: string;
     name: string;
     topic: string;
     building_id: string;

@@ -119,7 +119,6 @@ const RoomWrapper = () => {
         setIsModalOpen(false);
     };
 
-    console.log("Data", data)
 
     return (
         <Flex vertical gap={4} className="p-4">
