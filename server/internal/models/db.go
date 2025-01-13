@@ -36,18 +36,18 @@ const (
 )
 
 type Item struct {
-	ItemID     string    `gorm:"primaryKey;column:item_id;" json:"item_id"`
-	Type       ItemType  `gorm:"column:type;type:varchar(10);not null" json:"type"`
-	RoomID     *string   `gorm:"column:room_id" json:"room_id,omitempty"`
-	Available  bool      `gorm:"column:available;default:true" json:"available"`
-	PositionX  *float64  `gorm:"column:position_x" json:"position_x,omitempty"`
-	PositionY  *float64  `gorm:"column:position_y" json:"position_y,omitempty"`
-	Width      *float64  `gorm:"column:width" json:"width,omitempty"`
-	Height     *float64  `gorm:"column:height" json:"height,omitempty"`
-	Name       string    `gorm:"column:name;not null" json:"name"`
-	Gender     *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
-	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt  time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ItemID    string    `gorm:"primaryKey;column:item_id;" json:"item_id"`
+	Type      ItemType  `gorm:"column:type;type:varchar(10);not null" json:"type"`
+	RoomID    *string   `gorm:"column:room_id" json:"room_id,omitempty"`
+	Available bool      `gorm:"column:available;default:true" json:"available"`
+	PositionX *float64  `gorm:"column:position_x" json:"position_x,omitempty"`
+	PositionY *float64  `gorm:"column:position_y" json:"position_y,omitempty"`
+	Width     *float64  `gorm:"column:width" json:"width,omitempty"`
+	Height    *float64  `gorm:"column:height" json:"height,omitempty"`
+	Name      string    `gorm:"column:name;not null" json:"name"`
+	Gender    *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
+	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Relationships
 	Building *Building           `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
 	Room     *Room               `gorm:"foreignKey:RoomID;references:RoomID" json:"room,omitempty"`
@@ -79,7 +79,7 @@ type ForgotItem struct {
 type DeviceType string
 
 const (
-	DeviceTypeCamera DeviceType = "camera"
+	DeviceTypeCamera DeviceType = "Camera"
 	// Add other device types here as needed
 )
 
@@ -132,7 +132,7 @@ func (i *Item) IsToilet() bool {
 }
 func NewBuilding(buildingId, name, description, imageURL string) *Building {
 	return &Building{
-		BuildingID:buildingId,
+		BuildingID:   buildingId,
 		BuildingName: name,
 		Description:  description,
 		ImageURL:     imageURL,
@@ -151,7 +151,7 @@ func NewRoom(roomId string, buildingID string, roomName, description, imageURL s
 
 func NewTable(itemId, roomID string, posX, posY, width, height float64, name string) *Item {
 	return &Item{
-		ItemID:   itemId,
+		ItemID:    itemId,
 		Type:      ItemTypeTable,
 		RoomID:    &roomID,
 		Available: true,
@@ -164,17 +164,17 @@ func NewTable(itemId, roomID string, posX, posY, width, height float64, name str
 }
 
 func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64) *Item {
-    return &Item{
-		ItemID:   itemId,
-        Type:      ItemTypeToilet,
-        RoomID:    roomID,
-        Name:      name,
-        PositionX: &posX,
-        PositionY: &posY,
-        Width:     &width,
-        Height:    &height,
-        Available: true,
-    }
+	return &Item{
+		ItemID:    itemId,
+		Type:      ItemTypeToilet,
+		RoomID:    roomID,
+		Name:      name,
+		PositionX: &posX,
+		PositionY: &posY,
+		Width:     &width,
+		Height:    &height,
+		Available: true,
+	}
 }
 
 func NewForgotItem(id, imageURL string, date time.Time, tableID, buildingName, roomName string) *ForgotItem {

@@ -48,24 +48,24 @@ const AdminItemCrud = ({ data, buildings, itemType, onSaveItem, onRemoveItem }: 
         setFilteredData(data);
     }, [data])
 
-    useEffect(() => {
-        if (editingKey && rooms.length >= 0) {
-            const record = filteredData.find((item) => item.item_id === editingKey);
+    // useEffect(() => {
+    //     if (editingKey && selectedBuilding && rooms.length >= 0) {
+    //         const record = filteredData.find((item) => item.item_id === editingKey);
 
-            if (!record) return;
+    //         if (!record) return;
 
-            const room = rooms?.[0]
+    //         const room = rooms.filter((loc) => loc.building_id === selectedBuilding.building_id)[0];
 
-            if (room) {
-                const newLocation = {
-                    ...record.location,
-                    room,
-                };
-                doEdit(record.item_id, newLocation, "location");
-                setSelectedRoom(room);
-            }
-        }
-    }, [selectedBuilding, rooms])
+    //         if (room) {
+    //             const newLocation = {
+    //                 ...record.location,
+    //                 room,
+    //             };
+    //             doEdit(record.item_id, newLocation, "location");
+    //             setSelectedRoom(room);
+    //         }
+    //     }
+    // }, [selectedBuilding, rooms])
 
     useEffect(() => {
         if (selectedBuilding) {
@@ -182,6 +182,9 @@ const AdminItemCrud = ({ data, buildings, itemType, onSaveItem, onRemoveItem }: 
             })
             console.error(error);
         }
+
+        // Reload Page
+        window.location.reload();
     };
 
     const doShowWebUrlModal = (url: string) => {

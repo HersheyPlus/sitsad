@@ -16,9 +16,10 @@ const WebUrlModal: React.FC<IProps> = ({ webUrl, isVisible, onClose }) => {
             title="Camera Preview"
             onCancel={onClose}
             footer={null}
-            width="70%"
+            width={370}
+            height={260}
         >
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+            <div style={{ position: 'relative', width: 370, height: 260 }}>
                 <iframe
                     src={webUrl}
                     title="Embedded Web"
@@ -32,6 +33,8 @@ const WebUrlModal: React.FC<IProps> = ({ webUrl, isVisible, onClose }) => {
                     }}
                 />
             </div>
+
+            {/*  */}
         </Modal>
     );
 };

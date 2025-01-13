@@ -66,7 +66,7 @@ const Header: React.FC = () => {
         <AntHeader className="flex items-center justify-between bg-blue-600 shadow-xl">
             <a href="/">
                 <Flex align='center' gap={8}>
-                    <img src="/assets/logo.png" alt="SIT Krana" className="w-auto h-12" />
+                    <img src="/assets/logo.jpeg" alt="SIT Krana" className="w-auto h-12" />
                     <div className="font-bold text-white sm:block sm:text-2xl">SIT Krana</div>
                 </Flex>
             </a>

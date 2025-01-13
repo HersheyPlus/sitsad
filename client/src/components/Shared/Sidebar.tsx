@@ -104,7 +104,7 @@ const Sidebar: React.FC = () => {
             >
                 <div className="h-16 px-4 flex items-center bg-[#1A1F37] border-b border-gray-700">
                     <Link to="/" className="flex items-center gap-3">
-                        <img src="/assets/logo.png" alt="SIT Krana" className="w-7 h-7" />
+                        <img src="/assets/logo.jpeg" alt="SIT Krana" className="w-7 h-7" />
                         <span className="text-lg font-medium text-white">SIT Krana</span>
                     </Link>
                 </div>
@@ -121,7 +121,7 @@ const Sidebar: React.FC = () => {
             <Drawer
                 title={
                     <div className="flex items-center gap-3">
-                        <img src="/assets/logo.png" alt="SIT Krana" className="w-7 h-7" />
+                        <img src="/assets/logo.jpeg" alt="SIT Krana" className="w-7 h-7" />
                         <span className="text-lg font-medium text-white">SIT Krana</span>
                     </div>
                 }
