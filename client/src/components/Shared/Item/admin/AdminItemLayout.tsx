@@ -10,14 +10,14 @@ const GRID_SIZE = 100;
 
 interface IProps {
     data: IItem[]
-    doAddItem: (data: IItem) => void
+    doSaveItem: (data: IItem, create: boolean) => void
     doUpdateItem: React.Dispatch<React.SetStateAction<IItem[]>>
     itemType: ItemType
     selectedBuilding: IBuilding | undefined
     selectedRoom: IRoom | undefined
 }
 
-const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuilding, selectedRoom }: IProps) => {
+const AdminItemLayout = ({ data, doUpdateItem, doSaveItem, itemType, selectedBuilding, selectedRoom }: IProps) => {
     const [items, setItems] = useState<IItem[]>(data);
     const openNotification = useNotificationStore(state => state.openNotification);
 
@@ -65,21 +65,32 @@ const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuil
     const doResize = (id: string, width: number, height: number) => {
         const snappedWidth = Math.round(width / GRID_SIZE) * GRID_SIZE;
         const snappedHeight = Math.round(height / GRID_SIZE) * GRID_SIZE;
+        const item = items.find(t => t.item_id === id)
 
+        if (!item) return
         // Check for overlap before allowing the resize
-        const { position_x, position_y } = items.find(t => t.item_id === id) || { position_x: 0, position_y: 0 };
+        const { position_x, position_y } = item || { position_x: 0, position_y: 0 };
         if (!doCheckOverlap(id, position_x, position_y, snappedWidth, snappedHeight)) {
+            const updatedItem: IItem = {
+                ...item,
+                width: snappedWidth,
+                height: snappedHeight
+            }
+
             setItems((prevItem) =>
                 prevItem.map((item) =>
-                    item.item_id === id ? { ...item, width: snappedWidth, height: snappedHeight } : item
+                    item.item_id === id ? { ...updatedItem } : item
                 )
             );
 
             doUpdateItem((prevItem) =>
                 prevItem.map((item) =>
-                    item.item_id === id ? { ...item, width: snappedWidth, height: snappedHeight } : item
+                    item.item_id === id ? { ...updatedItem } : item
                 )
             )
+
+
+            doSaveItem(updatedItem, false);
         }
     };
 
@@ -115,7 +126,8 @@ const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuil
         };
 
         setItems((prevItem) => [...prevItem, newItem]);
-        doAddItem(newItem);
+        doUpdateItem((prevItem) => [...prevItem, newItem]);
+        doSaveItem(newItem, true);
     };
 
     return (
@@ -127,9 +139,9 @@ const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuil
                 Add Item
             </Button>
             <div className="absolute top-0 left-0 w-full h-full p-2">
-                {items.map((item) => (
+                {items.map((item, idx) => (
                     <Rnd
-                        key={item.item_id}
+                        key={`${item.item_id}-${idx}`}
                         position={{ x: item.position_x, y: item.position_y }} // Use `position` for Rnd to control the position directly
                         size={{ width: item.width, height: item.height }} // Use `size` for Rnd to control the size directly
                         bounds="parent"

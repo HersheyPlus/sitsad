@@ -109,7 +109,7 @@ const AdminToiletPage = () => {
 
     const doSearchRooms = async (buildingId: string) => {
         try {
-            const data = await RoomService.findByBuildingId(buildingId);
+            const data = await RoomService.findByKeywordAndItemType("", buildingId, ItemType.TOILET);
             setRooms(data || []);
         } catch (error) {
             openNotification({
@@ -122,10 +122,24 @@ const AdminToiletPage = () => {
 
     }
 
-    const doAddItem = async (item: IItem) => {
+    const doSaveItem = async (item: IItem, create: boolean) => {
         try {
-            const newItem = await ToiletService.create(item);
-            setItems((prevItems) => [...prevItems, newItem]);
+            if (create) {
+                await ToiletService.create(item);
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Item created successfully'
+                })
+            } else {
+                await ToiletService.update(item);
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Item updated successfully'
+                })
+            }
+            setItems((prevItems) => [...prevItems, item]);
         } catch (error) {
             openNotification({
                 type: 'error',
@@ -152,7 +166,7 @@ const AdminToiletPage = () => {
             <AdminItemLayout
                 data={items}
                 doUpdateItem={setItems}
-                doAddItem={doAddItem}
+                doSaveItem={doSaveItem}
                 itemType={ItemType.TOILET}
                 selectedBuilding={selectedBuilding}
                 selectedRoom={selectedRoom}

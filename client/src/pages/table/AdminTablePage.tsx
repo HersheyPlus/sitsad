@@ -111,7 +111,7 @@ const AdminTablePage = () => {
 
     const doSearchRooms = async (buildingId: string) => {
         try {
-            const data = await RoomService.findByBuildingId(buildingId);
+            const data = await RoomService.findByKeywordAndItemType("", buildingId, ItemType.TABLE);
             setRooms(data || []);
         } catch (error) {
             openNotification({
@@ -124,15 +124,24 @@ const AdminTablePage = () => {
 
     }
 
-    const doAddItem = async (item: IItem) => {
+    const doSaveItem = async (item: IItem, create: boolean) => {
         try {
-            const newItem = await TableService.create(item);
-            setItems((prevItems) => [...prevItems, newItem]);
-            openNotification({
-                type: 'success',
-                message: 'Success',
-                description: 'Table created successfully'
-            })
+            if (create) {
+                await TableService.create(item);
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Item created successfully'
+                })
+            } else {
+                await TableService.update(item);
+                openNotification({
+                    type: 'success',
+                    message: 'Success',
+                    description: 'Item updated successfully'
+                })
+            }
+            setItems((prevItems) => [...prevItems, item]);
         } catch (error) {
             openNotification({
                 type: 'error',
@@ -141,7 +150,6 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     return (
@@ -160,7 +168,7 @@ const AdminTablePage = () => {
             <AdminItemLayout
                 data={items}
                 doUpdateItem={setItems}
-                doAddItem={doAddItem}
+                doSaveItem={doSaveItem}
                 itemType={ItemType.TABLE}
                 selectedBuilding={selectedBuilding}
                 selectedRoom={selectedRoom}
