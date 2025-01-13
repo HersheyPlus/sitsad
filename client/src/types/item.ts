@@ -19,7 +19,6 @@ export interface IItem {
         room: IRoom
     }
 
-    // [key: string]: any; // Add this line
 }
 
 export interface IItemPayload {
