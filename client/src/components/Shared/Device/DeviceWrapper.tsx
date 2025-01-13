@@ -85,7 +85,7 @@ const DeviceWrapper = () => {
 
     const doDelete = async (id: string) => {
         try {
-            setDevices((prevData) => prevData.filter((item) => item.id !== id));
+            setDevices((prevData) => prevData.filter((item) => item.device_id !== id));
 
             await DeviceService.delete(id)
             openNotification({
@@ -108,7 +108,7 @@ const DeviceWrapper = () => {
         if (editingDevice) {
             setDevices((prevData) =>
                 prevData.map((item) =>
-                    item.id === editingDevice.id ? { ...editingDevice, ...payload } : item
+                    item.device_id === editingDevice.device_id ? { ...editingDevice, ...payload } : item
                 )
             );
 
@@ -149,6 +149,7 @@ const DeviceWrapper = () => {
 
             const newPayload = {
                 ...payload,
+                device_id: new Date().getTime().toString(),
                 topic
             }
 

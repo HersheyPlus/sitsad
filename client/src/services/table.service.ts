@@ -1,5 +1,5 @@
 // src/services/TableService.ts
-import { IItem } from "@/types/item";
+import { IItem, IItemPayload } from "@/types/item";
 import apiClient from './axios';
 
 const TableService = {
@@ -30,7 +30,7 @@ const TableService = {
         return response.data;
     },
 
-    async create(table: IItem): Promise<IItem> {
+    async create(table: IItem | IItemPayload): Promise<IItem> {
         const response = await apiClient.post('/tables', table);
         return response.data;
     },

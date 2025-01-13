@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Table, Card, Space, Input, Select, Button, Popconfirm } from "antd";
-import { IItem } from "@/types/item";
+import { IItem, IItemPayload } from "@/types/item";
 import { useEffect, useState } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { IBuilding, IRoom } from "@/types/location";
 import { useNotificationStore } from "@/stores/notification.store";
+import AdminItemCreateModal from "./AdminItemCreateModal";
 
 dayjs.extend(isBetween);
 
@@ -17,14 +18,17 @@ interface IProps {
     buildings: IBuilding[];
     rooms: IRoom[];
     itemType: string;
-    service: any;
+    onSaveItem: (data: IItem | IItemPayload, create: boolean) => void;
+    onRemoveItem: (id: string) => void;
 }
 
-const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) => {
+const AdminItemCrud = ({ data, buildings, rooms, itemType, onSaveItem, onRemoveItem }: IProps) => {
     const [filteredData, setFilteredData] = useState<IItem[]>(data);
     const [query, setQuery] = useState<string>("");
     const [editingKey, setEditingKey] = useState<string | null>(null);
     const openNotification = useNotificationStore((state) => state.openNotification);
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     useEffect(() => {
         setFilteredData(data);
@@ -44,7 +48,6 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
         setEditingKey(key);
     };
 
-    // Handle table data edit
     const doEdit = (key: React.Key, value: string | number | { building: IBuilding; room: IRoom } | undefined, column: string) => {
         const newData = [...filteredData];
         const index = newData.findIndex((item) => key === item.item_id);
@@ -60,15 +63,17 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
         setEditingKey(null);
     };
 
-    const doSave = (key: string) => {
+    const doSave = (key: string | IItem | IItemPayload) => {
         setEditingKey(null);
 
-        const editedItem = filteredData.find((item) => item.item_id === key);
+        const editedItem = typeof key === "string" ? filteredData.find((item) => item.item_id === key) : key;
 
         if (!editedItem) return;
 
+        console.log("Edited item", editedItem);
+
         try {
-            service.update(editedItem);
+            onSaveItem(editedItem, false);
             openNotification({
                 message: "Item updated",
                 description: "The item has been updated successfully.",
@@ -83,12 +88,6 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
             })
             console.error(error);
         }
-
-    };
-
-    // Handle remove table
-    const doRemove = (id: string) => {
-        setFilteredData(filteredData.filter((item) => item.item_id !== id));
     };
 
     const idTitle = itemType.charAt(0).toUpperCase() + itemType.slice(1);
@@ -111,18 +110,6 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
                     editable={editingKey === record.item_id.toString()}
                     value={text}
                     onChange={(value) => doEdit(record.item_id, value, "name")}
-                />
-            ),
-        },
-        {
-            title: "Description",
-            dataIndex: "description",
-            key: "description",
-            render: (text, record) => (
-                <EditableCell
-                    editable={editingKey === record.item_id.toString()}
-                    value={text}
-                    onChange={(value) => doEdit(record.item_id, value, "description")}
                 />
             ),
         },
@@ -213,7 +200,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
                             />
                             <Popconfirm
                                 title="Are you sure to delete this item?"
-                                onConfirm={() => doRemove(record.item_id)}
+                                onConfirm={() => onRemoveItem(record.item_id)}
                             >
                                 <Button
                                     type="link"
@@ -246,6 +233,21 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
                     backgroundColor: "#ffffff",
                     borderRadius: "12px",
                 }}
+                footer={() => (
+                    <div style={{ textAlign: "right" }}>
+                        <Button type="primary" onClick={() => setIsModalVisible(true)}>
+                            Add new Item
+                        </Button>
+                    </div>
+                )}
+            />
+
+            <AdminItemCreateModal
+                open={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                onSubmit={(payload) => onSaveItem(payload, true)}
+                buildings={buildings}
+                itemType={itemType}
             />
         </Card>
     );

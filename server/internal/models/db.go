@@ -46,7 +46,7 @@ type Item struct {
 	Width      *float64  `gorm:"column:width" json:"width,omitempty"`
 	Height     *float64  `gorm:"column:height" json:"height,omitempty"`
 	Floor      *int      `gorm:"column:floor" json:"floor,omitempty"`
-	Name       string    `gorm:"column:name;not null" json:"room_name"`
+	Name       string    `gorm:"column:name;not null" json:"name"`
 	Gender     *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
 	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -66,39 +66,38 @@ type BookingTimePeriod struct {
 }
 
 type ForgotItem struct {
-    ID           string    `gorm:"primaryKey;column:forgot_item_id" json:"id"`
-    ImageURL     string    `gorm:"column:image_url;type:text" json:"imageUrl"`
-    Date         time.Time `gorm:"column:date;not null" json:"date"`
-    TableID      string    `gorm:"column:table_id;not null" json:"tableId"`
-    CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"createdAt"`
-    UpdatedAt    time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updatedAt"`
-    // Relations
-    Table        Item      `gorm:"foreignKey:TableID" json:"-"`
-    BuildingName string    `gorm:"column:building_name;type:varchar(100)" json:"building_name"`
-    RoomName     string    `gorm:"column:room_name;type:varchar(100)" json:"room_name"`
+	ID        string    `gorm:"primaryKey;column:forgot_item_id" json:"id"`
+	ImageURL  string    `gorm:"column:image_url;type:text" json:"imageUrl"`
+	Date      time.Time `gorm:"column:date;not null" json:"date"`
+	TableID   string    `gorm:"column:table_id;not null" json:"tableId"`
+	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updatedAt"`
+	// Relations
+	Table        Item   `gorm:"foreignKey:TableID" json:"-"`
+	BuildingName string `gorm:"column:building_name;type:varchar(100)" json:"building_name"`
+	RoomName     string `gorm:"column:room_name;type:varchar(100)" json:"room_name"`
 }
 
 type DeviceType string
 
 const (
-    DeviceTypeCamera DeviceType = "camera"
-    // Add other device types here as needed
+	DeviceTypeCamera DeviceType = "camera"
+	// Add other device types here as needed
 )
 
-
 type Device struct {
-    ID         string     `gorm:"primaryKey;column:device_id" json:"id"`
-    Name       string     `gorm:"column:name;type:varchar(100);not null" json:"name"`
-    Topic      string     `gorm:"column:topic;type:varchar(100);not null" json:"topic"`
-    BuildingID string     `gorm:"column:building_id;not null" json:"building_id"`
-    RoomID     string     `gorm:"column:room_id;not null" json:"room_id"`
-    Type       DeviceType `gorm:"column:type;type:varchar(20);not null" json:"type"`
-    WebURL     string     `gorm:"column:web_url;type:text" json:"webUrl"`
-    CreatedAt  time.Time  `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"createdAt"`
-    UpdatedAt  time.Time  `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updatedAt"`
-    // Relations
-    Building   Building   `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
-    Room       Room       `gorm:"foreignKey:RoomID" json:"room,omitempty"`
+	ID         string     `gorm:"primaryKey;column:device_id" json:"device_id"`
+	Name       string     `gorm:"column:name;type:varchar(100);not null" json:"name"`
+	Topic      string     `gorm:"column:topic;type:varchar(100);not null" json:"topic"`
+	BuildingID string     `gorm:"column:building_id;not null" json:"building_id"`
+	RoomID     string     `gorm:"column:room_id;not null" json:"room_id"`
+	Type       DeviceType `gorm:"column:type;type:varchar(20);not null" json:"type"`
+	WebURL     string     `gorm:"column:web_url;type:text" json:"webUrl"`
+	CreatedAt  time.Time  `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt  time.Time  `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updatedAt"`
+	// Relations
+	Building Building `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
+	Room     Room     `gorm:"foreignKey:RoomID" json:"room,omitempty"`
 }
 
 // TableName methods
@@ -119,11 +118,11 @@ func (BookingTimePeriod) TableName() string {
 }
 
 func (ForgotItem) TableName() string {
-    return "forgot_items"
+	return "forgot_items"
 }
 
 func (Device) TableName() string {
-    return "devices"
+	return "devices"
 }
 
 func (i *Item) IsTable() bool {
@@ -184,24 +183,24 @@ func NewToilet(itemId string, floor int, roomID *string, gender, name string, po
 }
 
 func NewForgotItem(id, imageURL string, date time.Time, tableID, buildingName, roomName string) *ForgotItem {
-    return &ForgotItem{
-        ID:           id,
-        ImageURL:     imageURL,
-        Date:         date,
-        TableID:      tableID,
-        BuildingName: buildingName,
-        RoomName:     roomName,
-    }
+	return &ForgotItem{
+		ID:           id,
+		ImageURL:     imageURL,
+		Date:         date,
+		TableID:      tableID,
+		BuildingName: buildingName,
+		RoomName:     roomName,
+	}
 }
 
 func NewDevice(id, name, topic, buildingID, roomID string, deviceType DeviceType, webURL string) *Device {
-    return &Device{
-        ID:         id,
-        Name:       name,
-        Topic:      topic,
-        BuildingID: buildingID,
-        RoomID:     roomID,
-        Type:       deviceType,
-        WebURL:     webURL,
-    }
+	return &Device{
+		ID:         id,
+		Name:       name,
+		Topic:      topic,
+		BuildingID: buildingID,
+		RoomID:     roomID,
+		Type:       deviceType,
+		WebURL:     webURL,
+	}
 }

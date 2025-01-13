@@ -31,7 +31,7 @@ const DeviceService = {
     },
 
     async update(device: IDevice): Promise<void> {
-        await apiClient.put(`/devices/${device.id}`, device);
+        await apiClient.put(`/devices/${device.device_id}`, device);
     },
 
     async delete(id: string): Promise<void> {

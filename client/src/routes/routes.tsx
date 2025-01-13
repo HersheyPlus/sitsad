@@ -26,6 +26,7 @@ import AdminTablePage from "@/pages/table/AdminTablePage";
 import ForgotItemPage from "@/pages/forgot-item/ForgotItemPage";
 import DevicePage from "@/pages/DevicePage";
 import ReservationPage from "@/pages/ReservationPage";
+import AdminForgotItemPage from "@/pages/forgot-item/AdminForgotItemPage";
 // import AdminToiletPage from "@/pages/toilet/AdminToiletPage";
 
 export const routes = [
@@ -76,7 +77,7 @@ export const routes = [
             { path: "table", element: <AdminTablePage /> },
             { path: "toilet", element: <AdminToiletPage /> },
             { path: "location", element: <LocationPage /> },
-            { path: "forgot-item", element: <ForgotItemPage /> },
+            { path: "forgotten-items", element: <AdminForgotItemPage /> },
             { path: "device", element: <DevicePage /> },
             {
                 path: "*", element: <NotFoundPage />

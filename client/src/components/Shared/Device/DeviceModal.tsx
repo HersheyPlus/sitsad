@@ -14,7 +14,7 @@ interface IProps {
 
 const deviceTypes = Object.values(DeviceType);
 
-const RoomModal = ({
+const DeviceModal = ({
     visible,
     buildings,
     rooms,
@@ -31,6 +31,7 @@ const RoomModal = ({
             form.setFieldsValue(editingDevice); // Load the device's data into the form
             setSelectedBuilding(editingDevice.building_id); // Update selectedBuilding
             setSelectedType(editingDevice.type); // Update selectedType for conditional fields
+
         } else {
             form.resetFields();
             setSelectedBuilding(undefined);
@@ -39,7 +40,9 @@ const RoomModal = ({
     }, [editingDevice, form]);
 
     useEffect(() => {
-        form.setFieldValue("room_id", undefined); // Reset room when building changes
+        if (!editingDevice) {
+            form.setFieldValue("room_id", undefined); // Reset room when building changes
+        }
     }, [selectedBuilding]);
 
     const doSelectBuilding = (value: string) => {
@@ -71,6 +74,13 @@ const RoomModal = ({
         >
             <Form form={form} layout="vertical">
                 <Form.Item
+                    name="device_id"
+                    label="Device id"
+                    className="hidden"
+                >
+                    <Input value={editingDevice?.building_id} />
+                </Form.Item>
+                <Form.Item
                     name="name"
                     label="Device name"
                     rules={[{ required: true, message: "Please enter device name" }]}
@@ -83,7 +93,7 @@ const RoomModal = ({
                     rules={[{ required: true, message: "Please select a building" }]}
                 >
                     <Select placeholder="Select a building" onChange={doSelectBuilding}>
-                        {buildings.map((building) => (
+                        {buildings && buildings.map((building) => (
                             <Select.Option key={building.building_id} value={building.building_id}>
                                 {building.building_name}
                             </Select.Option>
@@ -98,8 +108,9 @@ const RoomModal = ({
                     <Select
                         placeholder="Select a room"
                         disabled={!selectedBuilding} // Only disable if no building is selected
+                        defaultValue={editingDevice?.building_id}
                     >
-                        {rooms
+                        {rooms && rooms
                             .filter((room) => room.building_id === selectedBuilding)
                             .map((room) => (
                                 <Select.Option key={room.room_id} value={room.room_id}>
@@ -114,7 +125,7 @@ const RoomModal = ({
                     label="Type"
                     rules={[{ required: true, message: "Please select a type" }]}
                 >
-                    <Select placeholder="Select a type" onChange={doSelectType}>
+                    <Select placeholder="Select a type" onChange={doSelectType} >
                         {deviceTypes.map((type) => (
                             <Select.Option key={type} value={type}>
                                 {type}
@@ -147,4 +158,4 @@ const RoomModal = ({
     );
 };
 
-export default RoomModal;
+export default DeviceModal;

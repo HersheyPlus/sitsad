@@ -1,5 +1,5 @@
 // src/services/ToiletService.ts
-import { IItem } from "@/types/item";
+import { IItem, IItemPayload } from "@/types/item";
 import apiClient from './axios';
 
 const ToiletService = {
@@ -19,7 +19,7 @@ const ToiletService = {
         return response.data;
     },
 
-    async create(toilet: IItem): Promise<IItem> {
+    async create(toilet: IItem | IItemPayload): Promise<IItem> {
         const response = await apiClient.post('/toilets', toilet);
         return response.data;
     },

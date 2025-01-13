@@ -1,33 +1,29 @@
-import { IBuilding, IRoom } from "@/types/location";
 import { Flex } from "antd";
 import { useEffect, useState } from "react";
-import LocationFilter from "../LocationFilter";
-import RoomTable from "./RoomTable";
-import RoomModal from "./RoomModal";
-import BuildingService from "@/services/building.service";
-import RoomService from "@/services/room.service";
 import { useNotificationStore } from "@/stores/notification.store";
+import ForgotItemFilter from "../ForgotItemFilter";
+import ForgotItemService from "@/services/forgot-item.service";
+import { IForgot } from "@/types/forgot-item";
+import ForgotItemTable from "./ForgotItemTable";
+import ForgotItemModal from "./ForgotItemModal";
 
-
-const RoomWrapper = () => {
-    const [data, setData] = useState<IRoom[]>([]);
-    const [buildings, setBuildings] = useState<IBuilding[]>([]);
+const ForgotItemWrapper = () => {
+    const [data, setData] = useState<IForgot[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [query, setQuery] = useState<string>("");
-    const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
+    const [editingItem, setEditingItem] = useState<IForgot | null>(null);
     const openNotification = useNotificationStore(
         (state) => state.openNotification
     )
+
     useEffect(() => {
-        doGetBuildings();
         doSearch()
     }, [])
-
 
     const doSearch = async () => {
         // do something
         try {
-            const data = await RoomService.findByKeyword(query)
+            const data = await ForgotItemService.findByKeyword(query)
             setData(data)
         } catch (error) {
             openNotification({
@@ -40,49 +36,35 @@ const RoomWrapper = () => {
 
     }
 
-    const doGetBuildings = async () => {
-        try {
-            const data = await BuildingService.findAll()
-            setBuildings(data)
-        } catch (error) {
-            openNotification({
-                type: 'error',
-                message: 'Error',
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                description: (error as any).message
-            })
-        }
-    }
-
     const openAddModal = () => {
-        setEditingRoom(null);
+        setEditingItem(null);
         setIsModalOpen(true);
     };
 
-    const doEdit = (record: IRoom) => {
-        setEditingRoom(record);
+    const doEdit = (record: IForgot) => {
+        setEditingItem(record);
         setIsModalOpen(true);
     };
 
     const doDelete = (id: string) => {
-        setData((prevData) => prevData.filter((item) => item.room_id !== id));
+        setData((prevData) => prevData.filter((item) => item.id !== id));
     };
 
-    const doSave = async (payload: IRoom) => {
-        if (editingRoom) {
+    const doSave = async (payload: IForgot) => {
+        if (editingItem) {
             setData((prevData) =>
                 prevData.map((item) =>
-                    item.room_id === editingRoom.room_id ? { ...editingRoom, ...payload } : item
+                    item.id === editingItem.id ? { ...editingItem, ...payload } : item
                 )
             );
 
             try {
-                await RoomService.update(editingRoom.room_id, payload)
+                await ForgotItemService.update(payload)
 
                 openNotification({
                     type: 'success',
                     message: 'Success',
-                    description: 'Building updated successfully'
+                    description: 'Forgotten Item updated successfully'
                 })
             } catch (error) {
                 openNotification({
@@ -99,12 +81,12 @@ const RoomWrapper = () => {
             ]);
 
             try {
-                await RoomService.create(payload)
+                await ForgotItemService.create(payload)
 
                 openNotification({
                     type: 'success',
                     message: 'Success',
-                    description: 'Room created successfully'
+                    description: 'Forgotten Item created successfully'
                 })
             } catch (error) {
                 openNotification({
@@ -115,27 +97,23 @@ const RoomWrapper = () => {
                 })
             }
         }
-
         setIsModalOpen(false);
     };
 
-
     return (
         <Flex vertical gap={4} className="p-4">
-            <LocationFilter doChangeQuery={setQuery} doSearch={doSearch} />
+            <ForgotItemFilter doChangeQuery={setQuery} doSearch={doSearch} />
 
-            <RoomTable
+            <ForgotItemTable
                 data={data}
                 onAdd={openAddModal}
                 onEdit={doEdit}
                 onDelete={doDelete}
-                buildings={buildings}
             />
 
-            <RoomModal
+            <ForgotItemModal
                 visible={isModalOpen}
-                editingRoom={editingRoom}
-                buildings={buildings}
+                editingItem={editingItem}
                 onCancel={() => setIsModalOpen(false)}
                 onSave={doSave}
             />
@@ -144,4 +122,4 @@ const RoomWrapper = () => {
     );
 };
 
-export default RoomWrapper;
+export default ForgotItemWrapper;

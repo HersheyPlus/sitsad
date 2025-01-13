@@ -22,6 +22,18 @@ export interface IItem {
     // [key: string]: any; // Add this line
 }
 
+export interface IItemPayload {
+    type: ItemType;
+    available: boolean;
+    position_x: number;
+    position_y: number;
+    width: number;
+    height: number;
+    name: string;
+    room_id: string;
+}
+
+
 export enum ItemType {
     TABLE = 'table',
     TOILET = 'toilet',
