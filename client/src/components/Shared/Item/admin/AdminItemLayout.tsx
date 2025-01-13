@@ -46,19 +46,30 @@ const AdminItemLayout = ({ data, doUpdateItem, doSaveItem, itemType, selectedBui
     const doDrag = (id: string, data: { x: number; y: number }) => {
         const { x: snappedX, y: snappedY } = doSnapToGrid(data.x, data.y);
 
+        const item = items.find(t => t.item_id === id)
+
+        if (!item) return
         // Check for overlap before allowing the move
-        if (!doCheckOverlap(id, snappedX, snappedY, items.find(t => t.item_id === id)?.width || 100, items.find(t => t.item_id === id)?.height || 100)) {
+        if (!doCheckOverlap(id, snappedX, snappedY, item?.width || 100, item?.height || 100)) {
+            const updatedItem: IItem = {
+                ...item,
+                position_x: snappedX,
+                position_y: snappedY
+            }
+
             setItems((prevItem) =>
                 prevItem.map((item) =>
-                    item.item_id === id ? { ...item, position_x: snappedX, position_y: snappedY } : item
+                    item.item_id === id ? { ...updatedItem } : item
                 )
             );
 
             doUpdateItem((prevTable) =>
                 prevTable.map((item) =>
-                    item.item_id === id ? { ...item, position_x: snappedX, position_y: snappedY } : item
+                    item.item_id === id ? { ...updatedItem } : item
                 )
             )
+
+            doSaveItem(updatedItem, false);
         }
     };
 
@@ -88,7 +99,6 @@ const AdminItemLayout = ({ data, doUpdateItem, doSaveItem, itemType, selectedBui
                     item.item_id === id ? { ...updatedItem } : item
                 )
             )
-
 
             doSaveItem(updatedItem, false);
         }
