@@ -48,7 +48,7 @@ type Item struct {
 	Width      *float64  `gorm:"column:width" json:"width,omitempty"`
 	Height     *float64  `gorm:"column:height" json:"height,omitempty"`
 	Floor      *int      `gorm:"column:floor" json:"floor,omitempty"`
-	Name       string    `gorm:"column:name;not null" json:"room_name"`
+	Name       string    `gorm:"column:name;not null" json:"name"`
 	Gender     *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
 	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
