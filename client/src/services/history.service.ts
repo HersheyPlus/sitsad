@@ -1,58 +1,73 @@
+// src/services/HistoryService.ts
 import { IItemHistory } from "@/types/item";
-
-const mockupHistory: IItemHistory[] = [
-    {
-        id: "1",
-        item_id: "1",
-        room_id: "1",
-        started_booking_time: "2025-01-09 10:00 AM",
-        ended_booking_time: "2025-01-09 12:00 PM",
-        phoneNo: "1234567890",
-    },
-    {
-        id: "2",
-        item_id: "1",
-        room_id: "2",
-        started_booking_time: "2025-01-09 01:00 PM",
-        ended_booking_time: "2025-01-09 03:00 PM",
-        phoneNo: undefined,
-    },
-];
+import apiClient from './axios';
 
 const HistoryService = {
-    findAll() {
-        return mockupHistory;
-    },
-
-    async findById(id: string) {
-        return mockupHistory.find(history => history.id === id);
-    },
-
-    async findByItemId(item_id: string) {
-        return mockupHistory.filter(history => history.item_id === item_id);
-    },
-
-    async findByRoomId(roomId: string) {
-        return mockupHistory.filter(history => history.room_id.toString().startsWith(roomId));
-    },
-
-    async create(history: IItemHistory) {
-        mockupHistory.push(history);
-    },
-
-    async update(history: IItemHistory) {
-        const index = mockupHistory.findIndex(h => h.id === history.id);
-        if (index !== -1) {
-            mockupHistory[index] = history;
+    // async findAll(roomId: string): Promise<IItemHistory[]> {
+    //     try {
+    //         const response = await apiClient.get(`/histories/${roomId}`);
+    //         return response.data.data;
+    //     } catch (error) {
+    //         console.error('Error fetching histories:', error);
+    //         throw error;
+    //     }
+    // },
+    async findByRoomId(roomId: string): Promise<IItemHistory[]> {
+        try {
+            const response = await apiClient.get(`/histories/${roomId}`);
+            return response.data.data;
+        } catch (error) {
+            console.error('Error fetching histories:', error);
+            throw error;
         }
     },
 
-    async delete(id: string) {
-        const index = mockupHistory.findIndex(h => h.id === id);
-        if (index !== -1) {
-            mockupHistory.splice(index, 1);
+    async findById(id: string): Promise<IItemHistory | undefined> {
+        try {
+            const response = await apiClient.get(`/histories/id/${id}`);
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error fetching history ${id}:`, error);
+            throw error;
+        }
+    },
+
+    async findByItemId(itemId: string): Promise<IItemHistory[]> {
+        try {
+            const response = await apiClient.get(`/histories/item/${itemId}`);
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error fetching histories for item ${itemId}:`, error);
+            throw error;
+        }
+    },
+
+    async create(history: IItemHistory): Promise<void> {
+        try {
+            await apiClient.post('/histories', history);
+        } catch (error) {
+            console.error('Error creating history:', error);
+            throw error;
+        }
+    },
+
+    async update(id: string, history: IItemHistory): Promise<void> {
+        try {
+            await apiClient.put(`/histories/${id}`, history);
+        } catch (error) {
+            console.error(`Error updating history ${id}:`, error);
+            throw error;
+        }
+    },
+
+    async delete(id: string): Promise<void> {
+        try {
+            await apiClient.delete(`/histories/${id}`);
+        } catch (error) {
+            console.error(`Error deleting history ${id}:`, error);
+            throw error;
         }
     }
-}
+};
 
-export default HistoryService
+export default HistoryService;

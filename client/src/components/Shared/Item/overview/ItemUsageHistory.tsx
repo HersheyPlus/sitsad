@@ -7,9 +7,9 @@ const { Title } = Typography
 const historyColumns: ColumnsType<IItemHistory> = [
     {
         title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
-        sorter: (a, b) => a.id.localeCompare(b.id),
+        dataIndex: 'booking_time_period_id',
+        key: 'booking_time_period_id',
+        sorter: (a, b) => a.booking_time_period_id.localeCompare(b.booking_time_period_id),
     },
     {
         title: 'Reservation Time',
