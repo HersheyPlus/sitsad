@@ -22,20 +22,20 @@ type CreateTableRequest struct {
 }
 
 type CreateDeviceRequest struct {
-    Name       string         `json:"name" validate:"required"`
-    Topic      string         `json:"topic" validate:"required"`
-    BuildingID string         `json:"building_id" validate:"required"`
-    RoomID     string         `json:"room_id" validate:"required"`
-    Type       models.DeviceType `json:"type" validate:"required"`
-    WebURL     string         `json:"web_url" validate:"required"`
+    DeviceID   string            `json:"device_id"`
+    Name       string            `json:"name"`
+    Topic      string            `json:"topic"`
+    BuildingID string            `json:"building_id"`
+    RoomID     string            `json:"room_id"`
+    Type       models.DeviceType `json:"type"`
+    WebUrl     string            `json:"webUrl"`
 }
 
 type CreateForgotItemRequest struct {
-    ImageURL     string    `json:"image_url" validate:"required"`
-    Date         time.Time `json:"date" validate:"required"`
-    TableID      string    `json:"table_id" validate:"required"`
-    BuildingName string    `json:"building_name" validate:"required"`
-    RoomName     string    `json:"room_name" validate:"required"`
+    TableID      string    `form:"table_id"`
+    BuildingName string    `form:"building_name"`
+    RoomName     string    `form:"room_name"`
+    Date         time.Time `form:"date"`
 }
 
 type UpdateTableRequest struct {
@@ -49,7 +49,6 @@ type UpdateTableRequest struct {
 
 
 type CreateToiletRequest struct {
-    Floor      int     `json:"floor" validate:"required"`
     RoomID     string  `json:"room_id"`
     Gender     string  `json:"gender" validate:"required,oneof=Male Female Unisex"`
     PositionX  float64 `json:"position_x" validate:"required"`
@@ -60,7 +59,6 @@ type CreateToiletRequest struct {
 }
 
 type UpdateToiletRequest struct {
-    Floor     *int     `json:"floor"`
     Gender    *string  `json:"gender"`
     PositionX *float64 `json:"position_x"`
     PositionY *float64 `json:"position_y"`
@@ -72,16 +70,12 @@ type UpdateToiletRequest struct {
 type CreateBuildingRequest struct {
 	BuildingName string `json:"building_name" validate:"required"`
 	Description  string `json:"description" validate:"required"`
-	ImageURL     string `json:"image_url" validate:"required"`
 }
 
 type CreateRoomRequest struct {
-	RoomID	string `json:"room_id" validate:"required"`
 	BuildingID   string `json:"building_id" validate:"required"`
 	RoomName    string `json:"room_name" validate:"required"`
 	Description string `json:"description"`
-	Floor       int    `json:"floor" validate:"required"`
-	ImageURL    string `json:"image_url"`
 }
 
 type ItemResponse struct {
@@ -93,7 +87,6 @@ type ItemResponse struct {
     PositionY   float64         `json:"position_y"`
     Width       float64         `json:"width"`
     Height      float64         `json:"height"`
-    Floor       *int            `json:"floor,omitempty"`
     Name        string          `json:"name"`
     Description *string         `json:"description,omitempty"`
     Location    LocationResponse `json:"location"`
@@ -117,8 +110,9 @@ type RoomResponse struct {
     RoomName    string  `json:"room_name"`
     Description string  `json:"description"`
     ImageURL    string  `json:"imageURL"`
-    Floor       int     `json:"floor"`
 }
+
+
 
 
 func NewHandler(db *gorm.DB, wsHub *ws.Hub) *Handler {

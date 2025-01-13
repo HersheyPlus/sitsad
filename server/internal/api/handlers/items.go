@@ -89,7 +89,7 @@ func (h *Handler) DeleteItem(c *fiber.Ctx) error {
     }()
 
     var item models.Item
-    if err := tx.First(&item, id).Error; err != nil {
+    if err := tx.Where("item_id = ?", id).First(&item).Error; err != nil {
         tx.Rollback()
         if err == gorm.ErrRecordNotFound {
             return res.NotFound(c, "Item", err)
@@ -112,6 +112,7 @@ func (h *Handler) DeleteItem(c *fiber.Ctx) error {
         }
     }
 
+    // Delete the item
     if err := tx.Delete(&item).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)

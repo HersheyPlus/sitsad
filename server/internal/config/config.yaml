@@ -1,8 +1,8 @@
 database:
   host: localhost
-  port: 3307
+  port: 3306
   user: root
-  password: 1234
+  password: Rsv18221
   name: hackathon2025
   sslmode: disable
   max_connections: 100

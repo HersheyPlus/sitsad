@@ -6,6 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"server/internal/utils/uuid"
+	"path/filepath"
+	"fmt"
+	"os"
+	"time"
 )
 
 // Find All Buildings
@@ -76,40 +80,70 @@ func (h *Handler) FindBuildingById(c *fiber.Ctx) error {
 
 // Create
 func (h *Handler) CreateBuilding(c *fiber.Ctx) error {
-	var req CreateBuildingRequest
-	if err := c.BodyParser(&req); err != nil {
-		return res.BadRequest(c, err.Error())
-	}
-	if req.BuildingName == "" || req.ImageURL == "" || req.Description == "" {
-		return res.BadRequest(c, "building_name, image_url, description are required")
-	}
+    // Get form fields from multipart form
+    buildingName := c.FormValue("building_name")
+    description := c.FormValue("description")
 
-	// Start transaction
-	tx := h.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	building := models.NewBuilding(
-		uuid.GenerateUUID(),
-		req.BuildingName,
-		req.Description,
-		req.ImageURL,
-	)
+    // Validate required fields
+    if buildingName == "" || description == "" {
+        return res.BadRequest(c, "building_name and description are required")
+    }
 
+    // Handle file upload
+    file, err := c.FormFile("image")
+    if err != nil {
+        return res.BadRequest(c, "Image file is required")
+    }
 
-	if err := tx.Create(&building).Error; err != nil {
-		tx.Rollback()
-		return res.InternalServerError(c, err)
-	}
+    // Generate unique filename
+    ext := filepath.Ext(file.Filename)
+    filename := fmt.Sprintf("buildings/%s%s", time.Now().Format("20060102150405"), ext)
+    uploadPath := fmt.Sprintf("uploads/%s", filename)
 
-	if err := tx.Commit().Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.CreatedSuccess(c, building)
+    // Create uploads/buildings directory if it doesn't exist
+    if err := os.MkdirAll("uploads/buildings", 0755); err != nil {
+        return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+    }
+
+    // Save the file
+    if err := c.SaveFile(file, uploadPath); err != nil {
+        return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+    }
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+            // Clean up uploaded file if transaction fails
+            os.Remove(uploadPath)
+        }
+    }()
+
+    building := models.NewBuilding(
+        uuid.GenerateUUID(),
+        buildingName,
+        description,
+        filename, // Store relative path in database
+    )
+
+    if err := tx.Create(&building).Error; err != nil {
+        tx.Rollback()
+        // Clean up uploaded file
+        os.Remove(uploadPath)
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        // Clean up uploaded file
+        os.Remove(uploadPath)
+        return res.InternalServerError(c, err)
+    }
+
+    // Add full URL to response
+    building.ImageURL = fmt.Sprintf("/uploads/%s", building.ImageURL)
+    return res.CreatedSuccess(c, building)
 }
-
 // Update
 func (h *Handler) UpdateBuilding(c *fiber.Ctx) error {
 	id := c.Params("id")

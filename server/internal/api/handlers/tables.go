@@ -62,7 +62,6 @@ func (h *Handler) FindTablesByRoomId(c *fiber.Ctx) error {
             PositionY:  *table.PositionY,
             Width:      *table.Width,
             Height:     *table.Height,
-            Floor:      table.Floor,
             Name:       table.Name,
             Location: LocationResponse{
                 Building: BuildingResponse{
@@ -77,7 +76,6 @@ func (h *Handler) FindTablesByRoomId(c *fiber.Ctx) error {
                     RoomName:    table.Room.RoomName,
                     Description: table.Room.Description,
                     ImageURL:    table.Room.ImageURL,
-                    Floor:       table.Room.Floor,
                 },
             },
         }

@@ -87,7 +87,6 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
             Name:       toilet.Name,
             PositionX:  getFloatValue(toilet.PositionX, 0),
             PositionY:  getFloatValue(toilet.PositionY, 0),
-            Floor:      toilet.Floor,
             Location: LocationResponse{
                 Building: BuildingResponse{
                     BuildingID:   toilet.Room.Building.BuildingID,
@@ -101,7 +100,6 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
                     RoomName:    toilet.Room.RoomName,
                     Description: toilet.Room.Description,
                     ImageURL:    toilet.Room.ImageURL,
-                    Floor:       toilet.Room.Floor,
                 },
             },
         }
@@ -130,8 +128,8 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     }
 
     // Manual validation
-    if req.Floor == 0 || req.Name == "" || req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 {
-        return res.BadRequest(c, "floor, name, position_x, position_y, width, height are required and must be valid")
+    if req.Name == "" || req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 {
+        return res.BadRequest(c, "name, position_x, position_y, width, height are required and must be valid")
     }
 
     // Normalize and validate gender
@@ -158,7 +156,6 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
 
     toilet := models.NewToilet(
         uuid.GenerateUUID(),
-        req.Floor,
         &req.RoomID,
         req.Gender,
         req.Name,
@@ -226,12 +223,6 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         updates["name"] = *req.Name
     }
 
-    if req.Floor != nil {
-        if *req.Floor <= 0 {
-            return res.BadRequest(c, "floor must be greater than 0")
-        }
-        updates["floor"] = *req.Floor
-    }
 
     if req.Gender != nil {
         gender := strings.ToLower(*req.Gender)

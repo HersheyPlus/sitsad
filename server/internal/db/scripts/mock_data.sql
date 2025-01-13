@@ -5,12 +5,12 @@ INSERT INTO buildings (building_id, building_name, description, image_url) VALUE
 ('bld_003', 'Student Center', 'Multi-purpose student activities building', 'https://example.com/student.jpg');
 
 -- Insert Rooms
-INSERT INTO rooms (room_id, building_id, room_name, description, floor, image_url) VALUES
-('rm_001', 'bld_001', 'Engineering Lab 101', 'Computer engineering laboratory', 1, 'https://example.com/lab101.jpg'),
-('rm_002', 'bld_001', 'Study Room 201', 'Quiet study space', 2, 'https://example.com/study201.jpg'),
-('rm_003', 'bld_002', 'Reading Room A', 'Main reading area', 1, 'https://example.com/reading_a.jpg'),
-('rm_004', 'bld_002', 'Group Study B', 'Collaborative study space', 1, 'https://example.com/group_b.jpg'),
-('rm_005', 'bld_003', 'Cafeteria', 'Main dining area', 1, 'https://example.com/cafeteria.jpg');
+INSERT INTO rooms (room_id, building_id, room_name, description,image_url) VALUES
+('rm_001', 'bld_001', 'Engineering Lab 101', 'Computer engineering laboratory', 'https://example.com/lab101.jpg'),
+('rm_002', 'bld_001', 'Study Room 201', 'Quiet study space', 'https://example.com/study201.jpg'),
+('rm_003', 'bld_002', 'Reading Room A', 'Main reading area','https://example.com/reading_a.jpg'),
+('rm_004', 'bld_002', 'Group Study B', 'Collaborative study space', 'https://example.com/group_b.jpg'),
+('rm_005', 'bld_003', 'Cafeteria', 'Main dining area', 'https://example.com/cafeteria.jpg');
 
 -- Insert Items (Tables)
 INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height) VALUES
@@ -20,10 +20,10 @@ INSERT INTO items (item_id, type, room_id, name, available, position_x, position
 ('tbl_004', 'table', 'rm_004', 'Group Table 1', true, 30.0, 40.0, 80.0, 40.0);
 
 -- Insert Items (Toilets)
-INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, floor, gender, width, height) VALUES
-('tlt_001', 'toilet', 'rm_001', 'Men''s Room 1F', true, 100.0, 150.0, 1, 'male', 100,100),
-('tlt_002', 'toilet', 'rm_001', 'Women''s Room 1F', true, 100.0, 200.0, 1, 'female',100,100),
-('tlt_003', 'toilet', 'rm_002', 'Men''s Room 2F', true, 120.0, 150.0, 2, 'male',100,100);
+INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, gender, width, height) VALUES
+('tlt_001', 'toilet', 'rm_001', 'Men''s Room 1F', true, 100.0, 150.0,'male', 100,100),
+('tlt_002', 'toilet', 'rm_001', 'Women''s Room 1F', true, 100.0, 200.0, 'female',100,100),
+('tlt_003', 'toilet', 'rm_002', 'Men''s Room 2F', true, 120.0, 150.0, 'male',100,100);
 
 -- Insert Booking Time Periods
 INSERT INTO booking_time_periods (booking_time_period_id, item_id, phone_number, started_booking_time, ended_booking_time) VALUES

@@ -3,25 +3,26 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"server/internal/api/handlers"
 	"server/internal/models"
 	"server/internal/ws"
+	"server/mqtt"
 	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/websocket/v2"
 	"gorm.io/gorm"
-	"server/mqtt"
-	"log"
 )
 
 type App struct {
-	db       *gorm.DB
-	app      *fiber.App
-	config   *models.AppConfig
-	handlers *handlers.Handler
-	wsHub    *ws.Hub
+	db         *gorm.DB
+	app        *fiber.App
+	config     *models.AppConfig
+	handlers   *handlers.Handler
+	wsHub      *ws.Hub
 	mqttClient *mqtt.Client
 }
 
@@ -32,6 +33,7 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 		IdleTimeout:  cfg.ServerConfig.Timeout,
 	})
 
+	app.Static("/uploads", "./uploads")
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
@@ -48,25 +50,25 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 	go wsHub.Run()
 
 	mqttClient, err := mqtt.NewMQTTClient(cfg, wsHub, db)
-    if err != nil {
-        log.Printf("Failed to initialize MQTT client: %v", err)
-    } else {
-        log.Printf("Successfully initialized MQTT client")
-        if err := mqttClient.SubscribeToTopics(); err != nil {
-            log.Printf("Failed to subscribe to MQTT topics: %v", err)
-        } else {
-            log.Printf("Successfully subscribed to MQTT topics")
-        }
-    }
+	if err != nil {
+		log.Printf("Failed to initialize MQTT client: %v", err)
+	} else {
+		log.Printf("Successfully initialized MQTT client")
+		if err := mqttClient.SubscribeToTopics(); err != nil {
+			log.Printf("Failed to subscribe to MQTT topics: %v", err)
+		} else {
+			log.Printf("Successfully subscribed to MQTT topics")
+		}
+	}
 
 	handlers := handlers.NewHandler(db, wsHub)
 
 	return &App{
-		app:      app,
-		db:       db,
-		config:   cfg,
-		handlers: handlers,
-		wsHub:    wsHub,
+		app:        app,
+		db:         db,
+		config:     cfg,
+		handlers:   handlers,
+		wsHub:      wsHub,
 		mqttClient: mqttClient,
 	}
 }
@@ -161,7 +163,6 @@ func (a *App) setupRoutes() {
 	forgotItems.Put("/:id", a.handlers.UpdateForgotItem)                  // ✅
 	forgotItems.Delete("/:id", a.handlers.DeleteForgotItem)               // ✅
 
-
 	// Camera Routes
 	cameras := api.Group("/camera-info")
 	cameras.Get("/", a.handlers.GetCameraInfo) // get camera info ✅
@@ -169,14 +170,14 @@ func (a *App) setupRoutes() {
 }
 
 func (a *App) Start() error {
-    a.setupRoutes()
+	a.setupRoutes()
 
-    if a.mqttClient != nil {
-        defer a.mqttClient.Disconnect()
-    }
-    
-    addr := fmt.Sprintf("%s:%d", a.config.ServerConfig.Host, a.config.ServerConfig.Port)
-    fmt.Printf("Starting server on %s\n", addr)
+	if a.mqttClient != nil {
+		defer a.mqttClient.Disconnect()
+	}
 
-    return a.app.Listen(addr)
+	addr := fmt.Sprintf("%s:%d", a.config.ServerConfig.Host, a.config.ServerConfig.Port)
+	fmt.Printf("Starting server on %s\n", addr)
+
+	return a.app.Listen(addr)
 }
