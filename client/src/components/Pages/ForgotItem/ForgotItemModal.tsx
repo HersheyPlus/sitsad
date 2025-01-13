@@ -52,7 +52,7 @@ const ForgotItemModal = ({ selectedItem, onClose }: IProps) => {
                     <div className="w-full text-end">
                         <p className="flex items-center text-blue-600">
                             <MapPin className="w-4 h-4 mr-2" />
-                            Building: {selectedItem.buolding_name || "LX Learning Center"}
+                            Building: {selectedItem.building_name || "LX Learning Center"}
                         </p>
                         <p className="flex items-center text-blue-600">
                             <DoorOpen className="w-4 h-4 mr-2" />

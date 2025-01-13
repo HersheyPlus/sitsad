@@ -13,10 +13,19 @@ const ForgotItemService = {
         return response.data.data;
     },
 
+    async findByKeyword(keyword: string): Promise<IForgot[]> {
+        const response = await apiClient.get('/forgot-items', {
+            params: {
+                keyword
+            }
+        });
+        return response.data.data;
+    },
+
     async findByDateRange(startTimeStamp: number, endTimeStamp: number): Promise<IForgot[]> {
         const startTime = new Date(startTimeStamp).toISOString();
         const endTime = new Date(endTimeStamp).toISOString();
-        
+
         const response = await apiClient.get('/forgot-items/date-range', {
             params: {
                 startTime,
