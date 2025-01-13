@@ -9,7 +9,7 @@ database:
 
 server:
   port: 8080
-  host: localhost
+  host: 0.0.0.0
   timeout: 30s
   read_timeout: 15s
   write_timeout: 15s

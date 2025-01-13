@@ -7,6 +7,7 @@ import (
 	"server/internal/models"
 	"server/internal/ws"
 	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -81,25 +82,25 @@ func (a *App) setupRoutes() {
 	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
 
 	// Buildings Routes
-	buildings := api.Group("/buildings") 
+	buildings := api.Group("/buildings")
 	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
-	buildings.Get("/:id", a.handlers.FindBuildingById) // get by id ✅
-	buildings.Post("/", a.handlers.CreateBuilding) // create ✅
-	buildings.Put("/:id", a.handlers.UpdateBuilding) // update ✅
-	buildings.Delete("/:id", a.handlers.DeleteBuilding) // delete ✅
+	buildings.Get("/:id", a.handlers.FindBuildingById)             // get by id ✅
+	buildings.Post("/", a.handlers.CreateBuilding)                 // create ✅
+	buildings.Put("/:id", a.handlers.UpdateBuilding)               // update ✅
+	buildings.Delete("/:id", a.handlers.DeleteBuilding)            // delete ✅
 
 	// Rooms Routes
 	rooms := api.Group("/rooms")
 	rooms.Get("/search", a.handlers.FindRoomsBySearchParams) // get all ✅
-	rooms.Get("/:id", a.handlers.FindRoomById) // get by id ✅
-	rooms.Post("/", a.handlers.CreateRoom) // create ✅
-	rooms.Put("/:id", a.handlers.UpdateRoom) // update ✅
-	rooms.Delete("/:id", a.handlers.DeleteRoom) // delete ✅
+	rooms.Get("/:id", a.handlers.FindRoomById)               // get by id ✅
+	rooms.Post("/", a.handlers.CreateRoom)                   // create ✅
+	rooms.Put("/:id", a.handlers.UpdateRoom)                 // update ✅
+	rooms.Delete("/:id", a.handlers.DeleteRoom)              // delete ✅
 
 	// Item Routes
 	items := api.Group("/items")
 	items.Put("/:id", a.handlers.UpdateItemAvailable) // update item available ✅
-	items.Delete("/:id", a.handlers.DeleteItem) // update item available ✅
+	items.Delete("/:id", a.handlers.DeleteItem)       // update item available ✅
 
 	// Table Routes
 	tables := api.Group("/tables")
@@ -107,7 +108,7 @@ func (a *App) setupRoutes() {
 	tables.Get("/room/:roomId", a.handlers.FindTablesByRoomId)
 	tables.Get("/:id", a.handlers.FindTableByID)
 
-	tables.Post("/", a.handlers.CreateTable) // create table
+	tables.Post("/", a.handlers.CreateTable)   // create table
 	tables.Put("/:id", a.handlers.UpdateTable) // update table
 
 	// Toilets Routes
@@ -115,8 +116,8 @@ func (a *App) setupRoutes() {
 	toilets.Get("/", a.handlers.FindAllToilets) // get all toilets
 	toilets.Get("/room/:roomId", a.handlers.FindToiletsByRoomId)
 	toilets.Get("/:id", a.handlers.FindToiletByID) // get table by idkeyword
-	toilets.Post("/", a.handlers.CreateToilet) // create toilet
-	toilets.Put("/:id", a.handlers.UpdateToilet) // update toilet
+	toilets.Post("/", a.handlers.CreateToilet)     // create toilet
+	toilets.Put("/:id", a.handlers.UpdateToilet)   // update toilet
 
 	// Filter Routes
 	filter := api.Group("/filter")
