@@ -50,6 +50,7 @@ const AdminItemCrud = ({ data, buildings, rooms, itemType, service }: IProps) =>
         const index = newData.findIndex((item) => key === item.item_id);
         if (index > -1) {
             const editedTable = newData[index];
+            // @ts-ignore
             editedTable[column] = value;
             setFilteredData(newData);
         }

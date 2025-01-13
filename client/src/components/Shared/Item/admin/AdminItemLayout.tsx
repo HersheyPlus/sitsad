@@ -102,6 +102,7 @@ const AdminItemLayout = ({ data, doUpdateItem, doAddItem, itemType, selectedBuil
             name: 'New Item',
             description: '',
             available: true,
+            building_id: selectedBuilding.building_id,
             position_x: Math.floor(Math.random() * 5) * GRID_SIZE,
             position_y: Math.floor(Math.random() * 5) * GRID_SIZE,
             width: GRID_SIZE,

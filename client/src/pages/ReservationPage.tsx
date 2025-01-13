@@ -3,10 +3,10 @@ import { CheckCircle, XCircle, Box, Building2, DoorClosed } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 const ReservationPage = () => {
-
+    // @ts-ignore
     const { tableId } = useParams<{ tableId: string }>();
 
-
+    // @ts-ignore
     const doReservation = async () => {
         // Call API to reserve the item
     }

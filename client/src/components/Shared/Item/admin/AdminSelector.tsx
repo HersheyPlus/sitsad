@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Select, Row, Col } from 'antd';
 import { IBuilding, IRoom } from '@/types/location';
-import XCollapse from '@/components/XCollapse';
+import XCollapse from '@/components/Shared/XCollapse';
 
 const renderHeader = () => {
     return (

@@ -4,27 +4,37 @@ const mockupForgotItems: IForgot[] = [{
     id: "1",
     imageUrl: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg",
     date: "2025-10-10",
-    tableId: "1"
+    tableId: "1",
+    buolding_name: "SIT",
+    room_name: "Room 1"
 }, {
     id: "2",
     imageUrl: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg",
     date: "2025-10-10",
-    tableId: "2"
+    tableId: "2",
+    buolding_name: "SIT",
+    room_name: "Room 2"
 }, {
     id: "3",
     imageUrl: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg",
     date: "2025-10-10",
-    tableId: "3"
+    tableId: "3",
+    buolding_name: "SIT",
+    room_name: "Room 3"
 }, {
     id: "4",
     imageUrl: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg",
     date: "2025-10-10",
-    tableId: "4"
+    tableId: "4",
+    buolding_name: "SIT",
+    room_name: "Room 4"
 }, {
     id: "5",
     imageUrl: "https://www.sit.kmutt.ac.th/wp-content/uploads/2023/08/275563700_10158910072508789_770337062821942139_n.jpg",
     date: "2025-10-10",
-    tableId: "5"
+    tableId: "5",
+    buolding_name: "SIT",
+    room_name: "Room 5"
 }]
 
 const ForgotItemService = {

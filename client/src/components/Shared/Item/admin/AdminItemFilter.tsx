@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import XCollapse from "@/components/XCollapse";
+import XCollapse from "@/components/Shared/XCollapse";
 import { DatePicker, Space, Input, Row, Col, Button } from "antd";
 import { Dayjs } from "dayjs";
 

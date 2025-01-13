@@ -10,8 +10,8 @@ const ForgotItemList = ({ items, onSelect }: IProps) => {
     return (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {items.map((item) => (
-                <div key={item.id} onClick={() => onSelect(item)}>
-                    <ForgotItem item={item} />
+                <div key={item.id}>
+                    <ForgotItem item={item} onSelect={onSelect} />
                 </div>
             ))}
         </div>

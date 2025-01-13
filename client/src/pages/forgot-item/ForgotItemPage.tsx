@@ -1,5 +1,5 @@
 
-import XBreadcrumb from "@/components/XBreadcrumb"
+import XBreadcrumb from "@/components/Shared/XBreadcrumb"
 import { Flex, Typography } from "antd"
 import { useEffect, useState } from "react"
 import { useNotificationStore } from "@/stores/notification.store"

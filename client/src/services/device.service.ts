@@ -1,6 +1,7 @@
 import { DeviceType, IDevice } from "@/types/device";
 
 const mockupDevices: IDevice[] = [{
+    id: "1",
     name: "Camera 1",
     topic: "camera/1",
     building_id: "1",

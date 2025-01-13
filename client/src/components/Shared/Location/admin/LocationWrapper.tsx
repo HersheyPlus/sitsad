@@ -1,6 +1,6 @@
 import BuildingWrapper from './building/BuildingWrapper';
 import RoomWrapper from './room/RoomWrapper';
-import XCollapse from '@/components/XCollapse';
+import XCollapse from '@/components/Shared/XCollapse';
 
 const LocationWrapper = () => {
 
