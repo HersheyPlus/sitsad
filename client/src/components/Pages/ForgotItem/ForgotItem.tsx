@@ -37,7 +37,7 @@ const ForgotItem = ({ item, onSelect }: IProps) => {
                         </p>
                         <p className="flex items-center text-blue-600">
                             <MapPin className="w-4 h-4 mr-2" />
-                            Building: {item.buolding_name}
+                            Building: {item.building_name}
                         </p>
                         <p className="flex items-center text-blue-600">
                             <DoorOpen className="w-4 h-4 mr-2" />

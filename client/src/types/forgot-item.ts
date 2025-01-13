@@ -3,6 +3,6 @@ export interface IForgot {
     imageUrl: string
     date: string
     tableId: string
-    buolding_name: string
+    building_name: string
     room_name: string
 }

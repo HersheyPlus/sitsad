@@ -1,52 +1,42 @@
-import { DeviceType, IDevice } from "@/types/device";
-
-const mockupDevices: IDevice[] = [{
-    id: "1",
-    name: "Camera 1",
-    topic: "camera/1",
-    building_id: "1",
-    room_id: "1",
-    type: DeviceType.Camera,
-    webUrl: "http://localhost:8080/camera/1",
-}]
+// src/services/device.service.ts
+import { IDevice } from '@/types/device';
+import apiClient from './axios';
 
 const DeviceService = {
-
-    findAll() {
-        return mockupDevices;
+    async findAll(): Promise<IDevice[]> {
+        const response = await apiClient.get('/devices');
+        return response.data.data;
     },
 
-    findById(id: string) {
-        return mockupDevices.find(camera => camera.name === id);
+    async findById(id: string): Promise<IDevice | undefined> {
+        const response = await apiClient.get(`/devices/${id}`);
+        return response.data.data;
     },
 
-    findByKeyword(keyword: string) {
-        if (!keyword) return mockupDevices;
-
-        return mockupDevices.filter(camera => camera.name.includes(keyword));
+    async findByKeyword(keyword: string): Promise<IDevice[]> {
+        const response = await apiClient.get('/devices/search', {
+            params: { keyword }
+        });
+        return response.data.data;
     },
 
-    findByTopic(topic: string) {
-        return mockupDevices.find(camera => camera.topic === topic);
+    async findByTopic(topic: string): Promise<IDevice | undefined> {
+        const response = await apiClient.get(`/devices/topic/${topic}`);
+        return response.data.data;
     },
 
-    create(camera: IDevice) {
-        mockupDevices.push(camera);
+    async create(device: IDevice): Promise<IDevice> {
+        const response = await apiClient.post('/devices', device);
+        return response.data.data;
     },
 
-    update(camera: IDevice) {
-        const index = mockupDevices.findIndex(c => c.name === camera.name);
-        if (index !== -1) {
-            mockupDevices[index] = camera;
-        }
+    async update(device: IDevice): Promise<void> {
+        await apiClient.put(`/devices/${device.id}`, device);
     },
 
-    delete(id: string) {
-        const index = mockupDevices.findIndex(c => c.name === id);
-        if (index !== -1) {
-            mockupDevices.splice(index, 1);
-        }
+    async delete(id: string): Promise<void> {
+        await apiClient.delete(`/devices/${id}`);
     }
-}
+};
 
 export default DeviceService;

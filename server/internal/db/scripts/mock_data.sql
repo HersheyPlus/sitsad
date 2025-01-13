@@ -69,3 +69,27 @@ INSERT INTO booking_time_periods (booking_time_period_id, item_id, phone_number,
 ('BK-20250112-003', 'TBL-A201-1', '0834567890', '2025-01-12 14:00:00', '2025-01-12 17:00:00'),
 ('BK-20250113-001', 'TBL-B101-1', '0845678901', '2025-01-13 09:00:00', '2025-01-13 12:00:00'),
 ('BK-20250113-002', 'TBL-C101-1', '0856789012', '2025-01-13 13:00:00', '2025-01-13 16:00:00');
+
+-- Insert Forgot Items (related to study tables)
+INSERT INTO forgot_items (forgot_item_id, image_url, date, table_id, building_name, room_name, created_at, updated_at) VALUES
+('FI-20250112-001', 'lost-item-1.jpg', '2025-01-12 15:30:00', 'TBL-A101-1', 'Engineering Building A', 'Study Room 101', '2025-01-12 15:30:00', '2025-01-12 15:30:00'),
+('FI-20250112-002', 'lost-item-2.jpg', '2025-01-12 16:45:00', 'TBL-A102-1', 'Engineering Building A', 'Study Room 102', '2025-01-12 16:45:00', '2025-01-12 16:45:00'),
+('FI-20250113-001', 'lost-item-3.jpg', '2025-01-13 10:15:00', 'TBL-B101-1', 'Engineering Building B', 'Study Room 101', '2025-01-13 10:15:00', '2025-01-13 10:15:00'),
+('FI-20250113-002', 'lost-item-4.jpg', '2025-01-13 14:20:00', 'TBL-C101-1', 'Engineering Building C', 'Study Room 101', '2025-01-13 14:20:00', '2025-01-13 14:20:00'),
+('FI-20250114-001', 'lost-item-5.jpg', '2025-01-14 11:30:00', 'TBL-A201-1', 'Engineering Building A', 'Study Room 201', '2025-01-14 11:30:00', '2025-01-14 11:30:00');
+
+-- Insert Devices (security cameras in study rooms and restroom areas)
+INSERT INTO devices (device_id, name, topic, building_id, room_id, type, web_url, created_at, updated_at) VALUES
+-- Cameras in ENG-A
+('CAM-A101', 'Camera A101', 'camera/eng-a/101', 'ENG-A', 'ENG-A-101', 'camera', 'http://camera-stream/eng-a/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+('CAM-A102', 'Camera A102', 'camera/eng-a/102', 'ENG-A', 'ENG-A-102', 'camera', 'http://camera-stream/eng-a/102', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+('CAM-A201', 'Camera A201', 'camera/eng-a/201', 'ENG-A', 'ENG-A-201', 'camera', 'http://camera-stream/eng-a/201', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+('CAM-A202', 'Camera A202', 'camera/eng-a/202', 'ENG-A', 'ENG-A-202', 'camera', 'http://camera-stream/eng-a/202', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+
+-- Cameras in ENG-B
+('CAM-B101', 'Camera B101', 'camera/eng-b/101', 'ENG-B', 'ENG-B-101', 'camera', 'http://camera-stream/eng-b/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+('CAM-B102', 'Camera B102', 'camera/eng-b/102', 'ENG-B', 'ENG-B-102', 'camera', 'http://camera-stream/eng-b/102', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+
+-- Cameras in ENG-C
+('CAM-C101', 'Camera C101', 'camera/eng-c/101', 'ENG-C', 'ENG-C-101', 'camera', 'http://camera-stream/eng-c/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+('CAM-C201', 'Camera C201', 'camera/eng-c/201', 'ENG-C', 'ENG-C-201', 'camera', 'http://camera-stream/eng-c/201', '2025-01-01 00:00:00', '2025-01-01 00:00:00');
