@@ -83,6 +83,7 @@ func (a *App) setupRoutes() {
 
 	// Buildings Routes
 	buildings := api.Group("/buildings")
+	buildings.Get("/", a.handlers.FindAllBuildings)                // get all
 	buildings.Get("/search", a.handlers.FindAllBuildingByItemType) // ✅
 	buildings.Get("/:id", a.handlers.FindBuildingById)             // get by id ✅
 	buildings.Post("/", a.handlers.CreateBuilding)                 // create ✅
