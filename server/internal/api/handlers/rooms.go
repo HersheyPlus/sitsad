@@ -24,9 +24,9 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
     var rooms []models.Room
     
     query := h.db.
-        Debug(). // To see the SQL query being generated
+        Debug().
         Table("rooms").
-        Select("rooms.*").
+        Select("DISTINCT rooms.*"). // Added DISTINCT to prevent duplicates
         Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
         Joins("JOIN items ON items.room_id = rooms.room_id").
         Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
@@ -44,11 +44,25 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    if rooms == nil {
-        rooms = make([]models.Room, 0)
+    // Convert to response format
+    var response []RoomResponse
+    for _, room := range rooms {
+        resp := RoomResponse{
+            RoomID:      room.RoomID,
+            BuildingID:  room.BuildingID,
+            RoomName:    room.RoomName,
+            Description: room.Description,
+            ImageURL:    room.ImageURL,
+            Floor:       room.Floor,
+        }
+        response = append(response, resp)
     }
 
-    return res.GetSuccess(c, "Rooms retrieved", rooms)
+    if response == nil {
+        response = make([]RoomResponse, 0)
+    }
+
+    return res.GetSuccess(c, "Rooms retrieved", response)
 }
 // Find rooms by id
 func (h *Handler) FindRoomById(c *fiber.Ctx) error {

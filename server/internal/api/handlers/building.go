@@ -3,7 +3,6 @@ package handlers
 import (
 	"server/internal/models"
 	res "server/internal/utils"
-
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )

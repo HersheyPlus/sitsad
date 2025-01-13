@@ -1,95 +1,43 @@
--- mock-up
-USE hackathon2025;
 -- Insert Buildings
 INSERT INTO buildings (building_id, building_name, description, image_url) VALUES
-('ENG-A', 'Engineering Building A', 'Main engineering building complex A', 'eng-a.jpg'),
-('ENG-B', 'Engineering Building B', 'Secondary engineering building complex B', 'eng-b.jpg'),
-('ENG-C', 'Engineering Building C', 'Research and development complex C', 'eng-c.jpg');
+('bld_001', 'Engineering Building', 'Main engineering faculty building with modern facilities', 'https://example.com/eng.jpg'),
+('bld_002', 'Library', 'Central university library with study spaces', 'https://example.com/lib.jpg'),
+('bld_003', 'Student Center', 'Multi-purpose student activities building', 'https://example.com/student.jpg');
 
--- Insert Rooms (Adding specific restroom areas)
+-- Insert Rooms
 INSERT INTO rooms (room_id, building_id, room_name, description, floor, image_url) VALUES
--- Engineering Building A Rooms
-('ENG-A-101', 'ENG-A', 'Study Room 101', 'Quiet study space with individual desks', 1, 'eng-a-101.jpg'),
-('ENG-A-102', 'ENG-A', 'Study Room 102', 'Group study room with whiteboards', 1, 'eng-a-102.jpg'),
-('ENG-A-REST1', 'ENG-A', 'Restroom Area 1F', 'First floor restroom area', 1, 'eng-a-rest1.jpg'),
-('ENG-A-201', 'ENG-A', 'Study Room 201', 'Large study hall with projector', 2, 'eng-a-201.jpg'),
-('ENG-A-202', 'ENG-A', 'Study Room 202', 'Small group discussion room', 2, 'eng-a-202.jpg'),
-('ENG-A-REST2', 'ENG-A', 'Restroom Area 2F', 'Second floor restroom area', 2, 'eng-a-rest2.jpg'),
+('rm_001', 'bld_001', 'Engineering Lab 101', 'Computer engineering laboratory', 1, 'https://example.com/lab101.jpg'),
+('rm_002', 'bld_001', 'Study Room 201', 'Quiet study space', 2, 'https://example.com/study201.jpg'),
+('rm_003', 'bld_002', 'Reading Room A', 'Main reading area', 1, 'https://example.com/reading_a.jpg'),
+('rm_004', 'bld_002', 'Group Study B', 'Collaborative study space', 1, 'https://example.com/group_b.jpg'),
+('rm_005', 'bld_003', 'Cafeteria', 'Main dining area', 1, 'https://example.com/cafeteria.jpg');
 
--- Engineering Building B Rooms
-('ENG-B-101', 'ENG-B', 'Study Room 101', 'Open study space', 1, 'eng-b-101.jpg'),
-('ENG-B-102', 'ENG-B', 'Study Room 102', 'Quiet reading room', 1, 'eng-b-102.jpg'),
-('ENG-B-REST1', 'ENG-B', 'Restroom Area 1F', 'First floor restroom area', 1, 'eng-b-rest1.jpg'),
+-- Insert Items (Tables)
+INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height) VALUES
+('tbl_001', 'table', 'rm_001', 'Lab Table 1', true, 10.5, 20.0, 60.0, 30.0),
+('tbl_002', 'table', 'rm_001', 'Lab Table 2', true, 80.5, 20.0, 60.0, 30.0),
+('tbl_003', 'table', 'rm_003', 'Reading Table 1', true, 15.0, 25.0, 50.0, 25.0),
+('tbl_004', 'table', 'rm_004', 'Group Table 1', true, 30.0, 40.0, 80.0, 40.0);
 
--- Engineering Building C Rooms
-('ENG-C-101', 'ENG-C', 'Study Room 101', 'Computer lab with study spaces', 1, 'eng-c-101.jpg'),
-('ENG-C-REST1', 'ENG-C', 'Restroom Area 1F', 'First floor restroom area', 1, 'eng-c-rest1.jpg'),
-('ENG-C-201', 'ENG-C', 'Study Room 201', 'Research study room', 2, 'eng-c-201.jpg');
+-- Insert Items (Toilets)
+INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, floor, gender, width, height) VALUES
+('tlt_001', 'toilet', 'rm_001', 'Men''s Room 1F', true, 100.0, 150.0, 1, 'male', 100,100),
+('tlt_002', 'toilet', 'rm_001', 'Women''s Room 1F', true, 100.0, 200.0, 1, 'female',100,100),
+('tlt_003', 'toilet', 'rm_002', 'Men''s Room 2F', true, 120.0, 150.0, 2, 'male',100,100);
 
-
--- Buildings and Rooms remain the same as they are correct
-
--- Insert Items (Tables) - All fields included, width/height >= 50
-INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height, floor, gender) VALUES
--- Tables in ENG-A
-('TBL-A101-1', 'table', 'ENG-A-101', 'Study Table 1', true, 10.0, 15.0, 120.0, 60.0, 1, null),
-('TBL-A101-2', 'table', 'ENG-A-101', 'Study Table 2', true, 10.0, 85.0, 120.0, 60.0, 1, null),
-('TBL-A102-1', 'table', 'ENG-A-102', 'Group Table 1', true, 15.0, 20.0, 180.0, 90.0, 1, null),
-('TBL-A201-1', 'table', 'ENG-A-201', 'Study Table 1', true, 20.0, 25.0, 120.0, 60.0, 2, null),
-('TBL-A201-2', 'table', 'ENG-A-201', 'Study Table 2', true, 20.0, 95.0, 120.0, 60.0, 2, null),
-
--- Tables in ENG-B
-('TBL-B101-1', 'table', 'ENG-B-101', 'Study Desk 1', true, 12.0, 18.0, 120.0, 60.0, 1, null),
-('TBL-B101-2', 'table', 'ENG-B-101', 'Study Desk 2', true, 12.0, 88.0, 120.0, 60.0, 1, null),
-
--- Tables in ENG-C
-('TBL-C101-1', 'table', 'ENG-C-101', 'Computer Desk 1', true, 8.0, 12.0, 140.0, 70.0, 1, null),
-('TBL-C101-2', 'table', 'ENG-C-101', 'Computer Desk 2', true, 8.0, 82.0, 140.0, 70.0, 1, null);
-
--- Insert Items (Toilets) - All fields included, width/height >= 50
-INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height, floor, gender) VALUES
--- Toilets in ENG-A
-('TOI-A1-M', 'toilet', 'ENG-A-REST1', 'Male Restroom 1F', true, 5.0, 10.0, 80.0, 60.0, 1, 'male'),
-('TOI-A1-F', 'toilet', 'ENG-A-REST1', 'Female Restroom 1F', true, 5.0, 30.0, 80.0, 60.0, 1, 'female'),
-('TOI-A2-M', 'toilet', 'ENG-A-REST2', 'Male Restroom 2F', true, 5.0, 10.0, 80.0, 60.0, 2, 'male'),
-('TOI-A2-F', 'toilet', 'ENG-A-REST2', 'Female Restroom 2F', true, 5.0, 30.0, 80.0, 60.0, 2, 'female'),
-
--- Toilets in ENG-B
-('TOI-B1-M', 'toilet', 'ENG-B-REST1', 'Male Restroom 1F', true, 6.0, 12.0, 80.0, 60.0, 1, 'male'),
-('TOI-B1-F', 'toilet', 'ENG-B-REST1', 'Female Restroom 1F', true, 6.0, 32.0, 80.0, 60.0, 1, 'female'),
-
--- Toilets in ENG-C
-('TOI-C1-M', 'toilet', 'ENG-C-REST1', 'Male Restroom 1F', true, 4.0, 8.0, 80.0, 60.0, 1, 'male'),
-('TOI-C1-F', 'toilet', 'ENG-C-REST1', 'Female Restroom 1F', true, 4.0, 28.0, 80.0, 60.0, 1, 'female');
-
--- Insert Bookings (for the year 2025)
+-- Insert Booking Time Periods
 INSERT INTO booking_time_periods (booking_time_period_id, item_id, phone_number, started_booking_time, ended_booking_time) VALUES
-('BK-20250112-001', 'TBL-A101-1', '0812345678', '2025-01-12 09:00:00', '2025-01-12 12:00:00'),
-('BK-20250112-002', 'TBL-A101-2', '0823456789', '2025-01-12 13:00:00', '2025-01-12 16:00:00'),
-('BK-20250112-003', 'TBL-A201-1', '0834567890', '2025-01-12 14:00:00', '2025-01-12 17:00:00'),
-('BK-20250113-001', 'TBL-B101-1', '0845678901', '2025-01-13 09:00:00', '2025-01-13 12:00:00'),
-('BK-20250113-002', 'TBL-C101-1', '0856789012', '2025-01-13 13:00:00', '2025-01-13 16:00:00');
+('bk_001', 'tbl_001', '+1234567890', '2024-01-13 09:00:00', '2024-01-13 11:00:00'),
+('bk_002', 'tbl_003', '+1987654321', '2024-01-13 13:00:00', '2024-01-13 15:00:00'),
+('bk_003', 'tbl_004', '+1122334455', '2024-01-13 14:00:00', NULL);
 
--- Insert Forgot Items (related to study tables)
-INSERT INTO forgot_items (forgot_item_id, image_url, date, table_id, building_name, room_name, created_at, updated_at) VALUES
-('FI-20250112-001', 'lost-item-1.jpg', '2025-01-12 15:30:00', 'TBL-A101-1', 'Engineering Building A', 'Study Room 101', '2025-01-12 15:30:00', '2025-01-12 15:30:00'),
-('FI-20250112-002', 'lost-item-2.jpg', '2025-01-12 16:45:00', 'TBL-A102-1', 'Engineering Building A', 'Study Room 102', '2025-01-12 16:45:00', '2025-01-12 16:45:00'),
-('FI-20250113-001', 'lost-item-3.jpg', '2025-01-13 10:15:00', 'TBL-B101-1', 'Engineering Building B', 'Study Room 101', '2025-01-13 10:15:00', '2025-01-13 10:15:00'),
-('FI-20250113-002', 'lost-item-4.jpg', '2025-01-13 14:20:00', 'TBL-C101-1', 'Engineering Building C', 'Study Room 101', '2025-01-13 14:20:00', '2025-01-13 14:20:00'),
-('FI-20250114-001', 'lost-item-5.jpg', '2025-01-14 11:30:00', 'TBL-A201-1', 'Engineering Building A', 'Study Room 201', '2025-01-14 11:30:00', '2025-01-14 11:30:00');
+-- Insert Forgot Items
+INSERT INTO forgot_items (forgot_item_id, image_url, date, table_id, building_name, room_name) VALUES
+('fgt_001', 'https://example.com/items/notebook.jpg', '2024-01-12 15:30:00', 'tbl_001', 'Engineering Building', 'Engineering Lab 101'),
+('fgt_002', 'https://example.com/items/umbrella.jpg', '2024-01-13 10:45:00', 'tbl_003', 'Library', 'Reading Room A');
 
--- Insert Devices (security cameras in study rooms and restroom areas)
-INSERT INTO devices (device_id, name, topic, building_id, room_id, type, web_url, created_at, updated_at) VALUES
--- Cameras in ENG-A
-('CAM-A101', 'Camera A101', 'camera/eng-a/101', 'ENG-A', 'ENG-A-101', 'camera', 'http://camera-stream/eng-a/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('CAM-A102', 'Camera A102', 'camera/eng-a/102', 'ENG-A', 'ENG-A-102', 'camera', 'http://camera-stream/eng-a/102', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('CAM-A201', 'Camera A201', 'camera/eng-a/201', 'ENG-A', 'ENG-A-201', 'camera', 'http://camera-stream/eng-a/201', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('CAM-A202', 'Camera A202', 'camera/eng-a/202', 'ENG-A', 'ENG-A-202', 'camera', 'http://camera-stream/eng-a/202', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-
--- Cameras in ENG-B
-('CAM-B101', 'Camera B101', 'camera/eng-b/101', 'ENG-B', 'ENG-B-101', 'camera', 'http://camera-stream/eng-b/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('CAM-B102', 'Camera B102', 'camera/eng-b/102', 'ENG-B', 'ENG-B-102', 'camera', 'http://camera-stream/eng-b/102', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-
--- Cameras in ENG-C
-('CAM-C101', 'Camera C101', 'camera/eng-c/101', 'ENG-C', 'ENG-C-101', 'camera', 'http://camera-stream/eng-c/101', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('CAM-C201', 'Camera C201', 'camera/eng-c/201', 'ENG-C', 'ENG-C-201', 'camera', 'http://camera-stream/eng-c/201', '2025-01-01 00:00:00', '2025-01-01 00:00:00');
+-- Insert Devices (Cameras)
+INSERT INTO devices (device_id, name, topic, building_id, room_id, type, web_url) VALUES
+('dev_001', 'Lab Camera 1', 'cameras/lab101', 'bld_001', 'rm_001', 'camera', 'https://example.com/camera/1'),
+('dev_002', 'Library Camera 1', 'cameras/lib1', 'bld_002', 'rm_003', 'camera', 'https://example.com/camera/2'),
+('dev_003', 'Cafeteria Camera 1', 'cameras/cafe1', 'bld_003', 'rm_005', 'camera', 'https://example.com/camera/3');

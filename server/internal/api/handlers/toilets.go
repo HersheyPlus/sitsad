@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	res "server/internal/utils"
+    "strings"
 )
 
 // Find all toilets
@@ -64,7 +65,9 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
         Model(&models.Item{}).
         Preload("Room").           
         Preload("Room.Building").  
-        Where("type = ? AND room_id = ?", models.ItemTypeToilet, roomId).
+        Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
+        Joins("LEFT JOIN buildings ON rooms.building_id = buildings.building_id").
+        Where("items.type = ? AND items.room_id = ?", models.ItemTypeToilet, roomId).
         Find(&toilets).Error; err != nil {
         return res.InternalServerError(c, err)
     }
@@ -75,14 +78,12 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
             continue
         }
 
-        // Initialize response with required fields
         resp := ItemResponse{
             ItemID:     toilet.ItemID,
             Type:       toilet.Type,
-            BuildingID: toilet.Room.BuildingID,
+            BuildingID: toilet.Room.Building.BuildingID,  // Add BuildingID from joined Building
             Available:  toilet.Available,
             Name:       toilet.Name,
-            // Handle optional pointer fields safely
             PositionX:  getFloatValue(toilet.PositionX, 0),
             PositionY:  getFloatValue(toilet.PositionY, 0),
             Floor:      toilet.Floor,
@@ -104,7 +105,6 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
             },
         }
 
-        // Add optional Width and Height only if they exist
         if toilet.Width != nil {
             resp.Width = *toilet.Width
         }
@@ -121,14 +121,6 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
 
     return res.GetSuccess(c, "Toilets retrieved", response)
 }
-
-// Helper function to safely get float value from pointer
-func getFloatValue(ptr *float64, defaultValue float64) float64 {
-    if ptr == nil {
-        return defaultValue
-    }
-    return *ptr
-}
 // Create toilet
 func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     var req CreateToiletRequest
@@ -136,10 +128,15 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-    if req.BuildingID == "" || req.Floor == 0 || req.Name == "" || 
-       (req.Gender != "female" && req.Gender != "male") || 
-       req.PositionX < 0 || req.PositionY < 0 {
-        return res.BadRequest(c, "building_id, floor, name, gender (female or male), position_x, position_y are required")
+    // Manual validation
+    if req.Floor == 0 || req.Name == "" || req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 {
+        return res.BadRequest(c, "floor, name, position_x, position_y, width, height are required and must be valid")
+    }
+
+    // Normalize and validate gender
+    req.Gender = strings.ToLower(req.Gender)
+    if req.Gender != "male" && req.Gender != "female" && req.Gender != "unisex" {
+        return res.BadRequest(c, "gender must be 'male', 'female', or 'unisex'")
     }
 
     // Start transaction
@@ -150,12 +147,6 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         }
     }()
 
-    // Check if building exists
-    if err := h.ExistingBuilding(tx, c, req.BuildingID); err != nil {
-        tx.Rollback()
-        return res.NotFound(c, "Building", err)
-    }
-
     // Check if room exists if roomID is provided
     if req.RoomID != "" {
         if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
@@ -165,13 +156,14 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     }
 
     toilet := models.NewToilet(
-        req.BuildingID,
-        &req.RoomID,    // Pass the optional roomID
         req.Floor,
+        &req.RoomID,
         req.Gender,
         req.Name,
         req.PositionX,
         req.PositionY,
+        req.Width,
+        req.Height,
     )
 
     if err := tx.Create(toilet).Error; err != nil {
@@ -195,8 +187,11 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
 // Update toilet
 func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
     id := c.Params("id")
-    var item models.Item
-    var updateData models.Item
+    var req UpdateToiletRequest
+
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
 
     // Start transaction
     tx := h.db.Begin()
@@ -207,6 +202,7 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
     }()
 
     // Find existing item and verify it's a toilet
+    var item models.Item
     result := tx.Where("item_id = ? AND type = ?", id, models.ItemTypeToilet).First(&item)
     if result.Error != nil {
         tx.Rollback()
@@ -216,60 +212,62 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, result.Error)
     }
 
-    // Parse update data
-    if err := c.BodyParser(&updateData); err != nil {
-        tx.Rollback()
-        return res.BadRequest(c, err.Error())
+    // Build updates map with validations
+    updates := make(map[string]interface{})
+    
+    if req.Name != nil {
+        if *req.Name == "" {
+            return res.BadRequest(c, "name cannot be empty")
+        }
+        updates["name"] = *req.Name
     }
 
-    // If building ID is provided, verify it exists
-    if updateData.BuildingID != nil {
-        var building models.Building
-        if err := tx.Where("building_id = ?", *updateData.BuildingID).First(&building).Error; err != nil {
-            tx.Rollback()
-            if err == gorm.ErrRecordNotFound {
-                return res.BadRequest(c, "New building does not exist")
-            }
-            return res.InternalServerError(c, err)
+    if req.Floor != nil {
+        if *req.Floor <= 0 {
+            return res.BadRequest(c, "floor must be greater than 0")
         }
-        // Update building_id
-        if err := tx.Model(&item).Update("building_id", updateData.BuildingID).Error; err != nil {
-            tx.Rollback()
-            return res.InternalServerError(c, err)
-        }
+        updates["floor"] = *req.Floor
     }
 
-    // Update each field individually if provided
-    if updateData.Name != "" {
-        if err := tx.Model(&item).Update("name", updateData.Name).Error; err != nil {
-            tx.Rollback()
-            return res.InternalServerError(c, err)
+    if req.Gender != nil {
+        gender := strings.ToLower(*req.Gender)
+        if gender != "male" && gender != "female" && gender != "unisex" {
+            return res.BadRequest(c, "gender must be 'male', 'female', or 'unisex'")
         }
+        updates["gender"] = gender
     }
 
-    if updateData.Floor != nil {
-        if err := tx.Model(&item).Update("floor", updateData.Floor).Error; err != nil {
-            tx.Rollback()
-            return res.InternalServerError(c, err)
+    if req.PositionX != nil {
+        if *req.PositionX < 0 {
+            return res.BadRequest(c, "position_x must be non-negative")
         }
+        updates["position_x"] = *req.PositionX
     }
 
-    if updateData.Gender != nil {
-        if err := tx.Model(&item).Update("gender", updateData.Gender).Error; err != nil {
-            tx.Rollback()
-            return res.InternalServerError(c, err)
+    if req.PositionY != nil {
+        if *req.PositionY < 0 {
+            return res.BadRequest(c, "position_y must be non-negative")
         }
+        updates["position_y"] = *req.PositionY
     }
 
-    if updateData.PositionX != nil {
-        if err := tx.Model(&item).Update("position_x", updateData.PositionX).Error; err != nil {
-            tx.Rollback()
-            return res.InternalServerError(c, err)
+    if req.Width != nil {
+        if *req.Width <= 0 {
+            return res.BadRequest(c, "width must be greater than 0")
         }
+        updates["width"] = *req.Width
     }
 
-    if updateData.PositionY != nil {
-        if err := tx.Model(&item).Update("position_y", updateData.PositionY).Error; err != nil {
+    if req.Height != nil {
+        if *req.Height <= 0 {
+            return res.BadRequest(c, "height must be greater than 0")
+        }
+        updates["height"] = *req.Height
+    }
+
+    // Perform update if there are any changes
+    if len(updates) > 0 {
+        if err := tx.Model(&item).Updates(updates).Error; err != nil {
             tx.Rollback()
             return res.InternalServerError(c, err)
         }
@@ -282,11 +280,19 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
     // Fetch updated item with relationships
     var updatedItem models.Item
     if err := h.db.
-        Preload("Building").
+        Preload("Room").
+        Preload("Room.Building").
         Where("item_id = ?", id).
         First(&updatedItem).Error; err != nil {
         return res.InternalServerError(c, err)
     }
 
     return res.UpdatedSuccess(c, updatedItem)
+}
+
+func getFloatValue(ptr *float64, defaultValue float64) float64 {
+    if ptr == nil {
+        return defaultValue
+    }
+    return *ptr
 }
