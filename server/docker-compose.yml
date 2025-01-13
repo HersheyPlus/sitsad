@@ -10,6 +10,11 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     ports:
       - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: hackathon2025
@@ -32,7 +37,8 @@ services:
       HACKATHON_2025_DATABASE_PASSWORD: 1234
       HACKATHON_2025_DATABASE_NAME: hackathon2025
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - goapp_network
     restart: unless-stopped
