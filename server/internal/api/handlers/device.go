@@ -5,6 +5,7 @@ import (
 	res "server/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"server/internal/utils/uuid"
+	"strings"
 )
 
 // FindAllDevices retrieves all devices
@@ -62,12 +63,12 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
     }
 
     // Validate required fields
-    if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.WebURL == "" {
-        return res.BadRequest(c, "name, topic, building_id, room_id, web_url are required")
+    if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.WebUrl == "" {
+        return res.BadRequest(c, "name, topic, building_id, room_id, webUrl are required")
     }
 
-    // Validate device type
-    if req.Type != models.DeviceTypeCamera {
+    // Convert type string to DeviceType
+    if strings.ToLower(string(req.Type)) != string(models.DeviceTypeCamera) {
         return res.BadRequest(c, "Invalid device type")
     }
 
@@ -97,8 +98,8 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
         req.Topic,
         req.BuildingID,
         req.RoomID,
-        req.Type,
-        req.WebURL,
+        models.DeviceTypeCamera, // Using the constant directly
+        req.WebUrl,
     )
 
     if err := tx.Create(device).Error; err != nil {

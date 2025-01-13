@@ -1,13 +1,14 @@
 import { Rnd } from 'react-rnd';
 import Item from '../Item';
 import { useEffect, useState } from 'react';
-import { IItem } from '@/types/item';
+import { IItem, IItemPayload } from '@/types/item';
+import ItemUtils from '@/utils/ItemUtils';
 
 const GRID_SIZE = 100;
 
 interface IProps {
     data: IItem[]
-    doSaveItem: (data: IItem, create: boolean) => void
+    doSaveItem: (data: IItemPayload, create: boolean) => void
     doUpdateItem: React.Dispatch<React.SetStateAction<IItem[]>>
 }
 
@@ -62,7 +63,9 @@ const AdminItemLayout = ({ data, doUpdateItem, doSaveItem }: IProps) => {
                 )
             )
 
-            doSaveItem(updatedItem, false);
+            const payload = ItemUtils.convertToPayload(updatedItem)
+
+            doSaveItem(payload, false);
         }
     };
 
@@ -93,7 +96,9 @@ const AdminItemLayout = ({ data, doUpdateItem, doSaveItem }: IProps) => {
                 )
             )
 
-            doSaveItem(updatedItem, false);
+            const payload = ItemUtils.convertToPayload(updatedItem)
+
+            doSaveItem(payload, false);
         }
     };
 

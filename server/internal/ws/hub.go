@@ -34,6 +34,26 @@ type ItemCreationUpdate struct {
     Action string    `json:"action"`
 }
 
+// Add these new types to ws/hub.go
+type MQTTLeftObjectUpdate struct {
+    Type string            `json:"type"`
+    Data LeftObjectData    `json:"data"`
+}
+
+type LeftObjectData struct {
+    Building string `json:"building"`
+    Room     string `json:"room"`
+    Camera   string `json:"camera"`
+    Image    string `json:"image"`
+}
+
+type MQTTTableUpdate struct {
+    Type    string `json:"type"`
+    Topic   string `json:"topic"`
+    Payload string `json:"payload"`
+}
+
+
 func NewHub() *Hub {
 	return &Hub{
 		clients:    make(map[*Client]bool),
@@ -119,3 +139,72 @@ func (h *Hub) BroadcastNewItem(item interface{}, itemType string) {
     h.broadcast <- message
 }
 
+
+
+func (h *Hub) BroadcastLeftObject(building, room, camera, image string) {
+    update := MQTTLeftObjectUpdate{
+        Type: "left_object",
+        Data: LeftObjectData{
+            Building: building,
+            Room:     room,
+            Camera:   camera,
+            Image:    image,
+        },
+    }
+    
+    message, err := json.Marshal(update)
+    if err != nil {
+        log.Printf("Error marshaling left object update: %v", err)
+        return
+    }
+
+    h.mu.RLock()
+    defer h.mu.RUnlock()
+    
+    for client := range h.clients {
+        select {
+        case client.send <- message:
+            log.Printf("Sent left object update to client %v", client.conn.RemoteAddr())
+        default:
+            log.Printf("Failed to send to client %v, removing", client.conn.RemoteAddr())
+            h.mu.RUnlock()
+            h.mu.Lock()
+            delete(h.clients, client)
+            close(client.send)
+            h.mu.Unlock()
+            h.mu.RLock()
+        }
+    }
+}
+
+func (h *Hub) BroadcastTableUpdate(topic, payload string) {
+    update := MQTTTableUpdate{
+        Type:    "table_update",
+        Topic:   topic,
+        Payload: payload,
+    }
+    
+    message, err := json.Marshal(update)
+    if err != nil {
+        log.Printf("Error marshaling table update: %v", err)
+        return
+    }
+
+    h.mu.RLock()
+    defer h.mu.RUnlock()
+    
+    for client := range h.clients {
+        select {
+        case client.send <- message:
+            log.Printf("Sent table update to client %v", client.conn.RemoteAddr())
+        default:
+            log.Printf("Failed to send to client %v, removing", client.conn.RemoteAddr())
+            h.mu.RUnlock()
+            h.mu.Lock()
+            delete(h.clients, client)
+            close(client.send)
+            h.mu.Unlock()
+            h.mu.RLock()
+        }
+    }
+}

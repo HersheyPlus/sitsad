@@ -20,7 +20,6 @@ type Room struct {
 	BuildingID  string    `gorm:"column:building_id;not null" json:"building_id"`
 	RoomName    string    `gorm:"column:room_name;type:varchar(100);not null" json:"room_name"`
 	Description string    `gorm:"column:description;type:text" json:"description"`
-	Floor       int       `gorm:"column:floor;not null" json:"floor"`
 	ImageURL    string    `gorm:"column:image_url;type:text" json:"image_url"`
 	CreatedAt   time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -45,7 +44,6 @@ type Item struct {
 	PositionY  *float64  `gorm:"column:position_y" json:"position_y,omitempty"`
 	Width      *float64  `gorm:"column:width" json:"width,omitempty"`
 	Height     *float64  `gorm:"column:height" json:"height,omitempty"`
-	Floor      *int      `gorm:"column:floor" json:"floor,omitempty"`
 	Name       string    `gorm:"column:name;not null" json:"name"`
 	Gender     *string   `gorm:"column:gender;type:varchar(10)" json:"gender,omitempty"`
 	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -141,14 +139,13 @@ func NewBuilding(buildingId, name, description, imageURL string) *Building {
 	}
 }
 
-func NewRoom(roomId string, buildingID string, roomName, description, imageURL string, floor int) *Room {
+func NewRoom(roomId string, buildingID string, roomName, description, imageURL string) *Room {
 	return &Room{
 		RoomID:      roomId,
 		BuildingID:  buildingID,
 		RoomName:    roomName,
 		Description: description,
 		ImageURL:    imageURL,
-		Floor:       floor,
 	}
 }
 
@@ -166,14 +163,12 @@ func NewTable(itemId, roomID string, posX, posY, width, height float64, name str
 	}
 }
 
-func NewToilet(itemId string, floor int, roomID *string, gender, name string, posX, posY, width, height float64) *Item {
+func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64) *Item {
     return &Item{
 		ItemID:   itemId,
         Type:      ItemTypeToilet,
         RoomID:    roomID,
-        Floor:     &floor,
         Name:      name,
-        Gender:    &gender,
         PositionX: &posX,
         PositionY: &posY,
         Width:     &width,

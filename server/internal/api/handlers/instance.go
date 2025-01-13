@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"server/internal/ws"
 	"server/internal/models"
+	"server/internal/ws"
+	"time"
+
 	"gorm.io/gorm"
-    "time"
 )
 
 type Handler struct {
@@ -13,7 +14,7 @@ type Handler struct {
 }
 
 type CreateTableRequest struct {
-	RoomID    string     `json:"room_id" validate:"required"`
+	RoomID    string  `json:"room_id" validate:"required"`
 	Name      string  `json:"name" validate:"required"`
 	PositionX float64 `json:"position_x" validate:"required"`
 	PositionY float64 `json:"position_y" validate:"required"`
@@ -22,51 +23,46 @@ type CreateTableRequest struct {
 }
 
 type CreateDeviceRequest struct {
-    Name       string         `json:"name" validate:"required"`
-    Topic      string         `json:"topic" validate:"required"`
-    BuildingID string         `json:"building_id" validate:"required"`
-    RoomID     string         `json:"room_id" validate:"required"`
-    Type       models.DeviceType `json:"type" validate:"required"`
-    WebURL     string         `json:"web_url" validate:"required"`
+	Name       string            `json:"name"`
+	Topic      string            `json:"topic"`
+	BuildingID string            `json:"building_id"`
+	RoomID     string            `json:"room_id"`
+	Type       models.DeviceType `json:"type"`
+	WebUrl     string            `json:"webUrl"`
 }
 
 type CreateForgotItemRequest struct {
-    ImageURL     string    `json:"image_url" validate:"required"`
-    Date         time.Time `json:"date" validate:"required"`
-    TableID      string    `json:"table_id" validate:"required"`
-    BuildingName string    `json:"building_name" validate:"required"`
-    RoomName     string    `json:"room_name" validate:"required"`
+	TableID      string    `form:"table_id"`
+	BuildingName string    `form:"building_name"`
+	RoomName     string    `form:"room_name"`
+	Date         time.Time `form:"date"`
 }
 
 type UpdateTableRequest struct {
-    RoomID    *string  `json:"room_id"`
-    Name      *string  `json:"name"`
-    PositionX *float64 `json:"position_x"`
-    PositionY *float64 `json:"position_y"`
-    Width     *float64 `json:"width"`
-    Height    *float64 `json:"height"`
+	RoomID    *string  `json:"room_id"`
+	Name      *string  `json:"name"`
+	PositionX *float64 `json:"position_x"`
+	PositionY *float64 `json:"position_y"`
+	Width     *float64 `json:"width"`
+	Height    *float64 `json:"height"`
 }
 
-
 type CreateToiletRequest struct {
-    Floor      int     `json:"floor" validate:"required"`
-    RoomID     string  `json:"room_id"`
-    Gender     string  `json:"gender" validate:"required,oneof=Male Female Unisex"`
-    PositionX  float64 `json:"position_x" validate:"required"`
-    PositionY  float64 `json:"position_y" validate:"required"`
-    Width      float64 `json:"width" validate:"required"`
-    Height     float64 `json:"height" validate:"required"`
-    Name       string  `json:"name" validate:"required"`
+	RoomID    string  `json:"room_id"`
+	PositionX float64 `json:"position_x" validate:"required"`
+	PositionY float64 `json:"position_y" validate:"required"`
+	Width     float64 `json:"width" validate:"required"`
+	Height    float64 `json:"height" validate:"required"`
+	Name      string  `json:"name" validate:"required"`
 }
 
 type UpdateToiletRequest struct {
-    Floor     *int     `json:"floor"`
-    Gender    *string  `json:"gender"`
-    PositionX *float64 `json:"position_x"`
-    PositionY *float64 `json:"position_y"`
-    Width     *float64 `json:"width"`
-    Height    *float64 `json:"height"`
-    Name      *string  `json:"name"`
+	RoomID    *string  `json:"room_id"`
+	PositionX *float64 `json:"position_x"`
+	PositionY *float64 `json:"position_y"`
+	Width     *float64 `json:"width"`
+	Height    *float64 `json:"height"`
+	Name      *string  `json:"name"`
 }
 
 type CreateBuildingRequest struct {
@@ -76,50 +72,44 @@ type CreateBuildingRequest struct {
 }
 
 type CreateRoomRequest struct {
-	RoomID	string `json:"room_id" validate:"required"`
-	BuildingID   string `json:"building_id" validate:"required"`
+	BuildingID  string `json:"building_id" validate:"required"`
 	RoomName    string `json:"room_name" validate:"required"`
 	Description string `json:"description"`
-	Floor       int    `json:"floor" validate:"required"`
-	ImageURL    string `json:"image_url"`
 }
 
 type ItemResponse struct {
-    ItemID      string          `json:"item_id"`
-    Type        models.ItemType `json:"type"`
-    BuildingID  string          `json:"building_id"`
-    Available   bool            `json:"available"`
-    PositionX   float64         `json:"position_x"`
-    PositionY   float64         `json:"position_y"`
-    Width       float64         `json:"width"`
-    Height      float64         `json:"height"`
-    Floor       *int            `json:"floor,omitempty"`
-    Name        string          `json:"name"`
-    Description *string         `json:"description,omitempty"`
-    Location    LocationResponse `json:"location"`
+	ItemID      string           `json:"item_id"`
+	Type        models.ItemType  `json:"type"`
+	BuildingID  string           `json:"building_id"`
+	Available   bool             `json:"available"`
+	PositionX   float64          `json:"position_x"`
+	PositionY   float64          `json:"position_y"`
+	Width       float64          `json:"width"`
+	Height      float64          `json:"height"`
+	Name        string           `json:"name"`
+	Description *string          `json:"description,omitempty"`
+	Location    LocationResponse `json:"location"`
 }
 
 type LocationResponse struct {
-    Building BuildingResponse `json:"building"`
-    Room     RoomResponse    `json:"room"`
+	Building BuildingResponse `json:"building"`
+	Room     RoomResponse     `json:"room"`
 }
 
 type BuildingResponse struct {
-    BuildingID   string  `json:"building_id"`
-    BuildingName string  `json:"building_name"`
-    Description  string  `json:"description"`
-    ImageURL     string  `json:"imageURL"`
+	BuildingID   string `json:"building_id"`
+	BuildingName string `json:"building_name"`
+	Description  string `json:"description"`
+	ImageURL     string `json:"imageURL"`
 }
 
 type RoomResponse struct {
-    RoomID      string  `json:"room_id"`
-    BuildingID  string  `json:"building_id"`
-    RoomName    string  `json:"room_name"`
-    Description string  `json:"description"`
-    ImageURL    string  `json:"imageURL"`
-    Floor       int     `json:"floor"`
+	RoomID      string `json:"room_id"`
+	BuildingID  string `json:"building_id"`
+	RoomName    string `json:"room_name"`
+	Description string `json:"description"`
+	ImageURL    string `json:"imageURL"`
 }
-
 
 func NewHandler(db *gorm.DB, wsHub *ws.Hub) *Handler {
 	return &Handler{

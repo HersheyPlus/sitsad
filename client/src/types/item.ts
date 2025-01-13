@@ -23,6 +23,7 @@ export interface IItem {
 }
 
 export interface IItemPayload {
+    item_id?: string;
     type: ItemType;
     available: boolean;
     position_x: number;

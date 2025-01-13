@@ -40,6 +40,22 @@ const DeviceModal = ({
     }, [editingDevice, form]);
 
     useEffect(() => {
+        if (selectedType === "Sensor") {
+            form.setFieldsValue({ webUrl: "" });
+        } else {
+            const buildingId = form.getFieldValue("building_id");
+            const roomId = form.getFieldValue("room_id");
+            const name = form.getFieldValue("name");
+
+            const topic = editingDevice ? `table/${editingDevice.building_id}/${editingDevice.room_id}/${editingDevice.name}` :
+                `table/${buildingId}/${roomId}/${name}`;
+
+            form.setFieldsValue({ topic });
+        }
+    })
+
+
+    useEffect(() => {
         if (!editingDevice) {
             form.setFieldValue("room_id", undefined); // Reset room when building changes
         }

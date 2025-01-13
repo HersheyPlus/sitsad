@@ -1,5 +1,6 @@
 import { Row, Col, Card, Typography } from 'antd';
-import { TableOutlined, BankOutlined, CarOutlined } from '@ant-design/icons';
+import { TableOutlined, BookOutlined } from '@ant-design/icons';
+import { ToiletIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -8,45 +9,60 @@ const features = [
     {
         title: 'ระบบจองโต๊ะ',
         description: 'จองโต๊ะเรียนหรือทำงานได้อย่างสะดวกและรวดเร็ว',
-        icon: <TableOutlined className="text-4xl text-blue-600" />,
-        href: '/table'
+        icon: (
+            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                <TableOutlined className="text-3xl text-blue-600" />
+            </div>
+        ),
+        href: '/table',
     },
     {
         title: 'ระบบตรวจห้องน้ำว่าง',
         description: 'ตรวจสอบสถานะห้องน้ำว่างได้แบบเรียลไทม์',
-        icon: <BankOutlined className="text-4xl text-blue-600" />,
-        href: '/toilet'
+        icon: (
+            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                <ToiletIcon className="w-8 h-8 text-blue-600" />
+            </div>
+        ),
+        href: '/toilet',
     },
     {
-        title: 'ระบบตรวจจับรถยนต์จอดผิด',
-        description: 'สำหรับผู้ดูแลระบบ: ตรวจสอบและจัดการรถยนต์ที่จอดผิดกฎ',
-        icon: <CarOutlined className="text-4xl text-blue-600" />,
+        title: 'ระบบแสดงรายการของหายในคณะ',
+        description: 'ค้นหาของหายที่ถูกเก็บในพื้นที่คณะได้อย่างง่ายดาย',
+        icon: (
+            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                <BookOutlined className="text-3xl text-blue-600" />
+            </div>
+        ),
+        href: '/lost-and-found',
     },
 ];
 
 const Features = () => {
     const navigate = useNavigate();
 
-    const doNavigate = (href: string | undefined) => {
-        if (!href) return
-
-        navigate(href);
-    }
+    const handleNavigation = (href: string) => {
+        if (href) navigate(href);
+    };
 
     return (
-        <div className="px-8 py-16 bg-white">
-            <Title level={2} className="mb-12 text-center text-blue-800">
+        <div className="px-6 py-12 bg-gray-50">
+            <Title level={2} className="mb-10 text-center text-blue-800">
                 Our Features
             </Title>
-            <Row gutter={[32, 32]} justify="center">
+            <Row gutter={[24, 24]} justify="center">
                 {features.map((feature, index) => (
                     <Col xs={24} sm={12} md={8} key={index}>
-                        <Card className="h-full text-center transition-shadow hover:shadow-lg hover:cursor-pointer" onClick={() => doNavigate(feature.href)}>
-                            {feature.icon}
-                            <Title level={4} className="mt-4 text-blue-700">
+                        <Card
+                            hoverable
+                            className="flex flex-col items-center h-full text-center transition-shadow shadow-md hover:shadow-lg"
+                            onClick={() => handleNavigation(feature.href)}
+                        >
+                            <div className="flex justify-center mb-4">{feature.icon}</div>
+                            <Title level={4} className="text-blue-700">
                                 {feature.title}
                             </Title>
-                            <Paragraph>{feature.description}</Paragraph>
+                            <Paragraph className="text-gray-600">{feature.description}</Paragraph>
                         </Card>
                     </Col>
                 ))}
@@ -56,4 +72,3 @@ const Features = () => {
 };
 
 export default Features;
-

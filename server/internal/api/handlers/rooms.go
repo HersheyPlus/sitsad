@@ -1,13 +1,48 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"server/internal/models"
 	res "server/internal/utils"
+	"server/internal/utils/uuid"
+	"strings"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
-	"server/internal/utils/uuid"
 )
+
+// Find all rooms
+func (h *Handler) FindAllRooms(c *fiber.Ctx) error {
+	var rooms []models.Room
+	if err := h.db.
+		Preload("Building").
+		Find(&rooms).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
+
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+		}
+		response = append(response, resp)
+	}
+
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
+
+	return res.GetSuccess(c, "Rooms retrieved", response)
+}
 
 // Find all rooms
 func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
@@ -22,15 +57,15 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
 		return res.BadRequest(c, "itemType is required")
 	}
 
-    var rooms []models.Room
-    
-    query := h.db.
-        Debug().
-        Table("rooms").
-        Select("DISTINCT rooms.*"). // Added DISTINCT to prevent duplicates
-        Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
-        Joins("JOIN items ON items.room_id = rooms.room_id").
-        Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
+	var rooms []models.Room
+
+	query := h.db.
+		Debug().
+		Table("rooms").
+		Select("DISTINCT rooms.*"). // Added DISTINCT to prevent duplicates
+		Joins("JOIN buildings ON buildings.building_id = rooms.building_id").
+		Joins("JOIN items ON items.room_id = rooms.room_id").
+		Where("items.type = ? AND buildings.building_id = ?", itemType, buildingId)
 
 	if keyword != "" {
 		query = query.Where("(rooms.room_id LIKE ? OR rooms.room_name LIKE ?)",
@@ -46,25 +81,24 @@ func (h *Handler) FindRoomsBySearchParams(c *fiber.Ctx) error {
 		return res.InternalServerError(c, err)
 	}
 
-    // Convert to response format
-    var response []RoomResponse
-    for _, room := range rooms {
-        resp := RoomResponse{
-            RoomID:      room.RoomID,
-            BuildingID:  room.BuildingID,
-            RoomName:    room.RoomName,
-            Description: room.Description,
-            ImageURL:    room.ImageURL,
-            Floor:       room.Floor,
-        }
-        response = append(response, resp)
-    }
+	// Convert to response format
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+		}
+		response = append(response, resp)
+	}
 
-    if response == nil {
-        response = make([]RoomResponse, 0)
-    }
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
 
-    return res.GetSuccess(c, "Rooms retrieved", response)
+	return res.GetSuccess(c, "Rooms retrieved", response)
 }
 
 // Find rooms by id
@@ -82,49 +116,136 @@ func (h *Handler) FindRoomById(c *fiber.Ctx) error {
 
 // Create a new room
 func (h *Handler) CreateRoom(c *fiber.Ctx) error {
-	var req CreateRoomRequest
-	if err := c.BodyParser(&req); err != nil {
-		return res.BadRequest(c, err.Error())
-	}
+    log.Printf("Received room creation request")
+    
+    contentType := c.Get("Content-Type")
+    var buildingID, roomName, description string
+    var filename string
+    var file *multipart.FileHeader
 
-    // Manual validation
-    if req.RoomName == "" || req.BuildingID == "" || req.Floor == 0 || req.ImageURL == "" {
-        return res.BadRequest(c, "room_name, floor, building_id, image_url are required")
+    if strings.Contains(contentType, "multipart/form-data") {
+        form, err := c.MultipartForm()
+        if err != nil {
+            log.Printf("Error parsing multipart form: %v", err)
+            return res.BadRequest(c, "Invalid form data")
+        }
+
+        // Get form fields
+        if buildingIDValues := form.Value["building_id"]; len(buildingIDValues) > 0 {
+            buildingID = buildingIDValues[0]
+        }
+        if roomNameValues := form.Value["room_name"]; len(roomNameValues) > 0 {
+            roomName = roomNameValues[0]
+        }
+        if descriptionValues := form.Value["description"]; len(descriptionValues) > 0 {
+            description = descriptionValues[0]
+        }
+
+        // Get file if provided
+        if files := form.File["image.file"]; len(files) > 0 {
+            file = files[0]
+        } else if files := form.File["image"]; len(files) > 0 {
+            file = files[0]
+        }
+    } else {
+        // Handle JSON request
+        var req CreateRoomRequest
+        if err := c.BodyParser(&req); err != nil {
+            return res.BadRequest(c, "Invalid request body")
+        }
+        buildingID = req.BuildingID
+        roomName = req.RoomName
+        description = req.Description
     }
 
-	// Create room model from request
-	// Start transaction
-	tx := h.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+    log.Printf("Form values - Building ID: %s, Room Name: %s", buildingID, roomName)
 
-	// Check if building exists within transaction
-	if err := h.ExistingBuilding(tx, c, req.BuildingID); err != nil {
-		tx.Rollback()
-		return res.NotFound(c, "Building", err)
-	}
+    // Validate required fields
+    if buildingID == "" || roomName == "" {
+        log.Printf("Missing required fields")
+        return res.BadRequest(c, "building_id and room_name are required")
+    }
 
-	room := models.NewRoom(
-		uuid.GenerateUUID(),
-		req.BuildingID,
-		req.RoomName,
-		req.Description,
-		req.ImageURL,
-		req.Floor,
-	)
+    // Handle file upload if provided
+    if file != nil {
+        log.Printf("Received file: %s, Size: %d", file.Filename, file.Size)
 
-	if err := tx.Create(&room).Error; err != nil {
-		tx.Rollback()
-		return res.InternalServerError(c, err)
-	}
+        // Generate unique filename
+        ext := filepath.Ext(file.Filename)
+        filename = fmt.Sprintf("rooms/%s%s", time.Now().Format("20060102150405"), ext)
+        uploadPath := fmt.Sprintf("uploads/%s", filename)
+        
+        log.Printf("Generated upload path: %s", uploadPath)
 
-	if err := tx.Commit().Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.CreatedSuccess(c, room)
+        // Create uploads/rooms directory if it doesn't exist
+        if err := os.MkdirAll("uploads/rooms", 0755); err != nil {
+            log.Printf("Error creating directory: %v", err)
+            return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+        }
+
+        // Save the file
+        if err := c.SaveFile(file, uploadPath); err != nil {
+            log.Printf("Error saving file: %v", err)
+            return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        }
+        log.Printf("File saved successfully to: %s", uploadPath)
+    }
+
+    // Start transaction
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+            // Only remove file if it was uploaded
+            if filename != "" {
+                os.Remove(fmt.Sprintf("uploads/%s", filename))
+            }
+            log.Printf("Transaction rolled back due to panic: %v", r)
+        }
+    }()
+
+    // Check if building exists within transaction
+    if err := h.ExistingBuilding(tx, c, buildingID); err != nil {
+        tx.Rollback()
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
+        log.Printf("Building not found: %v", err)
+        return res.NotFound(c, "Building", err)
+    }
+
+    room := models.NewRoom(
+        uuid.GenerateUUID(),
+        buildingID,
+        roomName,
+        description,
+        filename, // Will be empty string if no file was uploaded
+    )
+
+    if err := tx.Create(&room).Error; err != nil {
+        tx.Rollback()
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
+        log.Printf("Error creating room record: %v", err)
+        return res.InternalServerError(c, err)
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
+        log.Printf("Error committing transaction: %v", err)
+        return res.InternalServerError(c, err)
+    }
+
+    log.Printf("Room created successfully with ID: %s", room.RoomID)
+    
+    // Add full URL to response if image was uploaded
+    if filename != "" {
+        room.ImageURL = fmt.Sprintf("/uploads/%s", room.ImageURL)
+    }
+    return res.CreatedSuccess(c, room)
 }
 
 // Update room
@@ -186,9 +307,6 @@ func (h *Handler) UpdateRoom(c *fiber.Ctx) error {
 	}
 	if updateData.Description != "" {
 		updates["description"] = updateData.Description
-	}
-	if updateData.Floor != 0 {
-		updates["floor"] = updateData.Floor
 	}
 	if updateData.ImageURL != "" {
 		updates["image_url"] = updateData.ImageURL
@@ -269,35 +387,34 @@ func (h *Handler) ExistingRoom(tx *gorm.DB, c *fiber.Ctx, roomId string) error {
 }
 
 func (h *Handler) FindAllRoomByBuildingId(c *fiber.Ctx) error {
-    buildingId := c.Params("buildingId")
-    if buildingId == "" {
-        return res.BadRequest(c, "buildingId is required")
-    }
+	buildingId := c.Params("buildingId")
+	if buildingId == "" {
+		return res.BadRequest(c, "buildingId is required")
+	}
 
-    var rooms []models.Room
-    if err := h.db.
-        Preload("Building").
-        Where("building_id = ?", buildingId).
-        Find(&rooms).Error; err != nil {
-        return res.InternalServerError(c, err)
-    }
+	var rooms []models.Room
+	if err := h.db.
+		Preload("Building").
+		Where("building_id = ?", buildingId).
+		Find(&rooms).Error; err != nil {
+		return res.InternalServerError(c, err)
+	}
 
-    var response []RoomResponse
-    for _, room := range rooms {
-        resp := RoomResponse{
-            RoomID:      room.RoomID,
-            BuildingID:  room.BuildingID,
-            RoomName:    room.RoomName,
-            Description: room.Description,
-            ImageURL:    room.ImageURL,
-            Floor:       room.Floor,
-        }
-        response = append(response, resp)
-    }
+	var response []RoomResponse
+	for _, room := range rooms {
+		resp := RoomResponse{
+			RoomID:      room.RoomID,
+			BuildingID:  room.BuildingID,
+			RoomName:    room.RoomName,
+			Description: room.Description,
+			ImageURL:    room.ImageURL,
+		}
+		response = append(response, resp)
+	}
 
-    if response == nil {
-        response = make([]RoomResponse, 0)
-    }
+	if response == nil {
+		response = make([]RoomResponse, 0)
+	}
 
-    return res.GetSuccess(c, "Rooms retrieved successfully", response)
+	return res.GetSuccess(c, "Rooms retrieved successfully", response)
 }

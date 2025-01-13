@@ -7,6 +7,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"server/internal/utils/uuid"
 	"gorm.io/gorm"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 )
 
 // FindAllForgotItems retrieves all forgot items
@@ -53,29 +57,80 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 
 // CreateForgotItem creates a new forgot item
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
-    var req CreateForgotItemRequest
-    if err := c.BodyParser(&req); err != nil {
-        return res.BadRequest(c, "Invalid request body")
+    log.Printf("Received forgot item creation request")
+    
+    // Get form fields
+    tableID := c.FormValue("table_id")
+    buildingName := c.FormValue("building_name")
+    roomName := c.FormValue("room_name")
+    dateStr := c.FormValue("date")
+
+    // Parse date - if not provided, use current time
+    var date time.Time
+    var err error
+    if dateStr != "" {
+        date, err = time.Parse(time.RFC3339, dateStr)
+        if err != nil {
+            log.Printf("Error parsing date: %v", err)
+            return res.BadRequest(c, "Invalid date format. Use RFC3339 format (e.g., 2024-01-13T15:04:05Z)")
+        }
+    } else {
+        date = time.Now()
     }
+    
+    log.Printf("Form values - Table ID: %s, Building: %s, Room: %s", tableID, buildingName, roomName)
 
     // Validate required fields
-	if req.ImageURL == "" || req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
-        return res.BadRequest(c, "image_url, table_id, building_name, room_name are required")
+    if tableID == "" || buildingName == "" || roomName == "" {
+        log.Printf("Missing required fields")
+        return res.BadRequest(c, "table_id, building_name, and room_name are required")
     }
+
+    // Handle file upload
+    file, err := c.FormFile("image")
+    if err != nil {
+        log.Printf("Error getting form file: %v", err)
+        return res.BadRequest(c, "Image file is required")
+    }
+    log.Printf("Received file: %s, Size: %d", file.Filename, file.Size)
+
+    // Generate unique filename
+    ext := filepath.Ext(file.Filename)
+    filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
+    uploadPath := fmt.Sprintf("uploads/%s", filename)
+    
+    log.Printf("Generated upload path: %s", uploadPath)
+
+    // Create uploads/forgot-items directory if it doesn't exist
+    if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
+        log.Printf("Error creating directory: %v", err)
+        return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+    }
+
+    // Save the file
+    if err := c.SaveFile(file, uploadPath); err != nil {
+        log.Printf("Error saving file: %v", err)
+        return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+    }
+    log.Printf("File saved successfully to: %s", uploadPath)
 
     // Start transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
             tx.Rollback()
+            os.Remove(uploadPath)
+            log.Printf("Transaction rolled back due to panic: %v", r)
         }
     }()
 
     // Check if table exists
     var table models.Item
-    if err := tx.Where("item_id = ? AND type = ?", req.TableID, models.ItemTypeTable).First(&table).Error; err != nil {
+    if err := tx.Where("item_id = ? AND type = ?", tableID, models.ItemTypeTable).First(&table).Error; err != nil {
         tx.Rollback()
+        os.Remove(uploadPath)
         if err == gorm.ErrRecordNotFound {
+            log.Printf("Table not found: %v", err)
             return res.NotFound(c, "Table", err)
         }
         return res.InternalServerError(c, err)
@@ -83,30 +138,41 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
 
     forgotItem := models.NewForgotItem(
         uuid.GenerateUUID(),
-        req.ImageURL,
-        req.Date,
-        req.TableID,
-        req.BuildingName,
-        req.RoomName,
+        filename, // Store relative path
+        date,
+        tableID,
+        buildingName,
+        roomName,
     )
 
     if err := tx.Create(forgotItem).Error; err != nil {
         tx.Rollback()
+        os.Remove(uploadPath)
+        log.Printf("Error creating forgot item record: %v", err)
         return res.InternalServerError(c, err)
     }
 
     // Fetch the created item with relationships
     if err := tx.Preload("Table").First(forgotItem).Error; err != nil {
         tx.Rollback()
+        os.Remove(uploadPath)
+        log.Printf("Error fetching created item: %v", err)
         return res.InternalServerError(c, err)
     }
 
     if err := tx.Commit().Error; err != nil {
+        os.Remove(uploadPath)
+        log.Printf("Error committing transaction: %v", err)
         return res.InternalServerError(c, err)
     }
 
+    log.Printf("Forgot item created successfully with ID: %s", forgotItem.ID)
+    
+    // Add full URL to response
+    forgotItem.ImageURL = fmt.Sprintf("/uploads/%s", forgotItem.ImageURL)
     return res.CreatedSuccess(c, forgotItem)
 }
+
 // UpdateForgotItem updates an existing forgot item
 func (h *Handler) UpdateForgotItem(c *fiber.Ctx) error {
 	id := c.Params("id")

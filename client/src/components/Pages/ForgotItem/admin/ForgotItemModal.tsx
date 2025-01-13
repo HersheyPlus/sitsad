@@ -1,7 +1,11 @@
-import React, { useEffect } from "react";
-import { Modal, Form, Input, Upload, Button, message, DatePicker } from "antd";
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Input, Upload, Button, message, DatePicker, Select } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { IForgot } from "@/types/forgot-item";
+import { IBuilding, IRoom } from "@/types/location";
+import { useNotificationStore } from "@/stores/notification.store";
+import BuildingService from "@/services/building.service";
+import RoomService from "@/services/room.service";
 
 interface IProps {
     visible: boolean;
@@ -17,6 +21,27 @@ const ForgotItemModal: React.FC<IProps> = ({
     onSave,
 }) => {
     const [form] = Form.useForm();
+    const [buildings, setBuildings] = useState<IBuilding[]>([]);
+    const [rooms, setRooms] = useState<IRoom[]>([]);
+
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
+    const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
+
+    const openNotification = useNotificationStore(
+        (state) => state.openNotification
+    )
+
+    useEffect(() => {
+        doSearchBuildings()
+    }, [])
+
+    useEffect(() => {
+        if (selectedBuilding) {
+            setRooms([])
+            doSearchRooms(selectedBuilding.building_id)
+            setSelectedRoom(undefined)
+        }
+    }, [selectedBuilding])
 
     useEffect(() => {
         if (editingItem) {
@@ -48,6 +73,35 @@ const ForgotItemModal: React.FC<IProps> = ({
         },
     };
 
+    const doSearchBuildings = async () => {
+        try {
+            const data = await BuildingService.findAll();
+            setBuildings(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+
+    }
+
+    const doSearchRooms = async (buildingId: string) => {
+        try {
+            const data = await RoomService.findByBuildingId(buildingId);
+            setRooms(() => data);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
+
     const doSubmit = () => {
         form
             .validateFields()
@@ -59,6 +113,20 @@ const ForgotItemModal: React.FC<IProps> = ({
                 console.log("Validation Failed:", info);
             });
     };
+
+    const handleBuildingChange = (value: string) => {
+        const building = buildings.find(b => b.building_name === value);
+        if (building) {
+            setSelectedBuilding(building);
+        }
+    }
+
+    const handleRoomChange = (value: string) => {
+        const room = rooms.find(r => `${r.room_name}` === value);
+        if (room) {
+            setSelectedRoom(room);
+        }
+    }
 
     return (
         <Modal
@@ -73,14 +141,36 @@ const ForgotItemModal: React.FC<IProps> = ({
                     label="Building Name"
                     rules={[{ required: true, message: "Please enter the building name" }]}
                 >
-                    <Input placeholder="Enter building name" />
+                    <Select
+                        placeholder="Select Building"
+                        style={{ width: '100%' }}
+                        value={selectedBuilding ? selectedBuilding.building_name : undefined}
+                        onChange={handleBuildingChange}
+                    >
+                        {buildings.map(building => (
+                            <Select.Option key={building.building_id} value={building.building_name}>
+                                {building.building_name}
+                            </Select.Option>
+                        ))}
+                    </Select>
                 </Form.Item>
                 <Form.Item
                     name="room_name"
                     label="Room Name"
                     rules={[{ required: true, message: "Please enter the room name" }]}
                 >
-                    <Input placeholder="Enter room name" />
+                    <Select
+                        placeholder="Select Building"
+                        style={{ width: '100%' }}
+                        value={selectedRoom ? selectedRoom.room_name : undefined}
+                        onChange={handleRoomChange}
+                    >
+                        {rooms.map(room => (
+                            <Select.Option key={room.room_name} value={room.room_name}>
+                                {room.room_name}
+                            </Select.Option>
+                        ))}
+                    </Select>
                 </Form.Item>
                 <Form.Item
                     name="date"

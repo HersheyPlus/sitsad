@@ -23,23 +23,23 @@ services:
       - goapp_network
     restart: unless-stopped
 
-  # app:
-  #   build: .
-  #   container_name: goapp-server
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     HACKATHON_2025_DATABASE_HOST: goapp-mysql
-  #     HACKATHON_2025_DATABASE_PORT: 3306
-  #     HACKATHON_2025_DATABASE_USER: root
-  #     HACKATHON_2025_DATABASE_PASSWORD: 1234
-  #     HACKATHON_2025_DATABASE_NAME: hackathon2025
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - goapp_network
-  #   restart: unless-stopped
+  app:
+    build: .
+    container_name: goapp-server
+    ports:
+      - "8080:8080"
+    environment:
+      HACKATHON_2025_DATABASE_HOST: goapp-mysql
+      HACKATHON_2025_DATABASE_PORT: 3306
+      HACKATHON_2025_DATABASE_USER: root
+      HACKATHON_2025_DATABASE_PASSWORD: 1234
+      HACKATHON_2025_DATABASE_NAME: hackathon2025
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - goapp_network
+    restart: unless-stopped
 
 networks:
   goapp_network:

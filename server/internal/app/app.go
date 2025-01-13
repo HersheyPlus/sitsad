@@ -3,26 +3,27 @@ package app
 
 import (
 	"fmt"
-	"runtime/debug"
+	"log"
 	"server/internal/api/handlers"
 	"server/internal/models"
 	"server/internal/ws"
+	"server/mqtt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/websocket/v2"
 	"gorm.io/gorm"
 )
 
 type App struct {
-	db       *gorm.DB
-	app      *fiber.App
-	config   *models.AppConfig
-	handlers *handlers.Handler
-	wsHub    *ws.Hub
+	db         *gorm.DB
+	app        *fiber.App
+	config     *models.AppConfig
+	handlers   *handlers.Handler
+	wsHub      *ws.Hub
+	mqttClient *mqtt.Client
 }
 
 func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
@@ -32,13 +33,7 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 		IdleTimeout:  cfg.ServerConfig.Timeout,
 	})
 
-	app.Use(recover.New(recover.Config{
-		EnableStackTrace: true,
-		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
-			fmt.Printf("Panic recovered: %v\n", e)
-			debug.PrintStack()
-		},
-	}))
+	app.Static("/uploads", "./uploads")
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     strings.Join(cfg.ServerConfig.AllowOrigins, ","),
@@ -53,31 +48,33 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 
 	wsHub := ws.NewHub()
 	go wsHub.Run()
+
+	mqttClient, err := mqtt.NewMQTTClient(cfg, wsHub, db)
+	if err != nil {
+		log.Printf("Failed to initialize MQTT client: %v", err)
+	} else {
+		log.Printf("Successfully initialized MQTT client")
+		if err := mqttClient.SubscribeToTopics(); err != nil {
+			log.Printf("Failed to subscribe to MQTT topics: %v", err)
+		} else {
+			log.Printf("Successfully subscribed to MQTT topics")
+		}
+	}
+
 	handlers := handlers.NewHandler(db, wsHub)
 
 	return &App{
-		app:      app,
-		db:       db,
-		config:   cfg,
-		handlers: handlers,
-		wsHub:    wsHub,
+		app:        app,
+		db:         db,
+		config:     cfg,
+		handlers:   handlers,
+		wsHub:      wsHub,
+		mqttClient: mqttClient,
 	}
 }
 
 func (a *App) setupRoutes() {
-
-	a.app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"status": "ok",
-		})
-	})
-
 	api := a.app.Group("/api")
-
-	api.Get("/test", func(c *fiber.Ctx) error {
-		fmt.Println("Test endpoint called")
-		return c.SendString("test ok")
-	})
 	api.Use("/ws", func(c *fiber.Ctx) error {
 		origin := c.Get("Origin")
 		allowed := false
@@ -114,7 +111,7 @@ func (a *App) setupRoutes() {
 	rooms.Post("/", a.handlers.CreateRoom)                   // create ✅
 	rooms.Put("/:id", a.handlers.UpdateRoom)                 // update ✅
 	rooms.Delete("/:id", a.handlers.DeleteRoom)              // delete ✅
-	// rooms.Get("/", a.handlers.FindAllRooms)
+	rooms.Get("/", a.handlers.FindAllRooms)
 	rooms.Get("/building/:buildingId", a.handlers.FindAllRoomByBuildingId)
 
 	// Item Routes
@@ -166,16 +163,21 @@ func (a *App) setupRoutes() {
 	forgotItems.Put("/:id", a.handlers.UpdateForgotItem)                  // ✅
 	forgotItems.Delete("/:id", a.handlers.DeleteForgotItem)               // ✅
 
+	// Camera Routes
+	cameras := api.Group("/camera-info")
+	cameras.Get("/", a.handlers.GetCameraInfo) // get camera info ✅
+
 }
 
 func (a *App) Start() error {
 	a.setupRoutes()
+
+	if a.mqttClient != nil {
+		defer a.mqttClient.Disconnect()
+	}
+
 	addr := fmt.Sprintf("%s:%d", a.config.ServerConfig.Host, a.config.ServerConfig.Port)
 	fmt.Printf("Starting server on %s\n", addr)
-
-	for _, route := range a.app.GetRoutes() {
-		fmt.Printf("Route: %s %s\n", route.Method, route.Path)
-	}
 
 	return a.app.Listen(addr)
 }

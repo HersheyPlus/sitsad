@@ -30,7 +30,7 @@ const BuildingWrapper = ({ itemType }: IProps) => {
     )
     useEffect(() => {
         doSearch()
-    }, [query])
+    }, [])
 
     const doSearch = async () => {
         if (!itemType) return

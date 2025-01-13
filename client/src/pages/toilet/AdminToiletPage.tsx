@@ -148,6 +148,9 @@ const AdminToiletPage = () => {
                 description: (error as any).message
             })
         }
+
+        await doSearchItems(selectedRoom?.room_id || '');
+        // await doSearchRooms(selectedBuilding?.building_id || '');
     }
 
     const doRemoveItem = async (id: string) => {
@@ -188,7 +191,7 @@ const AdminToiletPage = () => {
                 doSaveItem={doSaveItem}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TOILET} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
+            <AdminItemCrud data={items} buildings={buildings} itemType={ItemType.TOILET} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
 
             <AdminItemHistory data={history} itemName={ItemType.TOILET} />
         </Flex>

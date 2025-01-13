@@ -121,10 +121,9 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
-    const doSaveItem = async (item: IItem | IItemPayload, create: boolean) => {
+    const doSaveItem = async (item: IItemPayload, create: boolean) => {
         try {
             if (create) {
                 await TableService.create(item);
@@ -134,7 +133,7 @@ const AdminTablePage = () => {
                     description: 'Item created successfully'
                 })
             } else {
-                await TableService.update(item as IItem);
+                await TableService.update(item);
                 openNotification({
                     type: 'success',
                     message: 'Success',
@@ -149,6 +148,9 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
+
+        await doSearchItems(selectedRoom?.room_id || '');
+        // await doSearchRooms(selectedBuilding?.building_id || '');
     }
 
     const doRemoveItem = async (id: string) => {
@@ -189,7 +191,7 @@ const AdminTablePage = () => {
                 doSaveItem={doSaveItem}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
+            <AdminItemCrud data={items} buildings={buildings} itemType={ItemType.TABLE} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
 
             <AdminItemHistory data={history} itemName={ItemType.TABLE} />
         </Flex>
