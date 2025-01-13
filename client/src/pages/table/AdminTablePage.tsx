@@ -123,7 +123,7 @@ const AdminTablePage = () => {
         }
     }
 
-    const doSaveItem = async (item: IItem | IItemPayload, create: boolean) => {
+    const doSaveItem = async (item: IItemPayload, create: boolean) => {
         try {
             if (create) {
                 await TableService.create(item);
@@ -133,7 +133,7 @@ const AdminTablePage = () => {
                     description: 'Item created successfully'
                 })
             } else {
-                await TableService.update(item as IItem);
+                await TableService.update(item);
                 openNotification({
                     type: 'success',
                     message: 'Success',
@@ -149,7 +149,8 @@ const AdminTablePage = () => {
             })
         }
 
-        doSearchItems(selectedRoom?.room_id || '');
+        await doSearchItems(selectedRoom?.room_id || '');
+        // await doSearchRooms(selectedBuilding?.building_id || '');
     }
 
     const doRemoveItem = async (id: string) => {

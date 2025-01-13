@@ -61,9 +61,8 @@ const AdminItemHistory = ({ data }: IProps) => {
     const columns: ColumnsType<IItemHistory> = [
         {
             title: "Item ID",
-            dataIndex: "id",
+            dataIndex: "item_id",
             key: "id",
-            sorter: (a, b) => a.id.localeCompare(b.id),
         },
         {
             title: "Reservation Time",

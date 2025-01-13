@@ -1,6 +1,8 @@
 import { Table, Button } from "antd";
 import { IBuilding, IRoom } from "@/types/location";
 import { IDevice } from "@/types/device";
+import { useState } from "react";
+import WebUrlModal from "./WebUrlModal";
 
 interface IProps {
     buildings: IBuilding[];
@@ -19,6 +21,16 @@ const DeviceTable = ({
     buildings,
     rooms,
 }: IProps) => {
+    const [selectedWebUrl, setSelectedWebUrl] = useState<string | null>(null);
+
+    const doCloseModal = () => {
+        setSelectedWebUrl(null);
+    }
+
+    const doShowWebUrl = (webUrl: string) => {
+        setSelectedWebUrl(webUrl);
+    }
+
     const columns = [
         {
             title: "ID",
@@ -58,8 +70,10 @@ const DeviceTable = ({
             dataIndex: "webUrl",
             key: "webUrl",
             render: (webUrl: string, record: IDevice) => {
-                if (record.type.toLocaleLowerCase() === "camera") {
-                    return webUrl;
+                if (record.type.toLocaleLowerCase() === 'camera') {
+                    return <div onClick={() => doShowWebUrl(webUrl)} className="text-blue-500 cursor-pointer">
+                        {webUrl}
+                    </div>;
                 } else {
                     return "N/A";
                 }
@@ -94,7 +108,9 @@ const DeviceTable = ({
                     Add Device
                 </Button>
             </div>
-            <Table dataSource={data} columns={columns} rowKey="id" className="shadow-lg" />
+            <Table dataSource={data} columns={columns} rowKey="device_id" className="shadow-lg" />
+
+            <WebUrlModal webUrl={selectedWebUrl || ""} isVisible={!!selectedWebUrl} onClose={doCloseModal} />
         </div>
     );
 };

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import { IBuilding, IRoom } from '@/types/location';
-import { IItem, IItemPayload, ItemType } from '@/types/item';
+import { IItemPayload, ItemType } from '@/types/item';
 import RoomService from '@/services/room.service';
 
 interface IProps {
     open: boolean;
     onCancel: () => void;
-    onSubmit: (values: IItemPayload | IItem) => void;
+    onSubmit: (values: IItemPayload) => void;
     buildings: IBuilding[];
     itemType: string;
     loading?: boolean;

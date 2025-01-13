@@ -40,10 +40,8 @@ const DeviceModal = ({
     }, [editingDevice, form]);
 
     useEffect(() => {
-        console.log("Selected type", selectedType);
         if (selectedType === "Sensor") {
             form.setFieldsValue({ webUrl: "" });
-            console.log("Form values", form.getFieldsValue());
         } else {
             const buildingId = form.getFieldValue("building_id");
             const roomId = form.getFieldValue("room_id");

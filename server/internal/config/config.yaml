@@ -1,8 +1,8 @@
 database:
-  host: localhost
-  port: 3306
+  host: goapp-mysql
+  port: 3307
   user: root
-  password: Rsv18221
+  password: 1234
   name: hackathon2025
   sslmode: disable
   max_connections: 100

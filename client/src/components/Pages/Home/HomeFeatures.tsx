@@ -1,5 +1,5 @@
 import { Row, Col, Card, Typography } from 'antd';
-import { TableOutlined, CarOutlined, BookOutlined } from '@ant-design/icons';
+import { TableOutlined, BookOutlined } from '@ant-design/icons';
 import { ToiletIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,7 +41,7 @@ const features = [
 const Features = () => {
     const navigate = useNavigate();
 
-    const handleNavigation = (href) => {
+    const handleNavigation = (href: string) => {
         if (href) navigate(href);
     };
 

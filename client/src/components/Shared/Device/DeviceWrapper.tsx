@@ -25,8 +25,8 @@ const DeviceWrapper = () => {
     )
 
     useEffect(() => {
-        doGetBuildings();
-        doGetRooms()
+        doSearchuildings();
+        doSearchRooms()
         doSearch()
     }, [])
 
@@ -45,7 +45,7 @@ const DeviceWrapper = () => {
         }
     }
 
-    const doGetBuildings = async () => {
+    const doSearchuildings = async () => {
         try {
             const data = await BuildingService.findAll()
             setBuildings(data)
@@ -59,7 +59,7 @@ const DeviceWrapper = () => {
         }
     }
 
-    const doGetRooms = async () => {
+    const doSearchRooms = async () => {
         try {
             const data = await RoomService.findAll()
             setRooms(data)
@@ -112,7 +112,6 @@ const DeviceWrapper = () => {
                 )
             );
 
-
             const topic = payload.type === 'Camera' ? `table/${payload.building_id}/${payload.room_id}/${payload.name}` :
                 payload.topic
 
@@ -153,7 +152,6 @@ const DeviceWrapper = () => {
                 topic
             }
 
-
             try {
                 await DeviceService.create(newPayload)
 
@@ -172,6 +170,7 @@ const DeviceWrapper = () => {
             }
         }
 
+        await doSearch()
         setIsModalOpen(false);
     };
 

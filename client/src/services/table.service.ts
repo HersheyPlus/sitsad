@@ -30,12 +30,12 @@ const TableService = {
         return response.data;
     },
 
-    async create(table: IItem | IItemPayload): Promise<IItem> {
+    async create(table: IItemPayload): Promise<IItem> {
         const response = await apiClient.post('/tables', table);
         return response.data;
     },
 
-    async update(table: IItem): Promise<void> {
+    async update(table: IItemPayload): Promise<void> {
         await apiClient.put(`/tables/${table.item_id}`, table);
     },
 
