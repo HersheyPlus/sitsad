@@ -64,6 +64,8 @@ const AdminItemCreateModal: React.FC<IProps> = ({
 
             onSubmit(payload);
             onCancel();
+
+            form.resetFields();
         } catch (error) {
             console.error('Validation failed:', error);
         }

@@ -26,7 +26,7 @@ const RoomModal: React.FC<LocationModalProps> = ({
         } else {
             form.resetFields();
         }
-    }, [editingRoom, form]);
+    }, [editingRoom, form, visible]);
 
     const uploadProps = {
         beforeUpload: (file: File) => {
@@ -60,12 +60,17 @@ const RoomModal: React.FC<LocationModalProps> = ({
             });
     };
 
+    const doClose = () => {
+        form.resetFields();
+        onCancel();
+    }
+
     return (
         <Modal
             title={editingRoom ? "Edit Room" : "Add Room"}
             visible={visible}
             onOk={doSubmit}
-            onCancel={onCancel}
+            onCancel={doClose}
         >
             <Form form={form} layout="vertical">
                 <Form.Item

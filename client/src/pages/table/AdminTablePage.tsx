@@ -121,7 +121,6 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
-
     }
 
     const doSaveItem = async (item: IItem | IItemPayload, create: boolean) => {
@@ -149,6 +148,8 @@ const AdminTablePage = () => {
                 description: (error as any).message
             })
         }
+
+        doSearchItems(selectedRoom?.room_id || '');
     }
 
     const doRemoveItem = async (id: string) => {
@@ -189,7 +190,7 @@ const AdminTablePage = () => {
                 doSaveItem={doSaveItem}
             />
 
-            <AdminItemCrud data={items} buildings={buildings} rooms={rooms} itemType={ItemType.TABLE} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
+            <AdminItemCrud data={items} buildings={buildings} itemType={ItemType.TABLE} onSaveItem={doSaveItem} onRemoveItem={doRemoveItem} />
 
             <AdminItemHistory data={history} itemName={ItemType.TABLE} />
         </Flex>

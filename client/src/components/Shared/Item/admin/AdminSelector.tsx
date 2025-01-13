@@ -34,6 +34,18 @@ const AdminSelector: React.FC<IProps> = ({
         }
     }, [selectedBuilding, rooms, onRoomSelect]);
 
+    useEffect(() => {
+        if (buildings && buildings.length > 0) {
+            onBuildingSelect(buildings[0]);
+        }
+    }, [buildings, onBuildingSelect]);
+
+    useEffect(() => {
+        if (selectedBuilding && rooms && rooms.length > 0) {
+            onRoomSelect(rooms[0]);
+        }
+    }, [rooms, onRoomSelect]);
+
     const handleBuildingChange = (value: string) => {
         const building = buildings.find(b => b.building_id === value);
         if (building) {
