@@ -15,7 +15,7 @@ const RoomService = {
 
     async findByBuildingId(building_id: string): Promise<IRoom[]> {
         const response = await apiClient.get(`/rooms/building/${building_id}`);
-        return response.data;
+        return response.data.data;
     },
 
     async findByName(name: string): Promise<IRoom | undefined> {
@@ -34,6 +34,8 @@ const RoomService = {
         });
 
     },
+
+
 
     async findByKeywordAndItemType(keyword: string, buildingId: string, itemType: string): Promise<IRoom[]> {
         const response = await apiClient.get('/rooms/search', {

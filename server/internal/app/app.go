@@ -109,12 +109,13 @@ func (a *App) setupRoutes() {
 
 	// Rooms Routes
 	rooms := api.Group("/rooms")
-	rooms.Get("/", a.handlers.FindAllRooms)
 	rooms.Get("/search", a.handlers.FindRoomsBySearchParams) // get all ✅
 	rooms.Get("/:id", a.handlers.FindRoomById)               // get by id ✅
 	rooms.Post("/", a.handlers.CreateRoom)                   // create ✅
 	rooms.Put("/:id", a.handlers.UpdateRoom)                 // update ✅
 	rooms.Delete("/:id", a.handlers.DeleteRoom)              // delete ✅
+	// rooms.Get("/", a.handlers.FindAllRooms)
+	rooms.Get("/building/:buildingId", a.handlers.FindAllRoomByBuildingId)
 
 	// Item Routes
 	items := api.Group("/items")

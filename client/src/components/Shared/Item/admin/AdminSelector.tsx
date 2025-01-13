@@ -61,7 +61,7 @@ const AdminSelector: React.FC<IProps> = ({
                     >
                         {buildings.map(building => (
                             <Select.Option key={building.building_id} value={building.building_id}>
-                                {building.building_id}
+                                {building.building_name}
                             </Select.Option>
                         ))}
                     </Select>
@@ -76,7 +76,7 @@ const AdminSelector: React.FC<IProps> = ({
                     >
                         {rooms.map(room => (
                             <Select.Option key={room.room_id} value={room.room_id}>
-                                {room.room_id}
+                                {room.room_name}
                             </Select.Option>
                         ))}
                     </Select>

@@ -267,3 +267,37 @@ func (h *Handler) ExistingRoom(tx *gorm.DB, c *fiber.Ctx, roomId string) error {
 	}
 	return nil
 }
+
+func (h *Handler) FindAllRoomByBuildingId(c *fiber.Ctx) error {
+    buildingId := c.Params("buildingId")
+    if buildingId == "" {
+        return res.BadRequest(c, "buildingId is required")
+    }
+
+    var rooms []models.Room
+    if err := h.db.
+        Preload("Building").
+        Where("building_id = ?", buildingId).
+        Find(&rooms).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    var response []RoomResponse
+    for _, room := range rooms {
+        resp := RoomResponse{
+            RoomID:      room.RoomID,
+            BuildingID:  room.BuildingID,
+            RoomName:    room.RoomName,
+            Description: room.Description,
+            ImageURL:    room.ImageURL,
+            Floor:       room.Floor,
+        }
+        response = append(response, resp)
+    }
+
+    if response == nil {
+        response = make([]RoomResponse, 0)
+    }
+
+    return res.GetSuccess(c, "Rooms retrieved successfully", response)
+}

@@ -98,7 +98,6 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-    // Validation
     if req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 || 
        req.RoomID == "" || req.Name == "" {
         return res.BadRequest(c, "room_id, name, position_x, position_y, width, height are required and must be valid")
@@ -118,8 +117,9 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.NotFound(c, "Room", err)
     }
 
+    itemID := uuid.GenerateUUID()
     table := models.NewTable(
-        uuid.GenerateUUID(),
+        itemID,
         req.RoomID,
         req.PositionX,
         req.PositionY,
@@ -133,9 +133,13 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    if err := tx.Preload("Room").
+    // Fetch the created table with relationships
+    var createdTable models.Item
+    if err := tx.
+        Preload("Room").
         Preload("Room.Building").
-        First(table, table.ItemID).Error; err != nil {
+        Where("item_id = ?", itemID).
+        First(&createdTable).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
@@ -143,9 +147,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
     if err := tx.Commit().Error; err != nil {
         return res.InternalServerError(c, err)
     }
-
-    h.wsHub.BroadcastNewItem(table, "table")
-    return res.CreatedSuccess(c, table)
+    return res.CreatedSuccess(c, createdTable)
 }
 
 // Update table

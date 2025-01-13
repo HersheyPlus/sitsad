@@ -36,7 +36,7 @@ const AdminItemCreateModal: React.FC<IProps> = ({
 
     const doSearchRooms = async (buildingId: string) => {
         if (selectedBuilding) {
-            const data = await RoomService.findByKeywordAndItemType("", buildingId, itemType);
+            const data = await RoomService.findByBuildingId(buildingId);
             setRooms(data);
         }
     }
@@ -63,6 +63,7 @@ const AdminItemCreateModal: React.FC<IProps> = ({
             }
 
             onSubmit(payload);
+            onCancel();
         } catch (error) {
             console.error('Validation failed:', error);
         }
