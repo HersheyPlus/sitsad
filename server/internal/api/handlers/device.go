@@ -3,8 +3,6 @@ package handlers
 import (
 	"server/internal/models"
 	res "server/internal/utils"
-	"server/internal/utils/uuid"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -63,10 +61,14 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 	}
 
 	// Validate required fields
-	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" {
-		return res.BadRequest(c, "name, topic, building_id, room_id are required")
+	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.DeviceID == ""{
+		return res.BadRequest(c, "name, topic, building_id, room_id, device_id are required")
 	}
 
+	if req.Type != "Camera" && req.Type != "Sensor" {
+		return res.BadRequest(c, "Invalid device type")
+	}
+	
 	if req.WebUrl == "" {
 		req.WebUrl = ""
 	}
@@ -97,7 +99,7 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 	}
 
 	device := models.NewDevice(
-		uuid.GenerateUUID(),
+		req.DeviceID,
 		req.Name,
 		req.Topic,
 		req.BuildingID,

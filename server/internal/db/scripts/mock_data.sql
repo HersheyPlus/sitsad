@@ -21,24 +21,24 @@ VALUES
 INSERT INTO devices (device_id, name, topic, building_id, room_id, type, web_url)
 VALUES
     ('D1', 'Thermostat', 'climate_control', 'B1', 'R1', 'Sensor', 'https://example.com/devices/thermostat'),
-    ('D2', 'Projector', 'presentation', 'B1', 'R6', 'Output', 'https://example.com/devices/projector'),
+    ('D2', 'Projector', 'presentation', 'B1', 'R6', 'Camera', 'https://example.com/devices/projector'),
     ('D3', 'Light Control', 'lighting', 'B2', 'R7', 'Sensor', 'https://example.com/devices/light-control'),
-    ('D4', 'Security Camera', 'security', 'B4', 'R4', 'Monitor', 'https://example.com/devices/security-camera');
+    ('D4', 'Security Camera', 'security', 'B4', 'R4', 'Camera', 'https://example.com/devices/security-camera');
 
 -- Insert data into items
 -- Insert data into items
 INSERT INTO items (item_id, type, room_id, name, available, position_x, position_y, width, height, gender, device_id)
 VALUES
-    ('I1', 'table', 'R1', 'Office Table', true, 10.5, 20.3, 1.5, 2.0, NULL, 'D1'),
+    ('I1', 'table', 'R1', 'Office Table', true, 10.5, 20.3, 100, 100, NULL, 'D1'),
     ('I2', 'table', 'R2', 'Study Table', true, 15.0, 25.0, 3.0, 5.0, NULL, 'D2'),
-    ('I3', 'toilet', 'R3', 'Men’s Toilet', true, 5.0, 10.0, 2.5, 6.0, 'Male', 'D3'),
-    ('I4', 'toilet', 'R3', 'Women’s Toilet', true, 3.0, 5.0, 2.0, 3.0, 'Female', 'D3'),
-    ('I5', 'table', 'R4', 'Lab Table', true, 8.0, 12.0, 4.0, 2.5, NULL, 'D4'),
-    ('I6', 'table', 'R6', 'Speaker Table', true, 2.0, 2.0, 1.0, 2.0, NULL, 'D2'),
-    ('I7', 'toilet', 'R5', 'Unisex Toilet', true, 1.0, 1.5, 2.0, 1.5, NULL, 'D3'),
-    ('I8', 'table', 'R6', 'Projector Table', true, 4.0, 6.0, 6.0, 4.0, NULL, 'D2'),
-    ('I9', 'toilet', 'R1', 'Accessible Toilet', true, 6.0, 8.0, 2.0, 3.0, NULL, 'D1'),
-    ('I10', 'table', 'R7', 'Computer Table', true, 5.0, 9.0, 3.0, 2.0, NULL, 'D2');
+    ('I3', 'toilet', 'R3', 'Men’s Toilet', true, 5.0, 10.0, 100, 100, 'Male', 'D3'),
+    ('I4', 'toilet', 'R3', 'Women’s Toilet', true, 3.0, 5.0, 100, 100, 'Female', 'D3'),
+    ('I5', 'table', 'R4', 'Lab Table', true, 8.0, 12.0, 100, 100, NULL, 'D4'),
+    ('I6', 'table', 'R6', 'Speaker Table', true, 2.0, 2.0, 100, 100, NULL, 'D2'),
+    ('I7', 'toilet', 'R5', 'Unisex Toilet', true, 1.0, 1.5, 100, 100, NULL, 'D3'),
+    ('I8', 'table', 'R6', 'Projector Table', true, 4.0, 6.0, 100, 100, NULL, 'D2'),
+    ('I9', 'toilet', 'R1', 'Accessible Toilet', true, 6.0, 8.0, 100, 100, NULL, 'D1'),
+    ('I10', 'table', 'R7', 'Computer Table', true, 5.0, 9.0, 100, 100, NULL, 'D2');
 
 
 -- Insert data into forgot_items
