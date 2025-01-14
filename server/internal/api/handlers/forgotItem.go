@@ -1,16 +1,18 @@
 package handlers
 
 import (
-	"server/internal/models"
-	res "server/internal/utils"
-	"time"
-	"github.com/gofiber/fiber/v2"
-	"server/internal/utils/uuid"
-	"gorm.io/gorm"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"os"
 	"path/filepath"
+	"server/internal/models"
+	res "server/internal/utils"
+	"server/internal/utils/uuid"
+	"strings"
+	"time"
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // FindAllForgotItems retrieves all forgot items
@@ -57,39 +59,62 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 
 // CreateForgotItem creates a new forgot item
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
-    // Get form values
-    req := &CreateForgotItemRequest{
-        TableID:      c.FormValue("table_id"),
-        BuildingName: c.FormValue("building_name"),
-        RoomName:     c.FormValue("room_name"),
+    var req CreateForgotItemRequest
+
+    // Check content type
+    contentType := c.Get("Content-Type")
+    isJSON := strings.Contains(contentType, "application/json")
+
+    if isJSON {
+        if err := c.BodyParser(&req); err != nil {
+            return res.BadRequest(c, "Invalid JSON format")
+        }
+    } else {
+        // Handle form data
+        req = CreateForgotItemRequest{
+            TableID:      c.FormValue("table_id"),
+            BuildingName: c.FormValue("building_name"),
+            RoomName:     c.FormValue("room_name"),
+        }
+
+        // Parse date from form
+        if dateStr := c.FormValue("date"); dateStr != "" {
+            parsedDate, err := time.Parse(time.RFC3339, dateStr)
+            if err != nil {
+                return res.BadRequest(c, "Invalid date format. Use RFC3339 format")
+            }
+            req.Date = parsedDate
+        }
     }
 
-    if dateStr := c.FormValue("date"); dateStr != "" {
-        parsedDate, err := time.Parse(time.RFC3339, dateStr)
-        if err != nil {
-            log.Printf("❌ Error parsing date: %v", err)
-            return res.BadRequest(c, "Invalid date format. Use RFC3339 format (e.g., 2024-01-13T15:04:05Z)")
-        }
-        req.Date = parsedDate
-    } else {
+    // Set default date if not provided
+    if req.Date.IsZero() {
         req.Date = time.Now()
     }
 
-    log.Printf("📋 Form values - Table ID: %s, Building: %s, Room: %s",
+    log.Printf("📋 Request values - Table ID: %s, Building: %s, Room: %s",
         req.TableID, req.BuildingName, req.RoomName)
 
     // Validate required fields
     if req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
-        log.Printf("❌ Missing required fields")
         return res.BadRequest(c, "table_id, building_name, and room_name are required")
     }
 
     // Handle file upload
-    file, err := c.FormFile("image")
-    if err != nil {
-        log.Printf("❌ Error getting form file: %v", err)
-        return res.BadRequest(c, "Image file is required")
+    var file *multipart.FileHeader
+    var err error
+
+    if isJSON {
+        // For JSON requests, expect file in a subsequent request or handle base64
+        // You might need to modify this based on your frontend implementation
+        return res.BadRequest(c, "File upload not supported in JSON format. Please use multipart/form-data")
+    } else {
+        file, err = c.FormFile("image")
+        if err != nil {
+            return res.BadRequest(c, "Image file is required")
+        }
     }
+
     log.Printf("📁 Received file: %s, Size: %d", file.Filename, file.Size)
 
     // Validate file type
@@ -104,8 +129,6 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
     uploadPath := fmt.Sprintf("uploads/%s", filename)
 
-    log.Printf("📂 Generated upload path: %s", uploadPath)
-
     // Create uploads/forgot-items directory if it doesn't exist
     if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
         log.Printf("❌ Error creating directory: %v", err)
@@ -117,15 +140,13 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         log.Printf("❌ Error saving file: %v", err)
         return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
     }
-    log.Printf("✅ File saved successfully to: %s", uploadPath)
 
-    // Start transaction
+    // Database transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
             tx.Rollback()
             os.Remove(uploadPath)
-            log.Printf("❌ Transaction rolled back due to panic: %v", r)
         }
     }()
 
@@ -135,15 +156,14 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         tx.Rollback()
         os.Remove(uploadPath)
         if err == gorm.ErrRecordNotFound {
-            log.Printf("❌ Table not found: %v", err)
-            return res.NotFound(c, "Table", err)
+            return res.NotFound(c, "Table not found")
         }
         return res.InternalServerError(c, err)
     }
 
     forgotItem := models.NewForgotItem(
         uuid.GenerateUUID(),
-        filename, // Store relative path
+        filename,
         req.Date,
         req.TableID,
         req.BuildingName,
@@ -153,27 +173,20 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     if err := tx.Create(forgotItem).Error; err != nil {
         tx.Rollback()
         os.Remove(uploadPath)
-        log.Printf("❌ Error creating forgot item record: %v", err)
         return res.InternalServerError(c, err)
     }
 
-    // Fetch the created item with relationships
     if err := tx.Preload("Table").First(forgotItem).Error; err != nil {
         tx.Rollback()
         os.Remove(uploadPath)
-        log.Printf("❌ Error fetching created item: %v", err)
         return res.InternalServerError(c, err)
     }
 
     if err := tx.Commit().Error; err != nil {
         os.Remove(uploadPath)
-        log.Printf("❌ Error committing transaction: %v", err)
         return res.InternalServerError(c, err)
     }
 
-    log.Printf("✅ Forgot item created successfully with ID: %s", forgotItem.ID)
-    
-    // Add full URL to response
     forgotItem.ImageURL = fmt.Sprintf("/uploads/%s", forgotItem.ImageURL)
     return res.CreatedSuccess(c, forgotItem)
 }
