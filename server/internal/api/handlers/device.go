@@ -100,7 +100,7 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 		req.Topic,
 		req.BuildingID,
 		req.RoomID,
-		models.DeviceTypeCamera, // Using the constant directly
+		req.Type, // Using the constant directly
 		req.WebUrl,
 	)
 
