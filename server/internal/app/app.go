@@ -75,26 +75,27 @@ func NewApp(db *gorm.DB, cfg *models.AppConfig) *App {
 
 func (a *App) setupRoutes() {
 	api := a.app.Group("/api")
+
 	api.Use("/ws", func(c *fiber.Ctx) error {
-		origin := c.Get("Origin")
-		allowed := false
-		for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
-			if origin == allowedOrigin {
-				allowed = true
-				break
-			}
-		}
-		if !allowed {
-			return fiber.ErrForbidden
-		}
-
-		if websocket.IsWebSocketUpgrade(c) {
-			return c.Next()
-		}
-		return fiber.ErrUpgradeRequired
-	})
+        if websocket.IsWebSocketUpgrade(c) {
+            origin := c.Get("Origin")
+            allowed := false
+            for _, allowedOrigin := range a.config.ServerConfig.AllowOrigins {
+                if origin == allowedOrigin {
+                    allowed = true
+                    break
+                }
+            }
+            if !allowed {
+                return fiber.ErrForbidden
+            }
+            c.Locals("allowed", true)
+            return c.Next()
+        }
+        return fiber.ErrUpgradeRequired
+    })
 	api.Get("/ws", ws.HandleWebSocket(a.wsHub))
-
+	
 	// Buildings Routes
 	buildings := api.Group("/buildings")
 	buildings.Get("/", a.handlers.FindAllBuildings)                // get all
@@ -117,7 +118,7 @@ func (a *App) setupRoutes() {
 	// Item Routes
 	items := api.Group("/items")
 	items.Put("/available/:id", a.handlers.UpdateItemAvailable) // update item available ✅
-	items.Delete("/:id", a.handlers.DeleteItem)       // update item available ✅
+	items.Delete("/:id", a.handlers.DeleteItem)                 // update item available ✅
 
 	// Table Routes
 	tables := api.Group("/tables")
@@ -166,6 +167,10 @@ func (a *App) setupRoutes() {
 	// Camera Routes
 	cameras := api.Group("/camera-info")
 	cameras.Get("/", a.handlers.GetCameraInfo) // get camera info ✅
+
+	// Card Check
+	reserve := api.Group("/reserve")
+	reserve.Put("/:id", a.handlers.UpdateItemAvailable) // get all reserve
 
 }
 

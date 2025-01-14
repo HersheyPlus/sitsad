@@ -1,4 +1,3 @@
-// internal/mqtt/handler.go
 package mqtt
 
 import (
@@ -21,6 +20,9 @@ type TableStatus struct {
 func (m *Client) SubscribeToTopics() error {
     // Subscribe to both topics with the same handler
     if token := m.client.Subscribe("table/#", 0, m.handleTableStatus); token.Wait() && token.Error() != nil {
+        return fmt.Errorf("error subscribing to table topic: %v", token.Error())
+    }
+    if token := m.client.Subscribe("toilet/#", 0, m.handleTableStatus); token.Wait() && token.Error() != nil {
         return fmt.Errorf("error subscribing to table topic: %v", token.Error())
     }
 
@@ -97,7 +99,6 @@ func (m *Client) handleTableStatus(client mqtt.Client, msg mqtt.Message) {
     now := time.Now()
 
     if isLeftObject {
-        // For left object detection, create a forgot item record
         forgotItemID := fmt.Sprintf("FORGOT-%s-%s", itemID, now.Format("20060102-150405"))
         
         // Save image if it exists in payload
@@ -126,6 +127,12 @@ func (m *Client) handleTableStatus(client mqtt.Client, msg mqtt.Message) {
             log.Printf("❌ Error creating forgot item record: %v", err)
             return
         }
+
+        if err := tx.Commit().Error; err != nil {
+            log.Printf("❌ Error committing transaction: %v", err)
+            return
+        }
+        
         log.Printf("✅ Created forgot item record: %s", forgotItemID)
 
     } else {
@@ -173,21 +180,17 @@ func (m *Client) handleTableStatus(client mqtt.Client, msg mqtt.Message) {
             log.Printf("❌ Error updating item availability: %v", err)
             return
         }
+
+        // Commit the transaction
+        if err := tx.Commit().Error; err != nil {
+            log.Printf("❌ Error committing transaction: %v", err)
+            return
+        }
+
+        // Broadcast the availability update after successful commit
+        m.hub.BroadcastItemAvailability(itemID, available)
     }
 
-    if err := tx.Commit().Error; err != nil {
-        log.Printf("❌ Error committing transaction: %v", err)
-        return
-    }
-
-    // Broadcast update through WebSocket
-    if isLeftObject {
-        m.hub.BroadcastLeftObject(buildingID, roomID, item.Name, fmt.Sprintf("%d.jpg", now.UnixNano()))
-        log.Printf("✅ Successfully processed left object and broadcasted update")
-    } else {
-        m.hub.BroadcastTableUpdate(msg.Topic(), string(msg.Payload()))
-        log.Printf("✅ Successfully updated table status and broadcasted update")
-    }
     log.Printf("  Table ID: %s", itemID)
 }
 
@@ -196,3 +199,4 @@ func (m *Client) Disconnect() {
         m.client.Disconnect(250)
     }
 }
+

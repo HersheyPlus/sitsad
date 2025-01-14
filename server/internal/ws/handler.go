@@ -21,9 +21,5 @@ func HandleWebSocket(hub *Hub) fiber.Handler {
         // Start client pumps
         go client.writePump()
         client.readPump()
-    }, websocket.Config{
-        WriteBufferSize: 1024,
-        ReadBufferSize:  1024,
-        Origins:         []string{"*"},
     })
 }
