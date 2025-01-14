@@ -4,7 +4,6 @@ import (
 	"server/internal/models"
 	"server/internal/ws"
 	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -24,10 +23,10 @@ type CreateDeviceRequest struct {
 }
 
 type CreateForgotItemRequest struct {
-	TableID      string    `form:"table_id"`
-	BuildingName string    `form:"building_name"`
-	RoomName     string    `form:"room_name"`
-	Date         time.Time `form:"date"`
+	TableID      string    `json:"tableId"`
+	BuildingName string    `json:"building_name"`
+	RoomName     string    `json:"room_name"`
+	Date         time.Time `json:"date"`
 }
 
 type CreateTableRequest struct {

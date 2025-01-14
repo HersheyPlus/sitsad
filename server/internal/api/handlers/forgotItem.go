@@ -2,14 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	"log"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 	"server/internal/models"
 	res "server/internal/utils"
 	"server/internal/utils/uuid"
-	"strings"
 	"time"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -61,29 +58,26 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     var req CreateForgotItemRequest
 
-    // Check content type
-    contentType := c.Get("Content-Type")
-    isJSON := strings.Contains(contentType, "application/json")
-
-    if isJSON {
-        if err := c.BodyParser(&req); err != nil {
-            return res.BadRequest(c, "Invalid JSON format")
-        }
-    } else {
-        // Handle form data
+    // Parse form data
+    if _, err := c.MultipartForm(); err == nil {
+        // Form data exists, parse it
         req = CreateForgotItemRequest{
             TableID:      c.FormValue("tableId"),
             BuildingName: c.FormValue("building_name"),
             RoomName:     c.FormValue("room_name"),
         }
 
-        // Parse date from form
         if dateStr := c.FormValue("date"); dateStr != "" {
             parsedDate, err := time.Parse(time.RFC3339, dateStr)
             if err != nil {
                 return res.BadRequest(c, "Invalid date format. Use RFC3339 format")
             }
             req.Date = parsedDate
+        }
+    } else {
+        // Try parsing as JSON
+        if err := c.BodyParser(&req); err != nil {
+            return res.BadRequest(c, "Invalid request format")
         }
     }
 
@@ -92,36 +86,21 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         req.Date = time.Now()
     }
 
-    log.Printf("📋 Request values - Table ID: %s, Building: %s, Room: %s",
-        req.TableID, req.BuildingName, req.RoomName)
-
     // Validate required fields
     if req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
-        return res.BadRequest(c, "table_id, building_name, and room_name are required")
+        return res.BadRequest(c, "tableId, building_name, and room_name are required")
     }
 
     // Handle file upload
-    var file *multipart.FileHeader
-    var err error
-
-    if isJSON {
-        // For JSON requests, expect file in a subsequent request or handle base64
-        // You might need to modify this based on your frontend implementation
-        return res.BadRequest(c, "File upload not supported in JSON format. Please use multipart/form-data")
-    } else {
-        file, err = c.FormFile("image")
-        if err != nil {
-            return res.BadRequest(c, "Image file is required")
-        }
+    file, err := c.FormFile("image")
+    if err != nil {
+        return res.BadRequest(c, "Image file is required")
     }
-
-    log.Printf("📁 Received file: %s, Size: %d", file.Filename, file.Size)
 
     // Validate file type
     ext := filepath.Ext(file.Filename)
     allowedExt := map[string]bool{".jpg": true, ".jpeg": true, ".png": true}
     if !allowedExt[ext] {
-        log.Printf("❌ Invalid file type: %s", ext)
         return res.BadRequest(c, "Only .jpg, .jpeg, and .png files are allowed")
     }
 
@@ -129,19 +108,17 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
     uploadPath := fmt.Sprintf("uploads/%s", filename)
 
-    // Create uploads/forgot-items directory if it doesn't exist
+    // Create directory if it doesn't exist
     if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
-        log.Printf("❌ Error creating directory: %v", err)
         return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
     }
 
     // Save the file
     if err := c.SaveFile(file, uploadPath); err != nil {
-        log.Printf("❌ Error saving file: %v", err)
         return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
     }
 
-    // Database transaction
+    // Start database transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
@@ -156,11 +133,12 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         tx.Rollback()
         os.Remove(uploadPath)
         if err == gorm.ErrRecordNotFound {
-            return res.NotFound(c, "Table not found")
+            return res.NotFound(c, "Table not found", err)
         }
         return res.InternalServerError(c, err)
     }
 
+    // Create forgot item
     forgotItem := models.NewForgotItem(
         uuid.GenerateUUID(),
         filename,
@@ -170,23 +148,27 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         req.RoomName,
     )
 
+    // Save to database
     if err := tx.Create(forgotItem).Error; err != nil {
         tx.Rollback()
         os.Remove(uploadPath)
         return res.InternalServerError(c, err)
     }
 
+    // Load relationships
     if err := tx.Preload("Table").First(forgotItem).Error; err != nil {
         tx.Rollback()
         os.Remove(uploadPath)
         return res.InternalServerError(c, err)
     }
 
+    // Commit transaction
     if err := tx.Commit().Error; err != nil {
         os.Remove(uploadPath)
         return res.InternalServerError(c, err)
     }
 
+    // Add full URL to response
     forgotItem.ImageURL = fmt.Sprintf("/uploads/%s", forgotItem.ImageURL)
     return res.CreatedSuccess(c, forgotItem)
 }
