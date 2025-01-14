@@ -20,6 +20,7 @@ type CreateDeviceRequest struct {
 	RoomID     string            `json:"room_id"`
 	Type       models.DeviceType `json:"type"`
 	WebUrl     string            `json:"webUrl"`
+	DeviceID  string            `json:"device_id"`
 }
 
 type CreateForgotItemRequest struct {
