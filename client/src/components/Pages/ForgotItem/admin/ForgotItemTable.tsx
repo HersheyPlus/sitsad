@@ -16,6 +16,11 @@ const ForgotTable: React.FC<IProps> = ({
 }) => {
     const columns = [
         {
+            title: "Table Id",
+            dataIndex: "tableId",
+            key: "table_name",
+        },
+        {
             title: "Building Name",
             dataIndex: "building_name",
             key: "building_name",

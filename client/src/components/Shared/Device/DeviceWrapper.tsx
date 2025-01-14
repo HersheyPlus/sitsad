@@ -112,7 +112,7 @@ const DeviceWrapper = () => {
                 )
             );
 
-            const topic = payload.type === 'Camera' ? `table/${payload.building_id}/${payload.room_id}/${payload.name}` :
+            const topic = payload.type === 'Camera' ? `table/${payload.building_id}/${payload.room_id}/${payload.device_id}` :
                 payload.topic
 
             const newPayload = {
@@ -142,13 +142,14 @@ const DeviceWrapper = () => {
                 { ...payload, id: Math.random().toString(36).substr(2, 9) },
             ]);
 
+            const device_id = new Date().getTime().toString()
 
-            const topic = payload.type === 'Camera' ? `table/${payload.building_id}/${payload.room_id}/${payload.name}` :
+            const topic = payload.type === 'Camera' ? `table/${payload.building_id}/${payload.room_id}/${device_id}` :
                 payload.topic
 
             const newPayload = {
                 ...payload,
-                device_id: new Date().getTime().toString(),
+                device_id,
                 topic
             }
 

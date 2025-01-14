@@ -16,7 +16,7 @@ const Item = ({ data, selected = false }: IProps) => {
 
     return (
         <div
-            className={`${bgColor} ${selectedStyles} rounded-lg flex items-center justify-center text-white font-bold`}
+            className={`${bgColor} ${selectedStyles} rounded-lg flex items-center justify-center text-white font-bold text-center`}
             style={{ width: `${data.width}px`, height: `${data.height}px` }}
         >
             {data.name}

@@ -82,6 +82,7 @@ type DeviceType string
 
 const (
 	DeviceTypeCamera DeviceType = "Camera"
+	DeviceTypeSensor DeviceType = "Sensor"
 	// Add other device types here as needed
 )
 
