@@ -64,10 +64,6 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.DeviceID == ""{
 		return res.BadRequest(c, "name, topic, building_id, room_id, device_id are required")
 	}
-
-	if req.Type != "Camera" && req.Type != "Sensor" {
-		return res.BadRequest(c, "Invalid device type")
-	}
 	
 	if req.WebUrl == "" {
 		req.WebUrl = ""
