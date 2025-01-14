@@ -7,7 +7,6 @@ import (
 	res "server/internal/utils"
 	"time"
 	"fmt"
-    "server/internal/ws"
 )
 
 
@@ -66,12 +65,6 @@ func (h *Handler) UpdateItemAvailable(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    // Broadcast update through WebSocket
-    h.wsHub.BroadcastItemUpdate(ws.ItemAvailabilityUpdate{
-        ItemID:    item.ItemID,
-        Available: newAvailability,
-        Type:      string(item.Type),
-    })
 
     return res.GetSuccess(c, "Item's availability updated", item)
 }
