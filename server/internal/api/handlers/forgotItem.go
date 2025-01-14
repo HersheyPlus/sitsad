@@ -57,66 +57,48 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 
 // CreateForgotItem creates a new forgot item
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
-	var req CreateForgotItemRequest
+    var req CreateForgotItemRequest
 
-    // Parse form data
-    if _, err := c.MultipartForm(); err == nil {
-        // Form data exists, parse it
-        req = CreateForgotItemRequest{
-            TableID:      c.FormValue("tableId"),
-            BuildingName: c.FormValue("building_name"),
-            RoomName:     c.FormValue("room_name"),
-        }
-
-        if dateStr := c.FormValue("date"); dateStr != "" {
-            parsedDate, err := time.Parse(time.RFC3339, dateStr)
-            if err != nil {
-                return res.BadRequest(c, "Invalid date format. Use RFC3339 format")
-            }
-            req.Date = parsedDate
-        }
-    } else {
-        // Try parsing as JSON
-        if err := c.BodyParser(&req); err != nil {
-            return res.BadRequest(c, "Invalid request format")
-        }
+    // Parse JSON body
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request format")
     }
 
-	// Set default date if not provided
-	if req.Date.IsZero() {
-		req.Date = time.Now()
-	}
+    // Set default date if not provided
+    if req.Date.IsZero() {
+        req.Date = time.Now()
+    }
 
     // Validate required fields
     if req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
-        return res.BadRequest(c, "tableId, building_name, and room_name are required")
+        return res.BadRequest(c, "table_id, building_name, and room_name are required")
     }
 
-    // Handle file upload
-    file, err := c.FormFile("image")
-    if err != nil {
-        return res.BadRequest(c, "Image file is required")
-    }
+    // Initialize filename
+    var filename string
 
-    // Validate file type
-    ext := filepath.Ext(file.Filename)
-    allowedExt := map[string]bool{".jpg": true, ".jpeg": true, ".png": true}
-    if !allowedExt[ext] {
-        return res.BadRequest(c, "Only .jpg, .jpeg, and .png files are allowed")
-    }
+    // Handle optional file upload
+    if file, err := c.FormFile("image"); err == nil {
+        // Validate file type
+        ext := filepath.Ext(file.Filename)
+        allowedExt := map[string]bool{".jpg": true, ".jpeg": true, ".png": true}
+        if !allowedExt[ext] {
+            return res.BadRequest(c, "Only .jpg, .jpeg, and .png files are allowed")
+        }
 
-	// Generate unique filename
-	filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
-	uploadPath := fmt.Sprintf("uploads/%s", filename)
+        // Generate unique filename
+        filename = fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
+        uploadPath := fmt.Sprintf("uploads/%s", filename)
 
-    // Create directory if it doesn't exist
-    if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
-        return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
-    }
+        // Create directory if it doesn't exist
+        if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
+            return res.InternalServerError(c, fmt.Errorf("failed to create upload directory: %v", err))
+        }
 
-    // Save the file
-    if err := c.SaveFile(file, uploadPath); err != nil {
-        return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        // Save the file
+        if err := c.SaveFile(file, uploadPath); err != nil {
+            return res.InternalServerError(c, fmt.Errorf("failed to save file: %v", err))
+        }
     }
 
     // Start database transaction
@@ -124,7 +106,9 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     defer func() {
         if r := recover(); r != nil {
             tx.Rollback()
-            os.Remove(uploadPath)
+            if filename != "" {
+                os.Remove(fmt.Sprintf("uploads/%s", filename))
+            }
         }
     }()
 
@@ -132,7 +116,9 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     var table models.Item
     if err := tx.Where("item_id = ? AND type = ?", req.TableID, models.ItemTypeTable).First(&table).Error; err != nil {
         tx.Rollback()
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         if err == gorm.ErrRecordNotFound {
             return res.NotFound(c, "Table not found", err)
         }
@@ -152,25 +138,34 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     // Save to database
     if err := tx.Create(forgotItem).Error; err != nil {
         tx.Rollback()
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         return res.InternalServerError(c, err)
     }
 
     // Load relationships
     if err := tx.Preload("Table").First(forgotItem).Error; err != nil {
         tx.Rollback()
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         return res.InternalServerError(c, err)
     }
 
     // Commit transaction
     if err := tx.Commit().Error; err != nil {
-        os.Remove(uploadPath)
+        if filename != "" {
+            os.Remove(fmt.Sprintf("uploads/%s", filename))
+        }
         return res.InternalServerError(c, err)
     }
 
-    // Add full URL to response
-    forgotItem.ImageURL = fmt.Sprintf("/uploads/%s", forgotItem.ImageURL)
+    // Add full URL to response if image was uploaded
+    if filename != "" {
+        forgotItem.ImageURL = fmt.Sprintf("/uploads/%s", forgotItem.ImageURL)
+    }
+    
     return res.CreatedSuccess(c, forgotItem)
 }
 

@@ -23,7 +23,7 @@ type CreateDeviceRequest struct {
 }
 
 type CreateForgotItemRequest struct {
-	TableID      string    `json:"tableId"`
+	TableID      string    `json:"table_id"`
 	BuildingName string    `json:"building_name"`
 	RoomName     string    `json:"room_name"`
 	Date         time.Time `json:"date"`
