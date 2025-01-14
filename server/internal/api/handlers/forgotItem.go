@@ -72,7 +72,7 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
     } else {
         // Handle form data
         req = CreateForgotItemRequest{
-            TableID:      c.FormValue("table_id"),
+            TableID:      c.FormValue("tableId"),
             BuildingName: c.FormValue("building_name"),
             RoomName:     c.FormValue("room_name"),
         }
