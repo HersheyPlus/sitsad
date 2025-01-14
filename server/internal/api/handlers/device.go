@@ -3,6 +3,7 @@ package handlers
 import (
 	"server/internal/models"
 	res "server/internal/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -61,18 +62,18 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 	}
 
 	// Validate required fields
-	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.DeviceID == ""{
+	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.DeviceID == "" {
 		return res.BadRequest(c, "name, topic, building_id, room_id, device_id are required")
 	}
-	
+
 	if req.WebUrl == "" {
 		req.WebUrl = ""
 	}
 
 	// Convert type string to DeviceType
-	if string(req.Type) != string(models.DeviceTypeCamera) {
-		return res.BadRequest(c, "Invalid device type")
-	}
+	// if string(req.Type) != string(models.DeviceTypeCamera) && string(req.Type) != string(models.DeviceTypeCamera) {
+	// 	return res.BadRequest(c, "Invalid device type")
+	// }
 
 	// Start transaction
 	tx := h.db.Begin()

@@ -8,10 +8,11 @@ const TableService = {
     //     return response.data;
     // },
 
-    // async findById(id: string): Promise<IItem | undefined> {
-    //     const response = await apiClient.get(`/tables/${id}`);
-    //     return response.data;
-    // },
+    // TODO: New routes
+    async findById(id: string): Promise<IItem | undefined> {
+        const response = await apiClient.get(`/tables/${id}`);
+        return response.data;
+    },
 
     async findByRoomId(roomId: string): Promise<IItem[]> {
         const response = await apiClient.get(`/tables/room/${roomId}`);

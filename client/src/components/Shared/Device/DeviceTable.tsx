@@ -33,11 +33,6 @@ const DeviceTable = ({
 
     const columns = [
         {
-            title: "ID",
-            dataIndex: "device_id",
-            key: "device_id",
-        },
-        {
             title: "Device Name",
             dataIndex: "name",
             key: "name",

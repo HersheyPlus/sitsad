@@ -31,6 +31,7 @@ export interface IItemPayload {
     height: number;
     name: string;
     room_id: string;
+    device_id?: string;
 }
 
 

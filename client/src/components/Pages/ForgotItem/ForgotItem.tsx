@@ -33,7 +33,7 @@ const ForgotItem = ({ item, onSelect }: IProps) => {
                         </p>
                         <p className="flex items-center text-blue-600">
                             <TableOutlined className="mr-2" />
-                            Table: {item.tableId}
+                            Table: {item.table_id}
                         </p>
                         <p className="flex items-center text-blue-600">
                             <MapPin className="w-4 h-4 mr-2" />

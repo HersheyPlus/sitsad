@@ -43,6 +43,8 @@ const ToiletSlugPage: React.FC = () => {
     const doSearchMultipleItems = async () => {
         if (!roomId) return;
 
+        console.log("Fetching Multiple Items")
+
         try {
             const data = await ToiletService.findByRoomId(roomId);
             if (!data) return;
@@ -78,6 +80,15 @@ const ToiletSlugPage: React.FC = () => {
     if (!params?.slug || !items) {
         return <NotFoundPage />
     }
+
+    useEffect(() => {
+        // Fetch data every 3 seconds
+        const interval = setInterval(() => {
+            doSearchMultipleItems();
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [])
 
     return (
         <Flex vertical gap={4} className='min-h-screen p-8 bg-gray-100' >

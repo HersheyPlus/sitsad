@@ -8,6 +8,7 @@ import (
 	res "server/internal/utils"
 	"server/internal/utils/uuid"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -25,7 +26,7 @@ func (h *Handler) FindAllForgotItems(c *fiber.Ctx) error {
 func (h *Handler) FindForgotItemById(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var item models.ForgotItem
-	
+
 	if result := h.db.First(&item, "forgot_item_id = ?", id); result.Error != nil {
 		return res.NotFound(c, "Forgot item", result.Error)
 	}
@@ -36,17 +37,17 @@ func (h *Handler) FindForgotItemById(c *fiber.Ctx) error {
 func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 	startTime := c.Query("startTime")
 	endTime := c.Query("endTime")
-	
+
 	startTimestamp, err := time.Parse(time.RFC3339, startTime)
 	if err != nil {
 		return res.BadRequest(c, "Invalid start time format")
 	}
-	
+
 	endTimestamp, err := time.Parse(time.RFC3339, endTime)
 	if err != nil {
 		return res.BadRequest(c, "Invalid end time format")
 	}
-	
+
 	var items []models.ForgotItem
 	if result := h.db.Where("date BETWEEN ? AND ?", startTimestamp, endTimestamp).Find(&items); result.Error != nil {
 		return res.InternalServerError(c, result.Error)
@@ -56,7 +57,7 @@ func (h *Handler) FindForgotItemsByDateRange(c *fiber.Ctx) error {
 
 // CreateForgotItem creates a new forgot item
 func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
-    var req CreateForgotItemRequest
+	var req CreateForgotItemRequest
 
     // Parse form data
     if _, err := c.MultipartForm(); err == nil {
@@ -81,10 +82,10 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         }
     }
 
-    // Set default date if not provided
-    if req.Date.IsZero() {
-        req.Date = time.Now()
-    }
+	// Set default date if not provided
+	if req.Date.IsZero() {
+		req.Date = time.Now()
+	}
 
     // Validate required fields
     if req.TableID == "" || req.BuildingName == "" || req.RoomName == "" {
@@ -104,9 +105,9 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
         return res.BadRequest(c, "Only .jpg, .jpeg, and .png files are allowed")
     }
 
-    // Generate unique filename
-    filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
-    uploadPath := fmt.Sprintf("uploads/%s", filename)
+	// Generate unique filename
+	filename := fmt.Sprintf("forgot-items/%s%s", time.Now().Format("20060102150405"), ext)
+	uploadPath := fmt.Sprintf("uploads/%s", filename)
 
     // Create directory if it doesn't exist
     if err := os.MkdirAll("uploads/forgot-items", 0755); err != nil {
@@ -177,17 +178,17 @@ func (h *Handler) CreateForgotItem(c *fiber.Ctx) error {
 func (h *Handler) UpdateForgotItem(c *fiber.Ctx) error {
 	id := c.Params("id")
 	item := new(models.ForgotItem)
-	
+
 	// Check if item exists
 	var existingItem models.ForgotItem
 	if result := h.db.First(&existingItem, "forgot_item_id = ?", id); result.Error != nil {
 		return res.NotFound(c, "Forgot item", result.Error)
 	}
-	
+
 	if err := c.BodyParser(item); err != nil {
 		return res.BadRequest(c, "Invalid request body")
 	}
-	
+
 	if result := h.db.Model(&existingItem).Updates(item); result.Error != nil {
 		return res.InternalServerError(c, result.Error)
 	}
@@ -197,13 +198,13 @@ func (h *Handler) UpdateForgotItem(c *fiber.Ctx) error {
 // DeleteForgotItem deletes a forgot item
 func (h *Handler) DeleteForgotItem(c *fiber.Ctx) error {
 	id := c.Params("id")
-	
+
 	// Check if item exists
 	var item models.ForgotItem
 	if result := h.db.First(&item, "forgot_item_id = ?", id); result.Error != nil {
 		return res.NotFound(c, "Forgot item", result.Error)
 	}
-	
+
 	if result := h.db.Delete(&item); result.Error != nil {
 		return res.InternalServerError(c, result.Error)
 	}

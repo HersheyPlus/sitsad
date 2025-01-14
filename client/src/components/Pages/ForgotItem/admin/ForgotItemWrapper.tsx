@@ -46,8 +46,25 @@ const ForgotItemWrapper = () => {
         setIsModalOpen(true);
     };
 
-    const doDelete = (id: string) => {
+    const doDelete = async (id: string) => {
         setData((prevData) => prevData.filter((item) => item.id !== id));
+
+        try {
+            await ForgotItemService.delete(id)
+
+            openNotification({
+                type: 'success',
+                message: 'Success',
+                description: 'Forgotten Item deleted successfully'
+            })
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
     };
 
     const doSave = async (payload: IForgot) => {
@@ -97,6 +114,7 @@ const ForgotItemWrapper = () => {
                 })
             }
         }
+
         setIsModalOpen(false);
     };
 

@@ -168,6 +168,7 @@ const AdminItemCrud = ({ data, buildings, itemType, onSaveItem, onRemoveItem }: 
 
         try {
             onSaveItem(payload, false);
+            // window.location.reload();
             openNotification({
                 message: "Item updated",
                 description: "The item has been updated successfully.",
@@ -184,7 +185,7 @@ const AdminItemCrud = ({ data, buildings, itemType, onSaveItem, onRemoveItem }: 
         }
 
         // Reload Page
-        window.location.reload();
+
     };
 
     const doShowWebUrlModal = (url: string) => {

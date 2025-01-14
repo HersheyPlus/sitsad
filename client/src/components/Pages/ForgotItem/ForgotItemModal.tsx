@@ -46,7 +46,7 @@ const ForgotItemModal = ({ selectedItem, onClose }: IProps) => {
                         </p>
                         <p className="flex items-center text-blue-600">
                             <TableOutlined className="mr-2" />
-                            Table: {selectedItem.tableId}
+                            Table: {selectedItem.table_id}
                         </p>
                     </div>
                     <div className="w-full text-end">

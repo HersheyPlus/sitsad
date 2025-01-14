@@ -45,6 +45,8 @@ const TableSlugPage: React.FC = () => {
     const doSearchMultipleItems = async () => {
         if (!roomId) return;
 
+        console.log("Fetching Multiple Items")
+
         try {
             const data = await TableService.findByRoomId(roomId);
             if (!data) return;
@@ -76,6 +78,16 @@ const TableSlugPage: React.FC = () => {
     useEffect(() => {
         doSearchMultipleItems();
     }, [roomId]);
+
+    useEffect(() => {
+        // Fetch data every 3 seconds
+        const interval = setInterval(() => {
+            doSearchMultipleItems();
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [])
+
 
     if (!params?.slug || !items) {
         return <NotFoundPage />
