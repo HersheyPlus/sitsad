@@ -205,7 +205,7 @@ const ForgotItemModal: React.FC<IProps> = ({
                     </Select>
                 </Form.Item>
                 <Form.Item
-                    name="tableId"
+                    name="table_id"
                     label="Table ID"
                     rules={[{ required: true, message: "Please enter the table ID" }]}
                 >
