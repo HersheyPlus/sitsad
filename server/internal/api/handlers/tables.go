@@ -111,8 +111,8 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
     }
 
     if req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 ||
-        req.RoomID == "" || req.Name == "" || req.DeviceID == "" {
-        return res.BadRequest(c, "room_id, name, position_x, position_y, width, height, device_id are required and must be valid")
+        req.RoomID == "" || req.Name == "" {
+        return res.BadRequest(c, "room_id, name, position_x, position_y, width, height are required and must be valid")
     }
 
     tx := h.db.Begin()
@@ -145,12 +145,14 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
     }
 
     var createdTable models.Item
-    if err := tx.
-        Preload("Room").
-        Preload("Room.Building").
-        Preload("Device").
-        Where("item_id = ?", itemID).
-        First(&createdTable).Error; err != nil {
+    query := tx.Preload("Room").Preload("Room.Building")
+    
+    // Only preload Device if DeviceID was provided
+    if req.DeviceID != nil {
+        query = query.Preload("Device")
+    }
+    
+    if err := query.Where("item_id = ?", itemID).First(&createdTable).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
@@ -183,6 +185,7 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
         },
     }
 
+    // Only include Device in response if it exists
     if createdTable.Device != nil {
         response.Device = DeviceResponse{
             DeviceID:   createdTable.Device.ID,
@@ -202,104 +205,105 @@ func (h *Handler) CreateTable(c *fiber.Ctx) error {
 
 // Update table
 func (h *Handler) UpdateTable(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var req UpdateTableRequest
+    id := c.Params("id")
+    var req UpdateTableRequest
 
-	// Parse request body
-	if err := c.BodyParser(&req); err != nil {
-		return res.BadRequest(c, "Invalid request body")
-	}
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
 
-	// Start transaction
-	tx := h.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
 
-	// Find existing item and verify it's a table
-	var item models.Item
-	result := tx.Where("item_id = ? AND type = ?", id, models.ItemTypeTable).First(&item)
-	if result.Error != nil {
-		tx.Rollback()
-		if result.Error == gorm.ErrRecordNotFound {
-			return res.NotFound(c, "Table", result.Error)
-		}
-		return res.InternalServerError(c, result.Error)
-	}
+    var item models.Item
+    result := tx.Where("item_id = ? AND type = ?", id, models.ItemTypeTable).First(&item)
+    if result.Error != nil {
+        tx.Rollback()
+        if result.Error == gorm.ErrRecordNotFound {
+            return res.NotFound(c, "Table", result.Error)
+        }
+        return res.InternalServerError(c, result.Error)
+    }
 
-	// Build updates map with validations
-	updates := make(map[string]interface{})
+    updates := make(map[string]interface{})
 
-	if req.RoomID != nil {
-		if *req.RoomID == "" {
-			return res.BadRequest(c, "room_id cannot be empty")
-		}
-		// Verify new room exists
-		if err := h.ExistingRoom(tx, c, *req.RoomID); err != nil {
-			tx.Rollback()
-			return res.NotFound(c, "Room", err)
-		}
-		updates["room_id"] = req.RoomID
-	}
+    if req.RoomID != nil {
+        if *req.RoomID == "" {
+            return res.BadRequest(c, "room_id cannot be empty")
+        }
+        if err := h.ExistingRoom(tx, c, *req.RoomID); err != nil {
+            tx.Rollback()
+            return res.NotFound(c, "Room", err)
+        }
+        updates["room_id"] = req.RoomID
+    }
 
-	if req.Name != nil {
-		if *req.Name == "" {
-			return res.BadRequest(c, "name cannot be empty")
-		}
-		updates["name"] = *req.Name
-	}
+    if req.Name != nil {
+        if *req.Name == "" {
+            return res.BadRequest(c, "name cannot be empty")
+        }
+        updates["name"] = *req.Name
+    }
 
-	if req.PositionX != nil {
-		if *req.PositionX < 0 {
-			return res.BadRequest(c, "position_x must be non-negative")
-		}
-		updates["position_x"] = *req.PositionX
-	}
+    if req.PositionX != nil {
+        if *req.PositionX < 0 {
+            return res.BadRequest(c, "position_x must be non-negative")
+        }
+        updates["position_x"] = *req.PositionX
+    }
 
-	if req.PositionY != nil {
-		if *req.PositionY < 0 {
-			return res.BadRequest(c, "position_y must be non-negative")
-		}
-		updates["position_y"] = *req.PositionY
-	}
+    if req.PositionY != nil {
+        if *req.PositionY < 0 {
+            return res.BadRequest(c, "position_y must be non-negative")
+        }
+        updates["position_y"] = *req.PositionY
+    }
 
-	if req.Width != nil {
-		if *req.Width <= 0 {
-			return res.BadRequest(c, "width must be greater than 0")
-		}
-		updates["width"] = *req.Width
-	}
+    if req.Width != nil {
+        if *req.Width <= 0 {
+            return res.BadRequest(c, "width must be greater than 0")
+        }
+        updates["width"] = *req.Width
+    }
 
-	if req.Height != nil {
-		if *req.Height <= 0 {
-			return res.BadRequest(c, "height must be greater than 0")
-		}
-		updates["height"] = *req.Height
-	}
+    if req.Height != nil {
+        if *req.Height <= 0 {
+            return res.BadRequest(c, "height must be greater than 0")
+        }
+        updates["height"] = *req.Height
+    }
 
-	// Perform update if there are any changes
-	if len(updates) > 0 {
-		if err := tx.Model(&item).Updates(updates).Error; err != nil {
-			tx.Rollback()
-			return res.InternalServerError(c, err)
-		}
-	}
+    // Handle DeviceID update
+    if req.DeviceID != nil {
+        updates["device_id"] = req.DeviceID
+    }
 
-	if err := tx.Commit().Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
+    if len(updates) > 0 {
+        if err := tx.Model(&item).Updates(updates).Error; err != nil {
+            tx.Rollback()
+            return res.InternalServerError(c, err)
+        }
+    }
 
-	// Fetch updated item with relationships
-	var updatedItem models.Item
-	if err := h.db.
-		Preload("Room").
-		Preload("Room.Building").
-		Where("item_id = ?", id).
-		First(&updatedItem).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
 
-	return res.UpdatedSuccess(c, updatedItem)
+    var updatedItem models.Item
+    query := h.db.Preload("Room").Preload("Room.Building")
+    
+    // Only preload Device if it exists
+    if item.DeviceID != nil {
+        query = query.Preload("Device")
+    }
+    
+    if err := query.Where("item_id = ?", id).First(&updatedItem).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.UpdatedSuccess(c, updatedItem)
 }

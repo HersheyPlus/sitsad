@@ -152,23 +152,31 @@ func NewRoom(roomId string, buildingID string, roomName, description, imageURL s
 	}
 }
 
-func NewTable(itemId, roomID string, posX, posY, width, height float64, name string, deviceId string) *Item {
-	return &Item{
-		ItemID:    itemId,
-		Type:      ItemTypeTable,
-		RoomID:    &roomID,
-		Available: true,
-		PositionX: &posX,
-		PositionY: &posY,
-		Width:     &width,
-		Height:    &height,
-		Name:      name,
-		DeviceID: &deviceId,
-	}
+func NewTable(itemId, roomID string, posX, posY, width, height float64, name string, deviceId *string) *Item {
+    table := &Item{
+        ItemID:    itemId,
+        Type:      ItemTypeTable,
+        RoomID:    &roomID,
+        Available: true,
+        PositionX: &posX,
+        PositionY: &posY,
+        Width:     &width,
+        Height:    &height,
+        Name:      name,
+    }
+    
+    if deviceId != nil {
+        table.DeviceID = deviceId
+    }
+    return table
 }
 
-func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64, deviceId string) *Item {
-	return &Item{
+func NewToilet( itemId string,
+    roomID *string,
+    name string,
+    posX, posY, width, height float64,
+    deviceId *string) *Item {
+	toilet := &Item{
 		ItemID:    itemId,
 		Type:      ItemTypeToilet,
 		RoomID:    roomID,
@@ -178,8 +186,12 @@ func NewToilet(itemId string, roomID *string, name string, posX, posY, width, he
 		Width:     &width,
 		Height:    &height,
 		Available: true,
-		DeviceID: &deviceId,
 	}
+
+	if deviceId != nil {
+        toilet.DeviceID = deviceId
+    }
+    return toilet
 }
 
 func NewForgotItem(id, imageURL string, date time.Time, tableID, buildingName, roomName string) *ForgotItem {

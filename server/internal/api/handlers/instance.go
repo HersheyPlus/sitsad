@@ -36,7 +36,7 @@ type CreateTableRequest struct {
 	PositionY float64 `json:"position_y" validate:"required"`
 	Width     float64 `json:"width" validate:"required"`
 	Height    float64 `json:"height" validate:"required"`
-	DeviceID  string  `json:"device_id"`
+	DeviceID  *string  `json:"device_id"`
 }
 
 type UpdateTableRequest struct {
@@ -46,6 +46,7 @@ type UpdateTableRequest struct {
 	PositionY *float64 `json:"position_y"`
 	Width     *float64 `json:"width"`
 	Height    *float64 `json:"height"`
+	DeviceID  *string  `json:"device_id"`
 }
 
 type CreateToiletRequest struct {
@@ -55,7 +56,7 @@ type CreateToiletRequest struct {
 	Width     float64 `json:"width" validate:"required"`
 	Height    float64 `json:"height" validate:"required"`
 	Name      string  `json:"name" validate:"required"`
-	DeviceID  string  `json:"device_id"`
+	DeviceID  *string  `json:"device_id"`
 }
 
 type UpdateToiletRequest struct {
@@ -65,6 +66,7 @@ type UpdateToiletRequest struct {
 	Width     *float64 `json:"width"`
 	Height    *float64 `json:"height"`
 	Name      *string  `json:"name"`
+	DeviceID  *string  `json:"device_id"`
 }
 
 type CreateBuildingRequest struct {

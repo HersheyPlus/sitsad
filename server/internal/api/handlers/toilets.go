@@ -119,12 +119,11 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-    // Manual validation
-    if req.Name == "" || req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 {
-        return res.BadRequest(c, "name, position_x, position_y, width, height are required and must be valid")
+    if req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 ||
+        req.RoomID == "" || req.Name == "" {
+        return res.BadRequest(c, "room_id, name, position_x, position_y, width, height are required and must be valid")
     }
 
-    // Start transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
@@ -132,24 +131,30 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         }
     }()
 
-    // Check if room exists if roomID is provided
+    if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Room", err)
+    }
+
+    var roomIDPtr *string
     if req.RoomID != "" {
         if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
             tx.Rollback()
             return res.NotFound(c, "Room", err)
         }
+        roomIDPtr = &req.RoomID
     }
 
     itemID := uuid.GenerateUUID()
     toilet := models.NewToilet(
-        itemID,
-        &req.RoomID,
-        req.Name,
-        req.PositionX,
-        req.PositionY,
-        req.Width,
-        req.Height,
-        req.DeviceID,
+        itemID,      // itemId string
+        roomIDPtr,   // roomID *string
+        req.Name,    // name string
+        req.PositionX, // posX float64
+        req.PositionY, // posY float64
+        req.Width,     // width float64
+        req.Height,    // height float64
+        req.DeviceID,  // deviceId *string
     )
 
     if err := tx.Create(toilet).Error; err != nil {
@@ -157,52 +162,55 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    var resultToilet models.Item
-    if err := tx.Where("item_id = ?", itemID).
-        Preload("Room").
-        Preload("Room.Building").
-        Preload("Device").
-        First(&resultToilet).Error; err != nil {
+    var createToilet models.Item
+    query := tx.Preload("Room").Preload("Room.Building")
+    
+    // Only preload Device if DeviceID was provided
+    if req.DeviceID != nil {
+        query = query.Preload("Device")
+    }
+    
+    if err := query.Where("item_id = ?", itemID).First(&createToilet).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
     response := ItemResponse{
-        ItemID:     resultToilet.ItemID,
-        Type:       resultToilet.Type,
-        BuildingID: resultToilet.Room.Building.BuildingID,
-        Available:  resultToilet.Available,
-        PositionX:  *resultToilet.PositionX,
-        PositionY:  *resultToilet.PositionY,
-        Width:      *resultToilet.Width,
-        Height:     *resultToilet.Height,
-        Name:       resultToilet.Name,
+        ItemID:      createToilet.ItemID,
+        Type:        createToilet.Type,
+        BuildingID:  createToilet.Room.Building.BuildingID,
+        Available:   createToilet.Available,
+        PositionX:   *createToilet.PositionX,
+        PositionY:   *createToilet.PositionY,
+        Width:       *createToilet.Width,
+        Height:      *createToilet.Height,
+        Name:        createToilet.Name,
+        Description: nil,
         Location: LocationResponse{
             Building: BuildingResponse{
-                BuildingID:   resultToilet.Room.Building.BuildingID,
-                BuildingName: resultToilet.Room.Building.BuildingName,
-                Description:  resultToilet.Room.Building.Description,
-                ImageURL:     resultToilet.Room.Building.ImageURL,
+                BuildingID:   createToilet.Room.Building.BuildingID,
+                BuildingName: createToilet.Room.Building.BuildingName,
+                Description:  createToilet.Room.Building.Description,
+                ImageURL:     createToilet.Room.Building.ImageURL,
             },
             Room: RoomResponse{
-                RoomID:      resultToilet.Room.RoomID,
-                BuildingID:  resultToilet.Room.BuildingID,
-                RoomName:    resultToilet.Room.RoomName,
-                Description: resultToilet.Room.Description,
-                ImageURL:    resultToilet.Room.ImageURL,
+                RoomID:      createToilet.Room.RoomID,
+                BuildingID:  createToilet.Room.BuildingID,
+                RoomName:    createToilet.Room.RoomName,
+                Description: createToilet.Room.Description,
+                ImageURL:    createToilet.Room.ImageURL,
             },
         },
-        Device: DeviceResponse{},
     }
 
-    // Set device information if available
-    if resultToilet.Device != nil {
+    // Only include Device in response if it exists
+    if createToilet.Device != nil {
         response.Device = DeviceResponse{
-            DeviceID:   resultToilet.Device.ID,
-            Name:       resultToilet.Device.Name,
-            Topic:      resultToilet.Device.Topic,
-            BuildingID: resultToilet.Device.BuildingID,
-            RoomID:     resultToilet.Device.RoomID,
+            DeviceID:   createToilet.Device.ID,
+            Name:       createToilet.Device.Name,
+            Topic:      createToilet.Device.Topic,
+            BuildingID: createToilet.Device.BuildingID,
+            RoomID:     createToilet.Device.RoomID,
         }
     }
 
@@ -210,11 +218,10 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    h.wsHub.BroadcastNewItem(&resultToilet, "toilet")
     return res.CreatedSuccess(c, response)
 }
 
-// Update toilet
+// Update table
 func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
     id := c.Params("id")
     var req UpdateToiletRequest
@@ -223,7 +230,6 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         return res.BadRequest(c, "Invalid request body")
     }
 
-    // Start transaction
     tx := h.db.Begin()
     defer func() {
         if r := recover(); r != nil {
@@ -231,35 +237,29 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         }
     }()
 
-    // Find existing item and verify it's a toilet
     var item models.Item
     result := tx.Where("item_id = ? AND type = ?", id, models.ItemTypeToilet).First(&item)
     if result.Error != nil {
         tx.Rollback()
         if result.Error == gorm.ErrRecordNotFound {
-            return res.NotFound(c, "Toilet", result.Error)
+            return res.NotFound(c, "Table", result.Error)
         }
         return res.InternalServerError(c, result.Error)
     }
 
-    // Build updates map with validations
     updates := make(map[string]interface{})
-    
-    // Add room_id validation and update
+
     if req.RoomID != nil {
         if *req.RoomID == "" {
             return res.BadRequest(c, "room_id cannot be empty")
         }
-        // Verify new room exists
         if err := h.ExistingRoom(tx, c, *req.RoomID); err != nil {
             tx.Rollback()
             return res.NotFound(c, "Room", err)
         }
-        // Fixed: Store the pointer value directly since RoomID is *string in the model
         updates["room_id"] = req.RoomID
     }
 
-    // Rest of the validations remain the same
     if req.Name != nil {
         if *req.Name == "" {
             return res.BadRequest(c, "name cannot be empty")
@@ -295,7 +295,11 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         updates["height"] = *req.Height
     }
 
-    // Perform update if there are any changes
+    // Handle DeviceID update
+    if req.DeviceID != nil {
+        updates["device_id"] = req.DeviceID
+    }
+
     if len(updates) > 0 {
         if err := tx.Model(&item).Updates(updates).Error; err != nil {
             tx.Rollback()
@@ -307,18 +311,21 @@ func (h *Handler) UpdateToilet(c *fiber.Ctx) error {
         return res.InternalServerError(c, err)
     }
 
-    // Fetch updated item with relationships
     var updatedItem models.Item
-    if err := h.db.
-        Preload("Room").
-        Preload("Room.Building").
-        Where("item_id = ?", id).
-        First(&updatedItem).Error; err != nil {
+    query := h.db.Preload("Room").Preload("Room.Building")
+    
+    // Only preload Device if it exists
+    if item.DeviceID != nil {
+        query = query.Preload("Device")
+    }
+    
+    if err := query.Where("item_id = ?", id).First(&updatedItem).Error; err != nil {
         return res.InternalServerError(c, err)
     }
 
     return res.UpdatedSuccess(c, updatedItem)
 }
+
 
 func getFloatValue(ptr *float64, defaultValue float64) float64 {
     if ptr == nil {
