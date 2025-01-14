@@ -6,6 +6,9 @@ import { IBuilding, IRoom } from "@/types/location";
 import { useNotificationStore } from "@/stores/notification.store";
 import BuildingService from "@/services/building.service";
 import RoomService from "@/services/room.service";
+import dayjs from "dayjs";
+import TableService from "@/services/table.service";
+import { IItem } from "@/types/item";
 
 interface IProps {
     visible: boolean;
@@ -23,9 +26,11 @@ const ForgotItemModal: React.FC<IProps> = ({
     const [form] = Form.useForm();
     const [buildings, setBuildings] = useState<IBuilding[]>([]);
     const [rooms, setRooms] = useState<IRoom[]>([]);
+    const [tables, setTables] = useState<IItem[]>([]);
 
     const [selectedBuilding, setSelectedBuilding] = useState<IBuilding | undefined>(undefined);
     const [selectedRoom, setSelectedRoom] = useState<IRoom | undefined>(undefined);
+    const [selectedTable, setSelectedTable] = useState<IItem | undefined>(undefined);
 
     const openNotification = useNotificationStore(
         (state) => state.openNotification
@@ -44,10 +49,17 @@ const ForgotItemModal: React.FC<IProps> = ({
     }, [selectedBuilding])
 
     useEffect(() => {
+        if (selectedRoom) {
+            doSearchItems()
+        }
+    }, [selectedRoom])
+
+    useEffect(() => {
         if (editingItem) {
+            console.log("Date", editingItem)
             form.setFieldsValue({
                 ...editingItem,
-                date: editingItem.date ? new Date(editingItem.date) : null,
+                date: editingItem.date ? dayjs(editingItem.date) : null,
             });
         } else {
             form.resetFields();
@@ -73,6 +85,20 @@ const ForgotItemModal: React.FC<IProps> = ({
         },
     };
 
+    const doSearchItems = async () => {
+        try {
+            const data = await TableService.findByRoomId(selectedRoom?.room_id || '');
+            setTables(data || []);
+        } catch (error) {
+            openNotification({
+                type: 'error',
+                message: 'Error',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                description: (error as any).message
+            })
+        }
+    }
+
     const doSearchBuildings = async () => {
         try {
             const data = await BuildingService.findAll();
@@ -85,7 +111,6 @@ const ForgotItemModal: React.FC<IProps> = ({
                 description: (error as any).message
             })
         }
-
     }
 
     const doSearchRooms = async (buildingId: string) => {
@@ -106,7 +131,7 @@ const ForgotItemModal: React.FC<IProps> = ({
         form
             .validateFields()
             .then((values) => {
-                onSave({ ...values, date: values.date?.toISOString() });
+                onSave({ ...values, date: values.date?.toDate().toISOString() });
                 form.resetFields();
             })
             .catch((info) => {
@@ -136,6 +161,13 @@ const ForgotItemModal: React.FC<IProps> = ({
             onCancel={onCancel}
         >
             <Form form={form} layout="vertical">
+                {/* Hidden ItemID */}
+                <Form.Item
+                    name="id"
+                    hidden
+                >
+                    <Input value={editingItem?.id} />
+                </Form.Item>
                 <Form.Item
                     name="building_name"
                     label="Building Name"
@@ -173,18 +205,29 @@ const ForgotItemModal: React.FC<IProps> = ({
                     </Select>
                 </Form.Item>
                 <Form.Item
+                    name="tableId"
+                    label="Table ID"
+                    rules={[{ required: true, message: "Please enter the table ID" }]}
+                >
+                    <Select
+                        placeholder="Select Table"
+                        style={{ width: '100%' }}
+                        value={selectedTable ? selectedTable.name : undefined}
+                        onChange={handleRoomChange}
+                    >
+                        {tables.map(table => (
+                            <Select.Option key={table.item_id} value={table.item_id}>
+                                {table.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item
                     name="date"
                     label="Date"
                     rules={[{ required: true, message: "Please select the date" }]}
                 >
                     <DatePicker style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item
-                    name="tableId"
-                    label="Table ID"
-                    rules={[{ required: true, message: "Please enter the table ID" }]}
-                >
-                    <Input placeholder="Enter table ID" />
                 </Form.Item>
                 <Form.Item
                     name="imageUrl"
