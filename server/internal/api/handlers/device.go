@@ -63,8 +63,12 @@ func (h *Handler) CreateDevice(c *fiber.Ctx) error {
 	}
 
 	// Validate required fields
-	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" || req.WebUrl == "" {
-		return res.BadRequest(c, "name, topic, building_id, room_id, webUrl are required")
+	if req.Name == "" || req.Topic == "" || req.BuildingID == "" || req.RoomID == "" {
+		return res.BadRequest(c, "name, topic, building_id, room_id are required")
+	}
+
+	if req.WebUrl == "" {
+		req.WebUrl = ""
 	}
 
 	// Convert type string to DeviceType
