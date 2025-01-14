@@ -4,7 +4,6 @@ import (
 	"server/internal/models"
 	res "server/internal/utils"
 	"server/internal/utils/uuid"
-
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -31,122 +30,174 @@ func (h *Handler) FindTableByID(c *fiber.Ctx) error {
 }
 
 func (h *Handler) FindTablesByRoomId(c *fiber.Ctx) error {
-	roomId := c.Params("roomId")
-	if roomId == "" {
-		return res.BadRequest(c, "roomId is required")
-	}
+    roomId := c.Params("roomId")
+    if roomId == "" {
+        return res.BadRequest(c, "roomId is required")
+    }
 
-	var tables []models.Item
-	if err := h.db.Debug().
-		Model(&models.Item{}).
-		Preload("Room").
-		Preload("Room.Building").
-		Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
-		Joins("LEFT JOIN buildings ON rooms.building_id = buildings.building_id").
-		Where("items.type = ? AND items.room_id = ?", models.ItemTypeTable, roomId).
-		Find(&tables).Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
+    var tables []models.Item
+    if err := h.db.Debug().
+        Model(&models.Item{}).
+        Preload("Room").
+        Preload("Room.Building").
+        Preload("Device").
+        Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
+        Joins("LEFT JOIN buildings ON rooms.building_id = buildings.building_id").
+        Where("items.type = ? AND items.room_id = ?", models.ItemTypeTable, roomId).
+        Find(&tables).Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
 
-	var response []ItemResponse
-	for _, table := range tables {
-		if table.Room == nil || table.Room.Building.BuildingID == "" {
-			continue
-		}
+    var response []ItemResponse
+    for _, table := range tables {
+        if table.Room == nil || table.Room.Building.BuildingID == "" {
+            continue
+        }
 
-		resp := ItemResponse{
-			ItemID:     table.ItemID,
-			Type:       table.Type,
-			BuildingID: table.Room.Building.BuildingID, // Added BuildingID
-			Available:  table.Available,
-			PositionX:  *table.PositionX,
-			PositionY:  *table.PositionY,
-			Width:      *table.Width,
-			Height:     *table.Height,
-			Name:       table.Name,
-			Location: LocationResponse{
-				Building: BuildingResponse{
-					BuildingID:   table.Room.Building.BuildingID,
-					BuildingName: table.Room.Building.BuildingName,
-					Description:  table.Room.Building.Description,
-					ImageURL:     table.Room.Building.ImageURL,
-				},
-				Room: RoomResponse{
-					RoomID:      table.Room.RoomID,
-					BuildingID:  table.Room.BuildingID,
-					RoomName:    table.Room.RoomName,
-					Description: table.Room.Description,
-					ImageURL:    table.Room.ImageURL,
-				},
-			},
-		}
-		response = append(response, resp)
-	}
+        resp := ItemResponse{
+            ItemID:     table.ItemID,
+            Type:       table.Type,
+            BuildingID: table.Room.Building.BuildingID,
+            Available:  table.Available,
+            PositionX:  *table.PositionX,
+            PositionY:  *table.PositionY,
+            Width:      *table.Width,
+            Height:     *table.Height,
+            Name:       table.Name,
+            Location: LocationResponse{
+                Building: BuildingResponse{
+                    BuildingID:   table.Room.Building.BuildingID,
+                    BuildingName: table.Room.Building.BuildingName,
+                    Description:  table.Room.Building.Description,
+                    ImageURL:     table.Room.Building.ImageURL,
+                },
+                Room: RoomResponse{
+                    RoomID:      table.Room.RoomID,
+                    BuildingID:  table.Room.BuildingID,
+                    RoomName:    table.Room.RoomName,
+                    Description: table.Room.Description,
+                    ImageURL:    table.Room.ImageURL,
+                },
+            },
+            Device: DeviceResponse{},
+        }
 
-	if response == nil {
-		response = make([]ItemResponse, 0)
-	}
+        // Set device information if available
+        if table.Device != nil {
+            resp.Device = DeviceResponse{
+                DeviceID:   table.Device.ID,
+                Name:       table.Device.Name,
+                Topic:      table.Device.Topic,
+                BuildingID: table.Device.BuildingID,
+                RoomID:     table.Device.RoomID,
+            }
+        }
 
-	return res.GetSuccess(c, "Tables retrieved", response)
+        response = append(response, resp)
+    }
+
+    // Initialize empty slice if no results found
+    if response == nil {
+        response = make([]ItemResponse, 0)
+    }
+
+    return res.GetSuccess(c, "Tables retrieved", response)
 }
 
-// Creat table
 func (h *Handler) CreateTable(c *fiber.Ctx) error {
-	var req CreateTableRequest
-	if err := c.BodyParser(&req); err != nil {
-		return res.BadRequest(c, "Invalid request body")
-	}
+    var req CreateTableRequest
+    if err := c.BodyParser(&req); err != nil {
+        return res.BadRequest(c, "Invalid request body")
+    }
 
-	if req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 ||
-		req.RoomID == "" || req.Name == "" {
-		return res.BadRequest(c, "room_id, name, position_x, position_y, width, height are required and must be valid")
-	}
+    if req.PositionX < 0 || req.PositionY < 0 || req.Width <= 0 || req.Height <= 0 ||
+        req.RoomID == "" || req.Name == "" || req.DeviceID == "" {
+        return res.BadRequest(c, "room_id, name, position_x, position_y, width, height, device_id are required and must be valid")
+    }
 
-	// Start transaction
-	tx := h.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+    tx := h.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
 
-	// Check if room exists
-	if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
-		tx.Rollback()
-		return res.NotFound(c, "Room", err)
-	}
+    if err := h.ExistingRoom(tx, c, req.RoomID); err != nil {
+        tx.Rollback()
+        return res.NotFound(c, "Room", err)
+    }
 
-	itemID := uuid.GenerateUUID()
-	table := models.NewTable(
-		itemID,
-		req.RoomID,
-		req.PositionX,
-		req.PositionY,
-		req.Width,
-		req.Height,
-		req.Name,
-	)
+    itemID := uuid.GenerateUUID()
+    table := models.NewTable(
+        itemID,
+        req.RoomID,
+        req.PositionX,
+        req.PositionY,
+        req.Width,
+        req.Height,
+        req.Name,
+        req.DeviceID,
+    )
 
-	if err := tx.Create(table).Error; err != nil {
-		tx.Rollback()
-		return res.InternalServerError(c, err)
-	}
+    if err := tx.Create(table).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
 
-	// Fetch the created table with relationships
-	var createdTable models.Item
-	if err := tx.
-		Preload("Room").
-		Preload("Room.Building").
-		Where("item_id = ?", itemID).
-		First(&createdTable).Error; err != nil {
-		tx.Rollback()
-		return res.InternalServerError(c, err)
-	}
+    var createdTable models.Item
+    if err := tx.
+        Preload("Room").
+        Preload("Room.Building").
+        Preload("Device").
+        Where("item_id = ?", itemID).
+        First(&createdTable).Error; err != nil {
+        tx.Rollback()
+        return res.InternalServerError(c, err)
+    }
 
-	if err := tx.Commit().Error; err != nil {
-		return res.InternalServerError(c, err)
-	}
-	return res.CreatedSuccess(c, createdTable)
+    response := ItemResponse{
+        ItemID:      createdTable.ItemID,
+        Type:        createdTable.Type,
+        BuildingID:  createdTable.Room.Building.BuildingID,
+        Available:   createdTable.Available,
+        PositionX:   *createdTable.PositionX,
+        PositionY:   *createdTable.PositionY,
+        Width:       *createdTable.Width,
+        Height:      *createdTable.Height,
+        Name:        createdTable.Name,
+        Description: nil,
+        Location: LocationResponse{
+            Building: BuildingResponse{
+                BuildingID:   createdTable.Room.Building.BuildingID,
+                BuildingName: createdTable.Room.Building.BuildingName,
+                Description:  createdTable.Room.Building.Description,
+                ImageURL:     createdTable.Room.Building.ImageURL,
+            },
+            Room: RoomResponse{
+                RoomID:      createdTable.Room.RoomID,
+                BuildingID:  createdTable.Room.BuildingID,
+                RoomName:    createdTable.Room.RoomName,
+                Description: createdTable.Room.Description,
+                ImageURL:    createdTable.Room.ImageURL,
+            },
+        },
+    }
+
+    if createdTable.Device != nil {
+        response.Device = DeviceResponse{
+            DeviceID:   createdTable.Device.ID,
+            Name:       createdTable.Device.Name,
+            Topic:      createdTable.Device.Topic,
+            BuildingID: createdTable.Device.BuildingID,
+            RoomID:     createdTable.Device.RoomID,
+        }
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return res.InternalServerError(c, err)
+    }
+
+    return res.CreatedSuccess(c, response)
 }
 
 // Update table

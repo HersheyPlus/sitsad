@@ -13,15 +13,6 @@ type Handler struct {
 	wsHub *ws.Hub
 }
 
-type CreateTableRequest struct {
-	RoomID    string  `json:"room_id" validate:"required"`
-	Name      string  `json:"name" validate:"required"`
-	PositionX float64 `json:"position_x" validate:"required"`
-	PositionY float64 `json:"position_y" validate:"required"`
-	Width     float64 `json:"width" validate:"required"`
-	Height    float64 `json:"height" validate:"required"`
-}
-
 type CreateDeviceRequest struct {
 	Name       string            `json:"name"`
 	Topic      string            `json:"topic"`
@@ -36,6 +27,16 @@ type CreateForgotItemRequest struct {
 	BuildingName string    `form:"building_name"`
 	RoomName     string    `form:"room_name"`
 	Date         time.Time `form:"date"`
+}
+
+type CreateTableRequest struct {
+	RoomID    string  `json:"room_id" validate:"required"`
+	Name      string  `json:"name" validate:"required"`
+	PositionX float64 `json:"position_x" validate:"required"`
+	PositionY float64 `json:"position_y" validate:"required"`
+	Width     float64 `json:"width" validate:"required"`
+	Height    float64 `json:"height" validate:"required"`
+	DeviceID  string  `json:"device_id"`
 }
 
 type UpdateTableRequest struct {
@@ -54,6 +55,7 @@ type CreateToiletRequest struct {
 	Width     float64 `json:"width" validate:"required"`
 	Height    float64 `json:"height" validate:"required"`
 	Name      string  `json:"name" validate:"required"`
+	DeviceID  string  `json:"device_id"`
 }
 
 type UpdateToiletRequest struct {
@@ -89,6 +91,15 @@ type ItemResponse struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description,omitempty"`
 	Location    LocationResponse `json:"location"`
+	Device      DeviceResponse   `json:"device"`
+}
+
+type DeviceResponse struct {
+	DeviceID   string `json:"device_id"`
+	Name       string `json:"name"`
+	Topic      string `json:"topic"`
+	BuildingID string `json:"building_id"`
+	RoomID     string `json:"room_id"`
 }
 
 type LocationResponse struct {

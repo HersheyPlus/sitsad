@@ -62,7 +62,6 @@ func (m *Client) handleTableStatus(client mqtt.Client, msg mqtt.Message) {
     log.Printf("  Room ID: %s", roomID)
     log.Printf("  Item ID: %s", itemID)
 
-    // Start transaction
     tx := m.db.Begin()
     defer func() {
         if r := recover(); r != nil {

@@ -21,21 +21,6 @@ func (h *Handler) FindAllToilets(c *fiber.Ctx) error {
     return res.GetSuccess(c, "Toilets retrieved", toilets)
 }
 
-// Find all toilets by building ID
-func (h *Handler) FindAllToiletsByBuildingId(c *fiber.Ctx) error {
-    buildingId := c.Query("building_id")
-    if buildingId == "" {
-        return res.BadRequest(c, "building_id is required")
-    }
-
-    var toilets []models.Item
-    if err := h.db.Where("building_id = ? AND items.type = ?", buildingId, models.ItemTypeToilet).
-        Find(&toilets).Error; err != nil {
-        return res.InternalServerError(c, err)
-    }
-
-    return res.GetSuccess(c, "Toilets retrieved", toilets)
-}
 
 // Find toilet by ID
 func (h *Handler) FindToiletByID(c *fiber.Ctx) error {
@@ -63,8 +48,9 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
     var toilets []models.Item
     if err := h.db.
         Model(&models.Item{}).
-        Preload("Room").           
-        Preload("Room.Building").  
+        Preload("Room").
+        Preload("Room.Building").
+        Preload("Device").
         Joins("LEFT JOIN rooms ON items.room_id = rooms.room_id").
         Joins("LEFT JOIN buildings ON rooms.building_id = buildings.building_id").
         Where("items.type = ? AND items.room_id = ?", models.ItemTypeToilet, roomId).
@@ -81,11 +67,13 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
         resp := ItemResponse{
             ItemID:     toilet.ItemID,
             Type:       toilet.Type,
-            BuildingID: toilet.Room.Building.BuildingID,  // Add BuildingID from joined Building
+            BuildingID: toilet.Room.Building.BuildingID,
             Available:  toilet.Available,
-            Name:       toilet.Name,
             PositionX:  getFloatValue(toilet.PositionX, 0),
             PositionY:  getFloatValue(toilet.PositionY, 0),
+            Width:      getFloatValue(toilet.Width, 0),
+            Height:     getFloatValue(toilet.Height, 0),
+            Name:       toilet.Name,
             Location: LocationResponse{
                 Building: BuildingResponse{
                     BuildingID:   toilet.Room.Building.BuildingID,
@@ -101,13 +89,18 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
                     ImageURL:    toilet.Room.ImageURL,
                 },
             },
+            Device: DeviceResponse{},
         }
 
-        if toilet.Width != nil {
-            resp.Width = *toilet.Width
-        }
-        if toilet.Height != nil {
-            resp.Height = *toilet.Height
+        // Set device information if available
+        if toilet.Device != nil {
+            resp.Device = DeviceResponse{
+                DeviceID:   toilet.Device.ID,
+                Name:       toilet.Device.Name,
+                Topic:      toilet.Device.Topic,
+                BuildingID: toilet.Device.BuildingID,
+                RoomID:     toilet.Device.RoomID,
+            }
         }
 
         response = append(response, resp)
@@ -119,7 +112,7 @@ func (h *Handler) FindToiletsByRoomId(c *fiber.Ctx) error {
 
     return res.GetSuccess(c, "Toilets retrieved", response)
 }
-// Create toilet
+
 func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     var req CreateToiletRequest
     if err := c.BodyParser(&req); err != nil {
@@ -147,30 +140,70 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
         }
     }
 
+    itemID := uuid.GenerateUUID()
     toilet := models.NewToilet(
-        uuid.GenerateUUID(),
+        itemID,
         &req.RoomID,
         req.Name,
         req.PositionX,
         req.PositionY,
         req.Width,
         req.Height,
+        req.DeviceID,
     )
 
-    // Create the toilet first
     if err := tx.Create(toilet).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
     }
 
-    // Fetch the created toilet with relationships
     var resultToilet models.Item
-    if err := tx.Where("item_id = ?", toilet.ItemID).
+    if err := tx.Where("item_id = ?", itemID).
         Preload("Room").
         Preload("Room.Building").
+        Preload("Device").
         First(&resultToilet).Error; err != nil {
         tx.Rollback()
         return res.InternalServerError(c, err)
+    }
+
+    response := ItemResponse{
+        ItemID:     resultToilet.ItemID,
+        Type:       resultToilet.Type,
+        BuildingID: resultToilet.Room.Building.BuildingID,
+        Available:  resultToilet.Available,
+        PositionX:  *resultToilet.PositionX,
+        PositionY:  *resultToilet.PositionY,
+        Width:      *resultToilet.Width,
+        Height:     *resultToilet.Height,
+        Name:       resultToilet.Name,
+        Location: LocationResponse{
+            Building: BuildingResponse{
+                BuildingID:   resultToilet.Room.Building.BuildingID,
+                BuildingName: resultToilet.Room.Building.BuildingName,
+                Description:  resultToilet.Room.Building.Description,
+                ImageURL:     resultToilet.Room.Building.ImageURL,
+            },
+            Room: RoomResponse{
+                RoomID:      resultToilet.Room.RoomID,
+                BuildingID:  resultToilet.Room.BuildingID,
+                RoomName:    resultToilet.Room.RoomName,
+                Description: resultToilet.Room.Description,
+                ImageURL:    resultToilet.Room.ImageURL,
+            },
+        },
+        Device: DeviceResponse{},
+    }
+
+    // Set device information if available
+    if resultToilet.Device != nil {
+        response.Device = DeviceResponse{
+            DeviceID:   resultToilet.Device.ID,
+            Name:       resultToilet.Device.Name,
+            Topic:      resultToilet.Device.Topic,
+            BuildingID: resultToilet.Device.BuildingID,
+            RoomID:     resultToilet.Device.RoomID,
+        }
     }
 
     if err := tx.Commit().Error; err != nil {
@@ -178,7 +211,7 @@ func (h *Handler) CreateToilet(c *fiber.Ctx) error {
     }
 
     h.wsHub.BroadcastNewItem(&resultToilet, "toilet")
-    return res.CreatedSuccess(c, resultToilet)
+    return res.CreatedSuccess(c, response)
 }
 
 // Update toilet

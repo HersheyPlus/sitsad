@@ -20,6 +20,20 @@ CREATE TABLE IF NOT EXISTS rooms (
     FOREIGN KEY (building_id) REFERENCES buildings(building_id)
 );
 
+CREATE TABLE IF NOT EXISTS devices (
+    device_id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    building_id VARCHAR(100) NOT NULL,
+    room_id VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    web_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (building_id) REFERENCES buildings(building_id),
+    FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+);
+
 CREATE TABLE IF NOT EXISTS items (
     item_id VARCHAR(100) PRIMARY KEY,
     type VARCHAR(10) NOT NULL,
@@ -31,9 +45,11 @@ CREATE TABLE IF NOT EXISTS items (
     width FLOAT,
     height FLOAT,
     gender VARCHAR(10),
+    device_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+    FOREIGN KEY (room_id) REFERENCES rooms(room_id),
+    FOREIGN KEY (device_id) REFERENCES devices(device_id)
 );
 
 
@@ -59,16 +75,3 @@ CREATE TABLE IF NOT EXISTS forgot_items (
     FOREIGN KEY (table_id) REFERENCES items(item_id)
 );
 
-CREATE TABLE IF NOT EXISTS devices (
-    device_id VARCHAR(100) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    topic VARCHAR(100) NOT NULL,
-    building_id VARCHAR(100) NOT NULL,
-    room_id VARCHAR(100) NOT NULL,
-    type VARCHAR(20) NOT NULL,
-    web_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (building_id) REFERENCES buildings(building_id),
-    FOREIGN KEY (room_id) REFERENCES rooms(room_id)
-);

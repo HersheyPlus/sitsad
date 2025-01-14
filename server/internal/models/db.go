@@ -39,6 +39,7 @@ type Item struct {
 	ItemID    string    `gorm:"primaryKey;column:item_id;" json:"item_id"`
 	Type      ItemType  `gorm:"column:type;type:varchar(10);not null" json:"type"`
 	RoomID    *string   `gorm:"column:room_id" json:"room_id,omitempty"`
+	DeviceID *string   `gorm:"column:device_id" json:"device_id,omitempty"`
 	Available bool      `gorm:"column:available;default:true" json:"available"`
 	PositionX *float64  `gorm:"column:position_x" json:"position_x,omitempty"`
 	PositionY *float64  `gorm:"column:position_y" json:"position_y,omitempty"`
@@ -51,6 +52,7 @@ type Item struct {
 	// Relationships
 	Building *Building           `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
 	Room     *Room               `gorm:"foreignKey:RoomID;references:RoomID" json:"room,omitempty"`
+	Device  *Device             `gorm:"foreignKey:DeviceID;references:ID" json:"device,omitempty"`
 	Bookings []BookingTimePeriod `gorm:"foreignKey:ItemID" json:"bookings,omitempty"`
 }
 
@@ -96,6 +98,7 @@ type Device struct {
 	// Relations
 	Building Building `gorm:"foreignKey:BuildingID" json:"building,omitempty"`
 	Room     Room     `gorm:"foreignKey:RoomID" json:"room,omitempty"`
+	Item    Item     `gorm:"foreignKey:DeviceID" json:"item,omitempty"`
 }
 
 // TableName methods
@@ -149,7 +152,7 @@ func NewRoom(roomId string, buildingID string, roomName, description, imageURL s
 	}
 }
 
-func NewTable(itemId, roomID string, posX, posY, width, height float64, name string) *Item {
+func NewTable(itemId, roomID string, posX, posY, width, height float64, name string, deviceId string) *Item {
 	return &Item{
 		ItemID:    itemId,
 		Type:      ItemTypeTable,
@@ -160,10 +163,11 @@ func NewTable(itemId, roomID string, posX, posY, width, height float64, name str
 		Width:     &width,
 		Height:    &height,
 		Name:      name,
+		DeviceID: &deviceId,
 	}
 }
 
-func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64) *Item {
+func NewToilet(itemId string, roomID *string, name string, posX, posY, width, height float64, deviceId string) *Item {
 	return &Item{
 		ItemID:    itemId,
 		Type:      ItemTypeToilet,
@@ -174,6 +178,7 @@ func NewToilet(itemId string, roomID *string, name string, posX, posY, width, he
 		Width:     &width,
 		Height:    &height,
 		Available: true,
+		DeviceID: &deviceId,
 	}
 }
 
