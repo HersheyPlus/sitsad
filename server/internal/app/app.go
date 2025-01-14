@@ -116,7 +116,7 @@ func (a *App) setupRoutes() {
 
 	// Item Routes
 	items := api.Group("/items")
-	items.Put("/:id", a.handlers.UpdateItemAvailable) // update item available ✅
+	items.Put("/available/:id", a.handlers.UpdateItemAvailable) // update item available ✅
 	items.Delete("/:id", a.handlers.DeleteItem)       // update item available ✅
 
 	// Table Routes
